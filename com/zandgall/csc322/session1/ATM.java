@@ -22,6 +22,7 @@ public class ATM {
       Account account = accounts.get(id);
       boolean menu = true;
       while(menu) { // Forever prompt for an action on this account, if 5 then we will use break to exit
+        System.out.println();
         System.out.println("Main Menu");
         System.out.println();
         System.out.println("1. Check Balance");
@@ -29,8 +30,11 @@ public class ATM {
         System.out.println("3. Deposit");
         System.out.println("4. Account Information");
         System.out.println("5. Exit (choose different account)");
+        System.out.println();
         System.out.print("Please make a selection: ");
-        switch(input.nextInt()) {
+        int selection = input.nextInt();
+        System.out.println();
+        switch(selection) {
           case 1:
             System.out.print("The current balance is: ");
             System.out.println(account.getBalance());
