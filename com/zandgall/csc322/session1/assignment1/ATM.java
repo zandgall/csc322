@@ -1,4 +1,4 @@
-package com.zandgall.csc322.session1;
+package com.zandgall.csc322.session1.assignment1;
 
 import java.io.*;
 import java.util.Scanner;
