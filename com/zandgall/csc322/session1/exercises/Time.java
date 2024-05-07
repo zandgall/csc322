@@ -4,10 +4,12 @@ public class Time {
 	private int hour, minute, second;
 
 	public Time() {
+		// Initiate with current milliseconds since unix epoch
 		this(System.currentTimeMillis());
 	}
 
 	public Time(long elapseTimeMillis) {
+		// Call setTime method to set time in ms
 		setTime(elapseTimeMillis);
 	}
 
@@ -18,6 +20,7 @@ public class Time {
 	}
 
 	public void setTime(long elapseTimeMillis) {
+		// Convert milliseconds to seconds mod 60, minutes mod 60, and hours mod 24
 		second = (int)(elapseTimeMillis / 1000) % 60;
 		minute = (int)(elapseTimeMillis / 60000) % 60;
 		hour = (int)(elapseTimeMillis / 3600000) % 24;

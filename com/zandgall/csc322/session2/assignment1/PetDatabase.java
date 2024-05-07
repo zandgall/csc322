@@ -4,6 +4,8 @@ import java.util.Scanner;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.FileNotFoundException;
 
 class FullDatabaseException extends Exception {
 	public FullDatabaseException(int capacity) {
