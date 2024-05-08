@@ -1,7 +1,7 @@
 /* CSC322 SESSION 1: ASSIGNMENT 1 - PROF. SUSAN FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
 
- ## ATM.java - class ATM
+ ## ATM.java - ATM
  # Lets the user interact with 10 account instances using terminal input
 
  : MADE IN NEOVIM */

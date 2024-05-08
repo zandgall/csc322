@@ -1,3 +1,11 @@
+/* CSC322 SESSION 1: BOOK EXERCISES - PROF. SUSAN FURTNEY
+ > ZANDER GALL - GALLA@CSP.EDU
+
+ ## TimeTest.java - TimeTest
+ # Creates 3 'Time' instances and prints their contents.
+
+ : MADE IN NEOVIM */
+
 package com.zandgall.csc322.session1.exercises;
 
 public class TimeTest {
@@ -9,8 +17,8 @@ public class TimeTest {
 		c = new Time(5, 23, 55); // 5:23:55
 		
 		// Print output
-		System.out.println("A: " + a.getHour() + ":" + a.getMinute() + ":" + a.getSecond());
-		System.out.println("B: " + b.getHour() + ":" + b.getMinute() + ":" + b.getSecond());
-		System.out.println("C: " + c.getHour() + ":" + c.getMinute() + ":" + c.getSecond());
+		System.out.printf("A: %d:%02d:%02d%n", a.getHour(), a.getMinute(), a.getSecond());
+		System.out.printf("B: %d:%02d:%02d%n", b.getHour(), b.getMinute(), b.getSecond());
+		System.out.printf("C: %d:%02d:%02d%n", c.getHour(), c.getMinute(), c.getSecond());
 	}
 };

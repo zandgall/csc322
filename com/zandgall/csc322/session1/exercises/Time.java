@@ -1,3 +1,14 @@
+/* CSC322 SESSION 1: BOOK EXERCISES - PROF. SUSAN FURTNEY
+ > ZANDER GALL - GALLA@CSP.EDU
+
+ ## Time.java - Time
+ # Stores hour, minute, and second integers.
+ # Has methods to get and set each property
+ # Has method to set each property based on a unix timestamp in millis
+ # Can be initialized with nothing (sets time to now), a timestamp, and an hour, minute, and second to use
+ 
+ : MADE IN NEOVIM */
+
 package com.zandgall.csc322.session1.exercises;
 
 public class Time {

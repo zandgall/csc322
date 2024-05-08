@@ -1,7 +1,7 @@
 /* CSC322 SESSION 1: ASSIGNMENT 1 - PROF. SUSAN FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
 
- ## Account.java - class Account
+ ## Account.java - Account
  # Stores an ID, date created, balance, and annual interest rate.
  # Can be modified using the methods provided, highlighting deposit and withdraw.
  
