@@ -11,12 +11,17 @@ package com.zandgall.csc322.session2.assignment;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Scanner;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
 
 public class OnlineStore {
 	
+	public static final DateFormat dateFormatter = new SimpleDateFormat("MM/dd/yyyy");
+
 	private ItemInventory inventory;
 
-	public OnlineStore() throws IOException, ItemInventory.InvalidTypeException {
+	public OnlineStore() throws IOException, ItemInventory.InvalidTypeException, ParseException {
 		inventory = ItemInventory.load("inventory.txt");
 	}
 
@@ -30,7 +35,7 @@ public class OnlineStore {
 			System.out.println(" 3) Show only Books");
 			System.out.println(" 4) Show only Software");
 			System.out.println(" 5) Exit");
-
+			System.out.print("> ");
 			int selection = s.nextInt();
 			switch(selection) {
 			case 1:
@@ -68,14 +73,49 @@ public class OnlineStore {
 	}
 
 	public void showMusicCDs() {
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		System.out.printf("%-20s %20s %10s %28s %22s %10s %10s %10s %10s%n", "Title", "Artists", "Release", "Label", "Record", "Length", "Genres", "Price", "Quantity");
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
+		for(int i = 0; i < inventory.size(); i++) {
+			ItemEntry entry = inventory.getEntry(i);
+			if(entry.getItem() instanceof MusicCD musicCD) {
+				String dateString = dateFormatter.format(musicCD.getReleaseDate());
+				System.out.printf("%-20s %20s %10s %28s %22s %10d %10s %10.2f %10d%n", musicCD.getTitle(), musicCD.getArtists(), dateString, musicCD.getLabel(), musicCD.getRecordCompany(), musicCD.getTotalLength(), musicCD.getGenres(), musicCD.getPrice(), entry.getQuantity());
+			}
+		}
+
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 	}
 
 	public void showBooks() {
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		System.out.printf("%-30s %20s %8s %20s %4s %10s %10s%n", "Title", "Authors", "Edition", "Publisher", "Year", "Price", "Quantity");
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+		for(int i = 0; i < inventory.size(); i++) {
+			ItemEntry entry = inventory.getEntry(i);
+			if(entry.getItem() instanceof Book book) {
+				System.out.printf("%-30s %20s %8s %20s %4d %10.2f %10d%n", book.getTitle(), book.getAuthors(), book.getEdition(), book.getPublisher(), book.getPubYear(), book.getPrice(), entry.getQuantity());
+			}
+		}
+
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 	}
 
 	public void showSoftware() {
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		System.out.printf("%-30s %8s %10s %10s%n", "Title", "Version", "Price", "Quantity");
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
+		for(int i = 0; i < inventory.size(); i++) {
+			ItemEntry entry = inventory.getEntry(i);
+			if(entry.getItem() instanceof Software software) {
+				System.out.printf("%-30s %8s %10.2f %10d%n", software.getTitle(), software.getVersion(), software.getPrice(), entry.getQuantity());
+			}
+		}
+
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 	}
 }

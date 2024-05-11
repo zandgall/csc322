@@ -10,20 +10,20 @@ package com.zandgall.csc322.session2.assignment;
 
 public class Book extends Item {
 
-	private final String authors, edition, publishers;
+	private final String authors, edition, publisher;
 	private final int pubYear;
 
-	public Book(String title, String authors, String edition, String publishers, int pubYear, float price) {
-		super(title, price);
+	// Parse list of attribs from an inventory
+	public Book(String authors, String publisher, String edition, int pubYear) {
 		this.authors = authors;
 		this.edition = edition;
-		this.publishers = publishers;
+		this.publisher = publisher;
 		this.pubYear = pubYear;
 	}
 
 	public String getAuthors() { return authors; }
 	public String getEdition() { return edition; }
-	public String getPublisher() { return publishers; }
+	public String getPublisher() { return publisher; }
 	public int getPubYear() { return pubYear; }
 
 	@Override

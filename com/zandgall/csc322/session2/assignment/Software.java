@@ -11,8 +11,7 @@ package com.zandgall.csc322.session2.assignment;
 public class Software extends Item {
 	private final String version;
 
-	public Software(String title, String version, float price) {
-		super(title, price);
+	public Software(String version) {
 		this.version = version;
 	}
 
