@@ -3,6 +3,17 @@ Class projects for CSC322 - Object Oriented Programming in Java
 
 ## Session 2
 
+### Discsussion
+
+A small class that overrides the `Object.equals()` function, with a demonstration of it. Used in a class dicussion.
+
+Compile and Run:
+```sh
+cd csc322
+javac -d build com/zandgall/csc322/session2/discussion/Comparison.java
+java -ea -cp build com.zandgall.csc322.session2.exercise.Comparison
+```
+
 ### Exercise
 
 A simple 'shuffle' function and demonstration. This little program creates an ArrayList and shuffles it several times. The shuffling is performed by swapping every entry in the list with a randomly picked entry elsewhere in the list. Like so:
