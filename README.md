@@ -3,6 +3,18 @@ Class projects for CSC322 - Object Oriented Programming in Java
 
 ## Session 2
 
+### Assignment
+
+A project that loads a text file to parse an Inventory, and provides a command line interface to list different queries of items.
+
+Compile and Run:
+```sh
+cd csc322
+javac -d build com/zandgall/csc322/session2/assignment/Main.java
+java -cp build com.zandgall.csc322.session2.assignment.Main
+```
+(Make sure that inventory.txt is in your working directory)
+
 ### Discsussion
 
 A small class that overrides the `Object.equals()` function, with a demonstration of it. Used in a class dicussion.

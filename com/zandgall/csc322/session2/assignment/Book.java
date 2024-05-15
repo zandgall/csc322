@@ -1,4 +1,4 @@
-/*CSC322 SESSION 2: ASSIGNMENT - PROF. SUSAN FURTNEY
+/* CSC322 SESSION 2: ASSIGNMENT - PROF. SUSAN FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
 
  ## Book
@@ -13,7 +13,6 @@ public class Book extends Item {
 	private final String authors, edition, publisher;
 	private final int pubYear;
 
-	// Parse list of attribs from an inventory
 	public Book(String authors, String publisher, String edition, int pubYear) {
 		this.authors = authors;
 		this.edition = edition;

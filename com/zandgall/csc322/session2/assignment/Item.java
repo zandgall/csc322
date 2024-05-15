@@ -1,4 +1,4 @@
-/*CSC322 SESSION 2: ASSIGNMENT - PROF. SUSAN FURTNEY
+/* CSC322 SESSION 2: ASSIGNMENT - PROF. SUSAN FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
 
  ## Item
@@ -22,5 +22,8 @@ public abstract class Item {
 
 	public void setPrice(double price) { this.price = price; }
 
+	/**
+	* Gets overridden by subclasses for {@link OnlineStore#showItems() showItems}
+	*/
 	public String getType() { return "Item"; }
 }

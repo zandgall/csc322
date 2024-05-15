@@ -1,8 +1,9 @@
-/*CSC322 SESSION 2: ASSIGNMENT - PROF. SUSAN FURTNEY
+/* CSC322 SESSION 2: ASSIGNMENT - PROF. SUSAN FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
 
  ## Main
  # Wrapper for OnlineStore.start
+ # Throws more exceptions than just IOException in order to account for additional details added in my implementation.
 
  : MADE IN NEOVIM */
 

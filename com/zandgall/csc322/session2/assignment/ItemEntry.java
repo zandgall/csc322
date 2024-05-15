@@ -1,8 +1,8 @@
-/*CSC322 SESSION 2: ASSIGNMENT - PROF. SUSAN FURTNEY
+/* CSC322 SESSION 2: ASSIGNMENT - PROF. SUSAN FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
 
  ## ItemEntry
- #
+ # Keeps a reference to an item, and its quantity
 
  : MADE IN NEOVIM */
 
