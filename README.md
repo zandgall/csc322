@@ -1,6 +1,24 @@
 # CSC322
 Class projects for CSC322 - Object Oriented Programming in Java
 
+## Session 2
+
+### Exercise
+
+A simple 'shuffle' function and demonstration. This little program creates an ArrayList and shuffles it several times. The shuffling is performed by swapping every entry in the list with a randomly picked entry elsewhere in the list. Like so:
+
+```pseudo
+for (i from 0 to size of list)
+    swap list[i] with list[random from 0 to size of list]
+```
+
+Compile and Run:
+```sh
+cd csc322
+javac -d build com/zandgall/csc322/session2/exercise/Shuffle.java
+java -cp build com.zandgall.csc322.session2.exercise.Shuffle
+```
+
 ## Session 1
 
 ### Assignment 1

@@ -19,10 +19,10 @@ public class Shuffle {
 		
 		// Loop through every index in the list
 		for(int i = 0; i < list.size(); i++) {
-			// Pick a random index in the list
+			// Pick a random index in the list,
 			int swapWithIndex = r.nextInt(list.size());
 
-			// Swap list[i] and list[swapWithIndex]
+			// And swap list[i] with list[swapWithIndex]
 			Integer temporary = list.get(i);
 			list.set(i, list.get(swapWithIndex));
 			list.set(swapWithIndex, temporary);
@@ -43,7 +43,7 @@ public class Shuffle {
 		System.out.println();
 		System.out.println(); // Line Spacing
 
-		// Shuffle a few times
+		// Shuffle a few times with printing the output
 		for(int i = 1; i <= 5; i++) {
 			// Shuffle the list
 			shuffle(list);
