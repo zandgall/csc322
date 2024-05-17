@@ -2,7 +2,10 @@
  > ZANDER GALL - GALLA@CSP.EDU
 
  ## ItemInventory
- # An aggregate of ItemEntries, with a central function to load 
+ # An aggregate of ItemEntries, with a central function to load
+
+ ## InvalidTypeException
+ # An error thrown whenever the inventory attempts to load an item with an unknown/unrecognized type
 
  : MADE IN NEOVIM */
 
