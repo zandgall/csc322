@@ -22,5 +22,17 @@ public class QuestionFactory implements IQuestionFactory {
 	public IQuestion makeFillInBlank(String question, String[] answers) {
 		return new FillInBlanksQuestion(question, answers);
 	}
+
+	public IQuestion makeShortAnswer(String question, String[] keywords) {
+		return new ShortAnswerQuestion(question, keywords);
+	}
+
+	public IQuestionSet load(String filename) throws IOException {
+
+	}
+
+	public boolean save(IQuestionSet testSet, String filename) {
+		
+	}
 }
 
