@@ -25,7 +25,7 @@ public class ShortAnswerQuestion implements IShortAnswerQuestion, ISaveableQuest
 	}
 
 	public String getQuestion() {
-		return question;
+		return "Short Answer: " + question;
 	}
 
 	public boolean checkAnswer(String answer) {

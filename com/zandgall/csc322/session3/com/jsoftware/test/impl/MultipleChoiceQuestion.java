@@ -34,7 +34,7 @@ public class MultipleChoiceQuestion implements IMultipleChoiceQuestion, ISaveabl
 		*	3)	answers[2]
 		*	4)	answers[3]
 		*/
-		return String.format("%s%n\t1)\t%s%n\t2)\t%s%n\t3)\t%s%n\t4)\t%s%n",
+		return String.format("Multiple Choice: %s%n\t1)\t%s%n\t2)\t%s%n\t3)\t%s%n\t4)\t%s%n",
 						question, answers[0], answers[1], answers[2], answers[3]);
 	}
 

@@ -26,7 +26,7 @@ public class FillInBlanksQuestion implements IFillInBlanksQuestion, ISaveableQue
 	}
 
 	public String getQuestion() {
-		return question;
+		return "Fill in the blank: " + question + " (comma, separated, values)";
 	}
 
 	public boolean checkAnswer(String[] keywords) {
@@ -34,10 +34,10 @@ public class FillInBlanksQuestion implements IFillInBlanksQuestion, ISaveableQue
 			return false;
 
 		// Check if any of the keywords in lowercase and stripped don't match, in which case return incorrect
-		for(int i = 0; i < keywords.length; i++) {
-			if(keywords[i].strip().toLowerCase()!=this.keywords[i])
+		for(int i = 0; i < keywords.length; i++)
+			if(!keywords[i].strip().toLowerCase().equals(this.keywords[i]))
 				return false;
-		}
+
 		return true;
 	}
 	
