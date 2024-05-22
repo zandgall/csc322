@@ -9,8 +9,10 @@
 package com.jsoftware.test.impl;
 
 import com.jsoftware.test.api.IShortAnswerQuestion;
+import java.io.IOException;
+import java.io.FileWriter;
 
-public class ShortAnswerQuestion implements IShortAnswerQuestion {
+public class ShortAnswerQuestion implements IShortAnswerQuestion, ISaveableQuestion {
 	private String question;
 	private String[] keywords;
 
@@ -32,6 +34,15 @@ public class ShortAnswerQuestion implements IShortAnswerQuestion {
 			if(!answer.toLowerCase().contains(keywords[i]))
 				return false;
 		return true;
+	}
+
+	public void write(FileWriter writer) throws IOException {
+		String ls = System.lineSeparator(); // Support "\n" and "\r\n"
+		writer.write("short " + question + ls);
+		writer.write(keywords.length + " ");
+		for(int i = 0; i < keywords.length; i++)
+			writer.write(keywords[i] + " ");
+		writer.write(ls);
 	}
 }
 

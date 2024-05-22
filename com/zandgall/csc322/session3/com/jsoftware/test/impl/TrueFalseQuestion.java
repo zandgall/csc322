@@ -9,8 +9,10 @@
 package com.jsoftware.test.impl;
 
 import com.jsoftware.test.api.ITrueFalseQuestion;
+import java.io.IOException;
+import java.io.FileWriter;
 
-public class TrueFalseQuestion implements ITrueFalseQuestion {
+public class TrueFalseQuestion implements ITrueFalseQuestion, ISaveableQuestion {
 	
 	private String question;
 	private boolean correct;
@@ -27,6 +29,10 @@ public class TrueFalseQuestion implements ITrueFalseQuestion {
 	public boolean checkAnswer(boolean answer) {
 		return answer == this.correct;
 	}
-
+	
+	public void write(FileWriter writer) throws IOException {
+		String ls = System.lineSeparator(); // supports "\n" and "\r\n"
+		writer.write("truefalse " + question + ls + correct + ls);
+	}
 }
 

@@ -1,19 +1,23 @@
 /* CSC322 SESSION 3: ASSIGNMENT - PROF. SUSAN FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
 
- ## FillInTheBlanksQuestion
- # An implementation of IFillInTheBlanksQuestion
+ ## FillInBlanksQuestion
+ # An implementation of IFillInBlanksQuestion
 
  : MADE IN NEOVIM */
 
-package com.jsoftware.test;
+package com.jsoftware.test.impl;
 
-public class FillInTheBlanksQuestion implements IFillInTheBlanksQuestion {
+import com.jsoftware.test.api.IFillInBlanksQuestion;
+import java.io.IOException;
+import java.io.FileWriter;
+
+public class FillInBlanksQuestion implements IFillInBlanksQuestion, ISaveableQuestion {
 	
 	private String question;
 	private String[] keywords;
 
-	public FillInTheBlanksQuestion(String question, String[] keywords) {
+	public FillInBlanksQuestion(String question, String[] keywords) {
 		this.question = question;
 		// cleanse input keywords (strip and lowercase)
 		this.keywords = new String[keywords.length];
@@ -25,7 +29,7 @@ public class FillInTheBlanksQuestion implements IFillInTheBlanksQuestion {
 		return question;
 	}
 
-	public boolean checkAnswers(String[] keywords) {
+	public boolean checkAnswer(String[] keywords) {
 		if(keywords.length!=this.keywords.length)
 			return false;
 
@@ -36,6 +40,17 @@ public class FillInTheBlanksQuestion implements IFillInTheBlanksQuestion {
 		}
 		return true;
 	}
+	
+	public void write(FileWriter writer) throws IOException {
+		String ls = System.lineSeparator(); // support \n and \r\n
+		writer.write("blanks ");
+		writer.write(question + ls);
+		writer.write(keywords.length + " ");
+		for(String s : keywords)
+			writer.write(s + " ");
+		writer.write(ls);
+	}
+
 
 }
 

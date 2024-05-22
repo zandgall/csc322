@@ -8,7 +8,11 @@
 
 package com.jsoftware.test.impl;
 
-public class MultipleChoiceQuestion implements IMultipleChoiceQuestion {
+import com.jsoftware.test.api.IMultipleChoiceQuestion;
+import java.io.IOException;
+import java.io.FileWriter;
+
+public class MultipleChoiceQuestion implements IMultipleChoiceQuestion, ISaveableQuestion {
 
 	private String question;
 	private String[] answers;
@@ -36,6 +40,12 @@ public class MultipleChoiceQuestion implements IMultipleChoiceQuestion {
 
 	public boolean checkAnswer(int index) {
 		return index == correct;
+	}
+
+	public void write(FileWriter writer) throws IOException {
+		String ls = System.lineSeparator(); // Support "\n" and "\r\n"
+		writer.write("multiplechoice " + question + ls);
+		writer.write(answers[0] + " " + answers[1] + " " + answers[2] + " " + answers[3] + " " + correct + ls);
 	}
 
 }
