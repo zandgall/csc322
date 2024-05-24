@@ -8,8 +8,12 @@
 
 package com.zandgall.csc322.finalproj.level;
 
+import com.zandgall.csc322.finalproj.level.tile.Tile;
+
+import java.util.HashMap;
+
 public class Level {
 
-
+	private HashMap<Integer, HashMap<Integer, Tile>> level = new HashMap<>();
 
 }
