@@ -88,9 +88,12 @@ public class Parabola {
 
 		/**
 		 * Return a string in the format "(numerator) / (denominator)"
+		 * or just "(numerator)" when denominator is 1
 		 */
 		@Override
 		public String toString() {
+			if(denominator.equals(1l))
+				return String.format("%d", numerator.longValue());
 			return String.format("%d / %d", numerator.longValue(), denominator.longValue());
 		}
 

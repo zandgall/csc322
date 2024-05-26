@@ -1,6 +1,31 @@
 # CSC322
 Class projects for CSC322 - Object Oriented Programming in Java
 
+## Session 3
+
+### Exercise
+
+A simple project that prints the vertex form of a parabola entered by the user. It makes use of a custom "Rational" class that extends Number, it has methods to add, subtract, divide, and multiply with other numbers.
+(If this were a C++ assignment, I could even implement -+/* as operators ;) )
+
+Compile and Run:
+```sh
+cd csc322
+javac -d build com/zandgall/csc322/session3/exercise/Parabola.java
+java -cp build com.zandgall.csc322.session3.exercise.Parabola
+```
+
+### Discussion
+
+An example that demonstrates ways to use abstract classes. Including having a list of different child classes, holding common fields and methods, and calling common methods without having to know what the child class is.
+
+Compile and Run:
+```sh
+cd csc322
+javac -d build com/zandgall/csc322/session3/discussion/GallDiscussion3.java
+java -cp build com.zandgall.csc322.session3.discussion.GallDiscussion3
+```
+
 ## Session 2
 
 ### Assignment
