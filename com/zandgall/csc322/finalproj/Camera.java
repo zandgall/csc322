@@ -33,6 +33,19 @@ public class Camera {
 	}
 
 	public void transform(GraphicsContext gc) {
-		gc.transform(zoom, 0, 0, zoom, -x * zoom + Main.canvas.getWidth() * 0.5, -y * zoom + Main.canvas.getHeight() * 0.5);
+		// Clamp translation to nearest pixel to avoid gaps between tiles
+		gc.transform(zoom, 0, 0, zoom, (int)(-x * zoom + Main.canvas.getWidth() * 0.5), (int)(-y * zoom + Main.canvas.getHeight() * 0.5));
+	}
+
+	public double getX() {
+		return x;
+	}
+
+	public double getY() {
+		return y;
+	}
+
+	public double getZoom() {
+		return zoom;
 	}
 }
