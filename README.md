@@ -3,6 +3,17 @@ Class projects for CSC322 - Object Oriented Programming in Java
 
 ## Session 4
 
+### Exercise
+
+A simple demonstration of Object I/O Streams
+
+Compile and Run:
+```sh
+cd csc322
+javac -d build com/zandgall/csc322/session4/exercise/BinaryIO.java
+java -cp build com.zandgall.csc322.session4.exercise.BinaryIO
+```
+
 ### Discussion
 
 A humorous maze generator, made without consulting any outside resources like documentation or other projects or even IDE suggestions. With the only exception being a place to copy and paste the characters used to display the maze.
