@@ -66,12 +66,12 @@ public class TestTaker {
 			IQuestion question = test.getQuestion(i);
 			System.out.println(question.getQuestion());
 			System.out.print(" > ");
-			// We create a scanner for every question, to avoid buffer traffic skipping user input	
+			// We create a scanner for every question, to avoid buffer traffic skipping user input
 			Scanner s = new Scanner(System.in);
 			try {
 				if(checkAnswer(question, s)) { 
 					correct++;
-					iSystem.out.println();
+					System.out.println();
 					System.out.println("You got it!");
 				} else {
 					System.out.println();
@@ -85,13 +85,17 @@ public class TestTaker {
 		System.out.printf("You got %d questions right out of %d questions total%n", correct, test.size());
 	}
 
+	// Check question against scanner input, passing up input mismatch exceptions
 	private static boolean checkAnswer(IQuestion question, Scanner s) throws InputMismatchException {
 		if(question instanceof IMultipleChoiceQuestion q)
 			return q.checkAnswer(s.nextInt());
+
 		if(question instanceof ITrueFalseQuestion q)
 			return q.checkAnswer(s.nextBoolean());
+
 		if(question instanceof IFillInBlanksQuestion q)
 			return q.checkAnswer(s.nextLine().split(", ?"));
+
 		if(question instanceof IShortAnswerQuestion q)
 			return q.checkAnswer(s.nextLine());
 

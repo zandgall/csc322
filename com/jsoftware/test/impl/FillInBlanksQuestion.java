@@ -41,6 +41,7 @@ public class FillInBlanksQuestion implements IFillInBlanksQuestion, ISaveableQue
 		return true;
 	}
 	
+	// Used to write question to files
 	public void write(FileWriter writer) throws IOException {
 		String ls = System.lineSeparator(); // support \n and \r\n
 		writer.write("blanks ");

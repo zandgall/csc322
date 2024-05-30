@@ -29,6 +29,10 @@ public class QuestionSet implements IQuestionSet {
 		return new QuestionSet();
 	}
 
+	/**
+	* Produces a sample question set that randomizes in a way that produces minimal repeats
+	* @param size The number of questions to be produced in the sample
+	*/
 	@Override
 	public IQuestionSet randomSample(int size) {
 		if(size==0)

@@ -30,6 +30,7 @@ public class TrueFalseQuestion implements ITrueFalseQuestion, ISaveableQuestion 
 		return answer == this.correct;
 	}
 	
+	// Used to write question to file
 	public void write(FileWriter writer) throws IOException {
 		String ls = System.lineSeparator(); // supports "\n" and "\r\n"
 		writer.write("truefalse " + question + ls + correct + ls);

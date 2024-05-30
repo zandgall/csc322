@@ -42,6 +42,7 @@ public class MultipleChoiceQuestion implements IMultipleChoiceQuestion, ISaveabl
 		return index == correct;
 	}
 
+	// Used to write question to files
 	public void write(FileWriter writer) throws IOException {
 		String ls = System.lineSeparator(); // Support "\n" and "\r\n"
 		writer.write("multiplechoice " + question + ls);

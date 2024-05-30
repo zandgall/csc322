@@ -28,6 +28,7 @@ public class TestMaker {
 
 		System.out.println();
 
+		// Simple command line menu
 		while(true) {
 			int choice = getChoice(s);
 			switch(choice) {
@@ -123,9 +124,9 @@ public class TestMaker {
 		}
 		System.out.print("Which question would you like to remove? ");
 		Scanner s = new Scanner(System.in);
-		if(!test.remove(s.nextInt()))
-			System.out.println("Wasn't able to remove question!");
-		else
+		if(test.remove(s.nextInt()))
 			System.out.println("Removed question");
+		else
+			System.out.println("Wasn't able to remove question!");
 	}
 }

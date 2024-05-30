@@ -3,6 +3,21 @@ Class projects for CSC322 - Object Oriented Programming in Java
 
 ## Session 4
 
+### Assignment (cont. from Session 3)
+
+An implementation of a provided set of interfaces. A larger project that provides CLI to make and take tests.
+![Interface and relationship diagram](assets/interface_diagram.png)
+
+You first use the TestMaker program to make a test, then you use the TestTaker program to take a test.
+```sh
+cd csc322
+javac -d build com/jsoftware/test/TestMaker.java
+java -cp build com.jsoftware.test.TestMaker
+
+javac -d build com/jsoftware/test/TestTaker.java
+java -cp build com.jsoftware.test.TestTaker
+```
+
 ### Exercise
 
 A simple demonstration of Object I/O Streams

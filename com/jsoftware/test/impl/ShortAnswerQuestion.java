@@ -36,6 +36,7 @@ public class ShortAnswerQuestion implements IShortAnswerQuestion, ISaveableQuest
 		return true;
 	}
 
+	// Used to write question to file
 	public void write(FileWriter writer) throws IOException {
 		String ls = System.lineSeparator(); // Support "\n" and "\r\n"
 		writer.write("short " + question + ls);
