@@ -11,7 +11,9 @@ public class GallDiscussion4 {
 	public static void main(String[] args) throws InterruptedException {
 		System.out.println("We're gonna make you a maze!");
 		Thread.sleep(2000); // Pause 2 seconds
-		System.out.println("By using this software you acknowledge that this maze might not have a real solution, and you may be trapped forever");
+		
+		// Handle important real legal stuff 
+		System.out.println("By using this software you acknowledge that this maze may not have a real solution, and you might be trapped forever");
 		Thread.sleep(5000); // 5 seconds
 		System.out.println("Please sign this very real, very serious, and very legally binding document to agree to not sue us!");
 		Thread.sleep(5000); // 5 seconds
@@ -21,6 +23,7 @@ public class GallDiscussion4 {
 		Scanner s = new Scanner(System.in);
 		String importantLegalSignature = s.nextLine();
 
+		// Gather information for generation
 		System.out.println("How many characters wide do you want your maze to be?");
 		System.out.print(" > ");
 		int width = s.nextInt();
@@ -32,6 +35,7 @@ public class GallDiscussion4 {
 		// List of characters to sample
 		char[] walls = new char[] {'├', '│', '┤', '┬', '─', '┴', '┌', '┐', '└', '┘', '┼'};
 
+		// Generate and print maze!
 		for(int y = 0; y < height; y++) {
 			// Print left wall, top corner, bottom corner, or opening
 			if(y == 0)
