@@ -1,6 +1,19 @@
 # CSC322
 Class projects for CSC322 - Object Oriented Programming in Java
 
+## Session 4
+
+### Discussion
+
+A humorous maze generator, made without consulting any outside resources like documentation or other projects or even IDE suggestions. With the only exception being a place to copy and paste the characters used to display the maze.
+
+Compile and Run:
+```sh
+cd csc322
+javac -d build com/zandgall/csc322/session4/discussion/GallDiscussion4.java
+java -cp build com.zandgall.csc322.session4.discussion.GallDiscussion4
+```
+
 ## Session 3
 
 ### Exercise
