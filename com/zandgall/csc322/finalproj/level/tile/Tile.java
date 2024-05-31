@@ -27,6 +27,15 @@ public abstract class Tile {
 	public static final Tile grass_bl = new ImageTile("res/tiles/grass_bl.png");
 	public static final Tile grass_br = new ImageTile("res/tiles/grass_br.png");
 	public static final Tile thickgrass = new ImageTile("res/tiles/thickgrass.png");
+	
+	public static final Tile tutorial[] = new Tile[] {
+		new ImageTile("res/tiles/tut_up.png"),
+		new ImageTile("res/tiles/tut_right.png"),
+		new ImageTile("res/tiles/tut_down.png"),
+		new ImageTile("res/tiles/tut_left.png"),
+		new ImageTile("res/tiles/tut_z.png"),
+		new ImageTile("res/tiles/tut_x.png"),
+	};
 
 	private final int ID;
 
@@ -35,8 +44,16 @@ public abstract class Tile {
 		tilemap.add(this);
 	}
 
-	public static Tile getTile(int ID) {
+	public static Tile get(int ID) {
+		if(ID >= tilemap.size())
+			return empty;
+		if(ID < 0)
+			return tilemap.get(tilemap.size()-1);
 		return tilemap.get(ID);
+	}
+
+	public int getID() {
+		return ID;
 	}
 
 	/**

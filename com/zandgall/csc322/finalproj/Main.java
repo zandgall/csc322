@@ -38,9 +38,9 @@ public class Main extends Application {
 	public static Canvas canvas;
 	public static GraphicsContext gc;
 
-	private Player player;
-	private Camera camera;
-	private Level level;
+	protected Player player;
+	protected Camera camera;
+	protected Level level;
 
 	@Override
 	public void start(Stage stage) {
@@ -100,6 +100,11 @@ public class Main extends Application {
 		level.put(-5, -4, Tile.thickgrass);
 		level.put(-4, -4, Tile.thickgrass);
 		level.put(-3, -4, Tile.thickgrass);
+		
+		level.put(2, -1, Tile.tutorial[0]);
+		level.put(3, 0, Tile.tutorial[1]);
+		level.put(2, 0, Tile.tutorial[2]);
+		level.put(1, 0, Tile.tutorial[3]);
 
 		level.addEntity(player);
 		level.addEntity(new Tree(-3.5, -4.5));
@@ -140,7 +145,6 @@ public class Main extends Application {
 		gc.save();
 		camera.transform(gc);	
 		level.render(gc);
-		// player.render(gc);
 		gc.restore();
 	}
 

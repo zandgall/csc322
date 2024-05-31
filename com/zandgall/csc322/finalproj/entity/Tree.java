@@ -28,6 +28,7 @@ public class Tree extends Entity {
 			texture = null;
 			System.err.println("Could not find tree texture!");
 		}
+		register("Tree", Tree.class);
 	};
 
 	public Tree() {

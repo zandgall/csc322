@@ -67,6 +67,12 @@ public class Level {
 		level.get(x).put(y, tile);
 	}
 
+	public Tile get(int x, int y) {
+		if(level.get(x) == null)
+			return null;
+		return level.get(x).get(y);
+	}
+
 	public void addEntity(Entity e) {
 		entities.add(e);
 	}
