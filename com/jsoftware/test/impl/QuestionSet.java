@@ -8,6 +8,7 @@
 
 package com.jsoftware.test.impl;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,8 +44,10 @@ public class QuestionSet implements IQuestionSet {
 		QuestionSet output = new QuestionSet();
 		
 		// Create a list of indices and shuffle them to avoid repeats
-		// (Using modern Java Streams)
-		List<Integer> sample = IntStream.rangeClosed(0, this.size()).boxed().toList();
+		ArrayList<Integer> sample = new ArrayList<Integer>();
+		for(int i = 0; i < this.size(); i++)
+			sample.add(i);
+
 		for(int i = 0; i < size; i++) {
 			// In this list we select an indice from "sample" using (i % this.size())
 			// This causes the sample list to functionally repeat if we extend past the end of it
