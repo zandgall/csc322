@@ -19,9 +19,12 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.GaussianBlur;
 
 import java.util.HashMap;
 
+import com.zandgall.csc322.finalproj.entity.EntityRegistry;
 import com.zandgall.csc322.finalproj.entity.Player;
 import com.zandgall.csc322.finalproj.entity.Tree;
 import com.zandgall.csc322.finalproj.level.Level;
@@ -35,8 +38,9 @@ public class Main extends Application {
 
 	public static Scene scene;
 	public static Stage stage;
-	public static Canvas canvas;
-	public static GraphicsContext gc;
+	public static Pane root;
+	public static Canvas layer_0, layer_1, shadow_0, layer_2, shadow_1;
+	public static GraphicsContext c0, c1, s0, c2, s1;
 
 	protected Player player;
 	protected Camera camera;
@@ -47,16 +51,14 @@ public class Main extends Application {
 		instance = this;
 		Main.stage = stage;
 
-		Pane root = new Pane();
-		canvas = new Canvas(1280, 720);
-		gc = canvas.getGraphicsContext2D();
-		gc.setImageSmoothing(false);
-		root.getChildren().add(canvas);
+		EntityRegistry.registerClasses();
 
-		scene = new Scene(root, 1280, 720);
+		setupScene();
 		stage.setTitle("Final");
 		stage.setScene(scene);
 		stage.show();
+		stage.toFront();
+		stage.requestFocus();
 
 		keys = new HashMap<KeyCode, Boolean>();
 		for(KeyCode a : KeyCode.values())
@@ -78,36 +80,13 @@ public class Main extends Application {
 		player = new Player();
 		camera = new Camera();
 		level = new Level();
-
-		for(int i = -10; i < 10; i++)
-			for(int j = -10; j < 10; j++)
-				level.put(i, j, Tile.ground);
-		
-		for(int i = -2; i <= 2; i++)
-			for(int j = -2; j <= 2; j++)
-				if(i*i + j*j < 6)
-					level.put(i-4, j-5, Tile.grass);
-		level.put(-6, -7, Tile.grass_tl);
-		level.put(-2, -7, Tile.grass_tr);
-		level.put(-6, -3, Tile.grass_bl);
-		level.put(-2, -3, Tile.grass_br);
-
-		level.put(-5, -6, Tile.thickgrass);
-		level.put(-4, -6, Tile.thickgrass);
-		level.put(-3, -6, Tile.thickgrass);
-		level.put(-5, -5, Tile.thickgrass);
-		level.put(-3, -5, Tile.thickgrass);
-		level.put(-5, -4, Tile.thickgrass);
-		level.put(-4, -4, Tile.thickgrass);
-		level.put(-3, -4, Tile.thickgrass);
-		
-		level.put(2, -1, Tile.tutorial[0]);
-		level.put(3, 0, Tile.tutorial[1]);
-		level.put(2, 0, Tile.tutorial[2]);
-		level.put(1, 0, Tile.tutorial[3]);
+		try {
+			level.load("res/level/test.bin");
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 
 		level.addEntity(player);
-		level.addEntity(new Tree(-3.5, -4.5));
 
 		new AnimationTimer() {
 			private long lastTime = System.nanoTime(); 
@@ -120,14 +99,46 @@ public class Main extends Application {
 				render();
 
 				try {
-                    Thread.sleep(13);
-                } catch (InterruptedException e) {
-                    // Do nothing
-                }
+					Thread.sleep(13);
+				} catch (InterruptedException e) {
+					// Do nothing
+				}
 			}
 		}.start();
 	}
 
+	// Pulled to it's own function so that it can be overridden in LevelEditor
+	public void setupScene() {
+		root = new Pane();
+		layer_0 = new Canvas(1280, 720);
+		c0 = layer_0.getGraphicsContext2D();
+		c0.setImageSmoothing(false);
+		layer_1 = new Canvas(1280, 720);
+		c1 = layer_1.getGraphicsContext2D();
+		c1.setImageSmoothing(false);
+		
+		shadow_0 = new Canvas(1280, 720);
+		s0 = shadow_0.getGraphicsContext2D();
+		s0.setImageSmoothing(false);
+		s0.setGlobalAlpha(0.6);
+
+		layer_2 = new Canvas(1280, 720);
+		c2 = layer_2.getGraphicsContext2D();
+		c2.setImageSmoothing(false);
+
+		shadow_1 = new Canvas(1280, 720);
+		s1 = shadow_1.getGraphicsContext2D();
+		s1.setImageSmoothing(false);
+		s1.setGlobalAlpha(0.7);
+
+		root.getChildren().add(layer_0);
+		root.getChildren().add(layer_1);
+		root.getChildren().add(shadow_0);
+		root.getChildren().add(layer_2);
+		root.getChildren().add(shadow_1);
+
+		scene = new Scene(root, 1280, 720);
+	}
 
 	public static void main(String[] args) {	
 		Application.launch(args);
@@ -141,11 +152,36 @@ public class Main extends Application {
 	}
 
 	public void render() {
-		gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-		gc.save();
-		camera.transform(gc);	
-		level.render(gc);
-		gc.restore();
+		c0.clearRect(0, 0, layer_0.getWidth(), layer_0.getHeight());
+		c1.clearRect(0, 0, layer_1.getWidth(), layer_1.getHeight());
+		s0.clearRect(0, 0, shadow_0.getWidth(), shadow_0.getHeight());
+		c2.clearRect(0, 0, layer_2.getWidth(), layer_2.getHeight());
+		s1.clearRect(0, 0, shadow_1.getWidth(), shadow_1.getHeight());
+
+		c0.save();
+		c1.save();
+		s0.save();
+		c2.save();
+		s1.save();
+		
+		camera.transform(c0);
+		camera.transform(c1);
+		camera.transform(s0);
+		camera.transform(c2);
+		camera.transform(s1);
+
+		level.render(c0, c1, s0, c2, s1);
+
+		s0.applyEffect(new ColorAdjust(-0.8, 0.5, -0.8, 0.0));
+		s0.applyEffect(new GaussianBlur(10)); // blur radius is in pixels
+		s1.applyEffect(new ColorAdjust(-0.8, 0.5, -0.8, 0.0));
+		s1.applyEffect(new GaussianBlur(200)); // blur radius is in pixels
+
+		c0.restore();
+		c1.restore();
+		s0.restore();
+		c2.restore();
+		s1.restore();
 	}
 
 	// Global accessers

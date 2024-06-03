@@ -18,17 +18,20 @@ import com.zandgall.csc322.finalproj.util.Hitbox;
 
 public class Tree extends Entity {
 	
-	private static Image texture;
+	private static Image trunk, leaves, shadow;
 	private double peekTransparency = 1;
 
 	static {
 		try {
-			texture = new Image(new FileInputStream("res/entity/tree.png"));
+			trunk = new Image(new FileInputStream("res/entity/tree_trunk.png"));
+			leaves = new Image(new FileInputStream("res/entity/tree_leaves.png"));
+			shadow = new Image(new FileInputStream("res/entity/tree_shadow.png"));
 		} catch(FileNotFoundException e) {
-			texture = null;
-			System.err.println("Could not find tree texture!");
+			trunk = null;
+			leaves = null;
+			shadow = null;
+			System.err.println("Could not find tree textures!");
 		}
-		register("Tree", Tree.class);
 	};
 
 	public Tree() {
@@ -45,25 +48,37 @@ public class Tree extends Entity {
 	}
 
 	@Override
-	public void render(GraphicsContext g) {
-		Hitbox treebox = new Hitbox(Math.floor(x), Math.floor(y)-2, 1, 1.1);
+	public void render(GraphicsContext g1, GraphicsContext gs, GraphicsContext g2) {
+		Hitbox treebox = new Hitbox(x-1.0, y-2.5, 2, 1.6);
 		// if the player is behind the leaves, slowly shift "peekTransparency" to 0.75 opacity, otherwise shift it to full opacity
 		if(treebox.intersects(Main.getPlayer().getRenderBounds()))
 			peekTransparency = peekTransparency * 0.9 + 0.75 * 0.1;
 		else
 			peekTransparency = peekTransparency * 0.9 + 1.0 * 0.1;
-		g.save();
-		g.setLineWidth(0.1);
-		g.setGlobalAlpha(peekTransparency);
-		// Tree texture is 3 x 4 tiles in dimensions. offset by -1, -3
-		g.drawImage(texture, Math.floor(x)-1, Math.floor(y)-3, 3, 4);
-		g.strokeRect(Math.floor(x), Math.floor(y), 1.0, 1.0);
-		g.strokeRect(Math.floor(x), Math.floor(y)-2, 1.0, 1.1);
-		g.restore();
+
+		// Tree texture is 3 x 4 tiles in dimensions. offset by -1.5, -3.5
+		g1.drawImage(trunk, x-1.5, y-3.5, 3, 4);
+		// Shadow is 1 tile lower
+		gs.drawImage(shadow, x-1.5, y-2.5, 3, 4);
+
+		// We *might* draw leaves with transparency, so we backup here
+		if(peekTransparency!=1.0) {
+			g2.save();	
+			g2.setGlobalAlpha(peekTransparency);	
+			g2.drawImage(leaves, x-1.5, y-3.5, 3, 4);
+			g2.restore();
+		} else
+			g2.drawImage(leaves, x-1.5, y-3.5, 3, 4);
+
+		// Debug hitboxes
+		g2.setLineWidth(0.01);
+		g2.strokeRect(x-0.3, y-0.3, 0.6, 0.6);
+		g2.strokeRect(x-1.0, y-2.5, 2.0, 1.6);
+
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(Math.floor(x)-1.0, Math.floor(y)-3.0, 3.0, 4.0);
+		return new Hitbox(x-1.5, y-3.5, 3.0, 5.0);
 	}
 
 	// Tree doesn't update, so empty hitbox
@@ -73,7 +88,7 @@ public class Tree extends Entity {
 
 	// Only the tile at the trunk is solid
 	public Hitbox getSolidBounds() {
-		return new Hitbox(Math.floor(x), Math.floor(y), 1.0, 1.0);
+		return new Hitbox(x-0.3, y-0.3, 0.6, 0.6);
 	}
 
 	public double getRenderLayer() {

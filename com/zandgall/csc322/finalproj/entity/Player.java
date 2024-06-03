@@ -54,12 +54,24 @@ public class Player extends Entity {
 		if(dashTimer > 0)
 			dashTimer -= delta;
 	
+		//System.out.printf("%.2f, %.2f%n", xVel, yVel);
 		move(delta);
 	}
 
-	public void render(GraphicsContext g) {
+	@Override
+	public void render(GraphicsContext g, GraphicsContext ignore_shadow, GraphicsContext ignore_2) {
 		g.setFill(Color.color(1, 0, 0, 1));
 		g.fillRect(x-0.5, y-0.5, 1, 1);
+		g.setStroke(Color.BLACK);
+		g.setLineWidth(0.01);
+		g.strokeRect(x-0.4, y-0.4, 0.8, 0.8);
+
+		Hitbox box = getSolidBounds();
+		int minX = (int)box.getBounds().getX();
+		int minY = (int)box.getBounds().getY();
+		int maxX = (int)box.getBounds().getWidth() + minX;
+		int maxY = (int)box.getBounds().getHeight() + minY;
+
 	}
 
 	public Hitbox getRenderBounds() {
@@ -71,7 +83,7 @@ public class Player extends Entity {
 	}
 
 	public Hitbox getSolidBounds() {
-		return new Hitbox(x - 0.5, y - 0.5, 1, 1);
+		return new Hitbox(x - 0.4, y - 0.4, 0.8, 0.8);
 	}
 
 }

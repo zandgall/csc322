@@ -37,6 +37,61 @@ public abstract class Tile {
 		new ImageTile("res/tiles/tut_x.png"),
 	};
 
+	public static final Tile path[] = new Tile[] {
+		new ImageTile("res/tiles/path.png"),
+		new ImageTile("res/tiles/path_b.png"),
+		new ImageTile("res/tiles/path_r.png"),
+		new ImageTile("res/tiles/path_t.png"),
+		new ImageTile("res/tiles/path_l.png"),
+		new ImageTile("res/tiles/path_str.png"),
+		new ImageTile("res/tiles/path_stl.png"),
+		new ImageTile("res/tiles/path_sbr.png"),
+		new ImageTile("res/tiles/path_sbl.png"),
+		new ImageTile("res/tiles/path_btr.png"),
+		new ImageTile("res/tiles/path_btl.png"),
+		new ImageTile("res/tiles/path_bbr.png"),
+		new ImageTile("res/tiles/path_bbl.png"),
+		new ImageTile("res/tiles/path_s0.png"),
+		new ImageTile("res/tiles/path_s1.png"),
+	};
+
+	public static final Tile flower[] = new Tile[] {
+		new ImageTile("res/tiles/flower_w.png"),
+		new ImageTile("res/tiles/flower_wbl.png"),
+		new ImageTile("res/tiles/flower_wbr.png"),
+		new ImageTile("res/tiles/flower_wtl.png"),
+		new ImageTile("res/tiles/flower_wtr.png"),
+		new ImageTile("res/tiles/flower_r.png"),
+		new ImageTile("res/tiles/flower_rbl.png"),
+		new ImageTile("res/tiles/flower_rbr.png"),
+		new ImageTile("res/tiles/flower_rtl.png"),
+		new ImageTile("res/tiles/flower_rtr.png"),
+		new ImageTile("res/tiles/flower_b.png"),
+		new ImageTile("res/tiles/flower_bbl.png"),
+		new ImageTile("res/tiles/flower_bbr.png"),
+		new ImageTile("res/tiles/flower_btl.png"),
+		new ImageTile("res/tiles/flower_btr.png"),
+	};
+
+	public static final Tile walls[] = new Tile[] {
+		new ImageTile("res/tiles/wall.png", true),
+		new ImageTile("res/tiles/wall_top.png", true),
+		new ImageTile("res/tiles/wall_bottom.png", true),
+		new ImageTile("res/tiles/wall_top_bottom.png", true),
+		new ImageTile("res/tiles/wall_ramp_bl.png", true),
+		new ImageTile("res/tiles/wall_ramp_bl_top.png", true),
+		new ImageTile("res/tiles/wall_ramp_br.png", true),
+		new ImageTile("res/tiles/wall_ramp_br_top.png", true),
+		new ImageTile("res/tiles/wall_ramp_blr.png", true),
+		new ImageTile("res/tiles/wall_ramp_blr_top.png", true),
+		new ImageTile("res/tiles/wall_ramp_tl.png", true),
+		new ImageTile("res/tiles/wall_ramp_tl_bottom.png", true),
+		new ImageTile("res/tiles/wall_ramp_tr.png", true),
+		new ImageTile("res/tiles/wall_ramp_tr_bottom.png", true),
+		new ImageTile("res/tiles/wall_ramp_tlr.png", true),
+		new ImageTile("res/tiles/wall_ramp_tlr_bottom.png", true),
+	};
+
 	private final int ID;
 
 	public Tile() {

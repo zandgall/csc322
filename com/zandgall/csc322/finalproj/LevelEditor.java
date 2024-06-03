@@ -27,26 +27,45 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.effect.GaussianBlur;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.control.Label;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.IOException;
+import java.awt.geom.Rectangle2D;
+import javax.swing.JFrame;
+import javax.swing.JFileChooser;
 
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.entity.Entity;
 import com.zandgall.csc322.finalproj.entity.Tree;
+import com.zandgall.csc322.finalproj.entity.EntityRegistry;
 import com.zandgall.csc322.finalproj.level.Level;
 import com.zandgall.csc322.finalproj.level.tile.Tile;
 
 public class LevelEditor extends Main {
+	
+	private ArrayList<Entity> entityInstances = new ArrayList<Entity>();
 
 	private int tileX, tileY;
+	private boolean selecting = false;
+	private int selectX, selectY;
 	private double entityX, entityY;
-	private Entity selectedEntity = null;
+	private EditorEntity selectedEntity = null;
 
-	private Stage editorStage;
-	private Scene editorScene;
+	private ArrayList<EditorEntity> entities = new ArrayList<EditorEntity>();
+
 	private VBox editorRoot;
+
+	private Canvas throwAwayCanvas;
+	private GraphicsContext throwAwayContext;
 
 	/* Information */
 	private Text mode;
@@ -58,16 +77,36 @@ public class LevelEditor extends Main {
 	private double tileOptionOffset = 0;
 	private ArrayList<Canvas> tileOptions;
 
+	/* Entities */
+	private HBox entityRoot;
+	private Canvas currentEntityView;
+	private HBox entityOptionContainer;
+	private double entityOptionOffset = 0;
+	private ArrayList<Canvas> entityOptions;
+
 	@Override
 	public void start(Stage stage) {
 		super.start(stage);
 
-		level.getEntities().remove(player);
+		for(Class e : EntityRegistry.classes)
+			entityInstances.add(EntityRegistry.construct(e, 0, 0));
+
+		updateEntityOptions();
+
+		//level.getEntities().remove(player);
+		level = new Level();
 
 		scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(KeyEvent event) {
 				Main.keys.put(event.getCode(), true);
+				if(event.isShiftDown()) {
+					if(!selecting) {
+						selectX = tileX;
+						selectY = tileY;
+					}
+					selecting = true;
+				} else selecting = false;
 				if(event.getCode() == KeyCode.RIGHT)
 					tileX++;
 				if(event.getCode() == KeyCode.LEFT)
@@ -76,10 +115,30 @@ public class LevelEditor extends Main {
 					tileY++;
 				if(event.getCode() == KeyCode.UP)
 					tileY--;
-				if(event.getCode() == KeyCode.T)
+				if(event.getCode() == KeyCode.S && event.isControlDown())
+					try {
+						save();
+					} catch(IOException e) {
+						e.printStackTrace();
+						System.err.println("Could not save level");
+					}
+				if(event.getCode() == KeyCode.O && event.isControlDown())
+					try {
+						open();
+					} catch(IOException e) {
+						e.printStackTrace();
+						System.err.println("Could not open level");
+					}
+				if(event.getCode() == KeyCode.T) {
 					mode.setText("Tile mode");
-				if(event.getCode() == KeyCode.E)
+					tileX = (int)entityX;
+					tileY = (int)entityY;
+				}
+				if(event.getCode() == KeyCode.E) {
 					mode.setText("Entity mode");
+					entityX = tileX + 0.5;
+					entityY = tileY + 0.5;
+				}
 				// If the user hits X, increment the ID of the selected tile
 				if(mode.getText().equals("Tile mode")) {
 					if(event.getCode() == KeyCode.X) {
@@ -98,14 +157,201 @@ public class LevelEditor extends Main {
 				}
 				if(mode.getText().equals("Entity mode")) {
 					if(event.getCode() == KeyCode.X) {
-						//if(selectedEntity == null)
-							
+						if(selectedEntity == null) {
+							selectedEntity = new EditorEntity(0, entityX, entityY);
+							entities.add(selectedEntity);
+						} else {
+							selectedEntity.entity++;
+							selectedEntity.entity %= entityInstances.size();
+						}
+					} else if(event.getCode() == KeyCode.Z) {
+						if(selectedEntity == null) {
+							selectedEntity = new EditorEntity(entityInstances.size()-1, entityX, entityY);
+							entities.add(selectedEntity);
+						} else {
+							selectedEntity.entity--;
+							if(selectedEntity.entity < 0)
+								selectedEntity.entity = entityInstances.size()-1;
+						}
+					} else if(event.getCode() == KeyCode.C) {
+						if(selectedEntity == null) {
+							for(EditorEntity e : entities) {
+								e.update();
+								if(e.get().getRenderBounds().intersects(entityX - 0.1, entityY - 0.1, 0.2, 0.2)) {
+									selectedEntity = e;
+									entityX = e.x;
+									entityY = e.y;
+									entities.remove(e);
+									entities.add(e); // move entity to end of list so it's lower priority to select next time;
+									break;
+								}
+							}
+						} else
+							selectedEntity = null;
 					}
 				}
 			}
 		});
 
-		editorStage = new Stage();
+	}
+
+	private void save() throws IOException {
+		// Using swing just to use file dialogs
+		JFrame frame = new JFrame();
+		JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle("Save level as");
+		int selection = chooser.showSaveDialog(frame);
+		if(selection != JFileChooser.APPROVE_OPTION)
+			return;
+		File file = chooser.getSelectedFile();
+		FileOutputStream fos = new FileOutputStream(file);
+		ObjectOutputStream s = new ObjectOutputStream(fos);
+
+		// Version header
+		// Currently: 1.0
+		s.writeByte(1);
+		s.writeByte(0);
+		
+		// Write the y range of the tiles in this level
+		s.writeInt(level.bounds.y);
+		s.writeInt(level.bounds.height);
+
+		// Loop through every y value and write a line of tiles
+		for(int y = level.bounds.y; y < level.bounds.y + level.bounds.height; y++) {
+			boolean writing = false, wroteLineEnd = false;
+			for(int x = level.bounds.x; x < level.bounds.x + level.bounds.width; x++) {
+				if(level.get(x, y)==null) {
+					if(!writing)
+						continue; // until we hit tiles
+
+					// we wrote tiles and hit an empty tile, see if there are any more proper tiles after this point
+					boolean endOfLine = true;
+					s.writeInt(0); // write empty tile
+					for(int i = x; i < level.bounds.getWidth(); i++) {
+						if(level.get(i, y)!=null) {
+							endOfLine = false;
+							s.writeInt(i - x); // write number of empty tiles in this line
+							break;
+						}
+					}
+					// If we didn't hit any other tiles, it's the end of the line, write second 0
+					if(endOfLine) {
+						s.writeInt(0);
+						wroteLineEnd = true;
+					}
+				} else {
+					if(!writing) {
+						s.writeInt(x); // Write x position where this line actually starts
+						writing = true;
+					}
+					s.writeInt(level.get(x, y).getID());
+				}
+			}
+
+			// If we didn't write anything, add 'int 0' for starting x, and 'int 0 int 0' (equiv of newline)
+			if(!writing)
+				s.writeInt(0);
+			if(!wroteLineEnd) {
+				s.writeInt(0);
+				s.writeInt(0);
+			}	
+		}
+
+		// Write number of entities followed by that many entities
+		s.writeInt(entities.size());
+		for(EditorEntity e : entities) {
+			s.writeUTF(EntityRegistry.reverseNameMap.get(entityInstances.get(e.entity).getClass()));
+			s.writeDouble(e.x);
+			s.writeDouble(e.y);
+		}
+		s.close();
+		frame.dispose();
+	}
+
+	private void open() throws IOException {
+
+		// Clear level
+		level = new Level();
+
+		// Using swing just to use file dialogs
+		JFrame frame = new JFrame();
+		JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle("Open level");
+		int selection = chooser.showOpenDialog(frame);
+		if(selection != JFileChooser.APPROVE_OPTION)
+			return;
+		File file = chooser.getSelectedFile();
+		FileInputStream fis = new FileInputStream(file);
+		ObjectInputStream s = new ObjectInputStream(fis);
+		
+		// Read version number
+		byte major = s.readByte();
+		byte minor = s.readByte();
+
+		// read y range
+		int minY = s.readInt();
+		int height = s.readInt();
+
+		for(int y = minY; y < minY + height; y++) {
+			int x = s.readInt();
+			while(true) {
+				int tile = s.readInt();
+				if(tile == 0) {
+					int spacing = s.readInt(); // number of empty spaces OR 0 = newline
+					if(spacing == 0)
+						break; // new line
+
+					x += spacing;
+				}
+				level.put(x, y, Tile.get(tile));
+				x++;
+			}
+		}
+
+		int numEntities = s.readInt();
+		for(int i = 0; i < numEntities; i++) {
+			entities.add(new EditorEntity(EntityRegistry.classes.indexOf(EntityRegistry.nameMap.get(s.readUTF())), s.readDouble(), s.readDouble()));
+		}
+		s.close();
+		frame.dispose();
+	}
+
+	@Override
+	public void setupScene() {
+		// Run the same initialization process as Main
+		root = new Pane();
+
+		layer_0 = new Canvas(1280, 720);
+		c0 = layer_0.getGraphicsContext2D();
+		c0.setImageSmoothing(false);
+		layer_1 = new Canvas(1280, 720);
+		c1 = layer_1.getGraphicsContext2D();
+		c1.setImageSmoothing(false);
+
+		shadow_0 = new Canvas(1280, 720);
+		s0 = shadow_0.getGraphicsContext2D();
+		s0.setImageSmoothing(false);
+		s0.setGlobalAlpha(0.6);
+
+		layer_2 = new Canvas(1280, 720);
+		c2 = layer_2.getGraphicsContext2D();
+		c2.setImageSmoothing(false);
+
+		shadow_1 = new Canvas(1280, 720);
+		s1 = shadow_1.getGraphicsContext2D();
+		s1.setImageSmoothing(false);
+		s1.setGlobalAlpha(0.7);
+
+		root.getChildren().add(layer_0);
+		root.getChildren().add(layer_1);
+		root.getChildren().add(shadow_0);
+		root.getChildren().add(layer_2);
+		root.getChildren().add(shadow_1);
+
+		throwAwayCanvas = new Canvas(0, 0);
+		throwAwayContext = throwAwayCanvas.getGraphicsContext2D();
+
+		// Create layout to include editor tools
 		editorRoot = new VBox();
 
 		/* Information */
@@ -117,6 +363,45 @@ public class LevelEditor extends Main {
 		editorRoot.getChildren().add(infoRoot);
 
 		/* Tiles */
+		setupTilesUI();
+		tileRoot.getChildren().add(tileOptionContainer);
+		editorRoot.getChildren().add(tileRoot);
+
+		setupEntitiesUI();
+		entityRoot.getChildren().add(entityOptionContainer);
+		editorRoot.getChildren().add(entityRoot);
+
+		editorRoot.getChildren().add(root);
+		scene = new Scene(editorRoot, 1280, 976);
+	}
+
+	public static void main(String[] args) {
+		Application.launch(args);
+	}
+
+	@Override
+	public void tick(double delta) {
+		if(mode.getText().equals("Tile mode"))
+			camera.target(tileX+0.5, tileY+0.5);
+		else {
+			if(keys.get(KeyCode.RIGHT))
+				entityX += 0.1;
+			if(keys.get(KeyCode.LEFT))
+				entityX -= 0.1;
+			if(keys.get(KeyCode.DOWN))
+				entityY += 0.1;
+			if(keys.get(KeyCode.UP))
+				entityY -= 0.1;
+			if(selectedEntity != null) {
+				selectedEntity.x = entityX;
+				selectedEntity.y = entityY;
+			}
+			camera.target(entityX, entityY);
+		}
+		camera.tick(delta*10);
+	}
+
+	private void setupTilesUI() {
 		tileRoot = new HBox(58);
 		currentTileView = new Canvas(70, 70);
 		tileRoot.getChildren().add(currentTileView);
@@ -129,7 +414,14 @@ public class LevelEditor extends Main {
 			tileOptions.get(i).setOnMouseClicked(new EventHandler<MouseEvent>() {
 				@Override
 				public void handle(MouseEvent event) {
-					level.put(tileX, tileY, Tile.get(offset + (int)Math.floor(tileOptionOffset)));
+					if(!mode.getText().equals("Tile mode"))
+						return;
+					if(selecting)
+						for(int x = Math.min(tileX, selectX); x<=tileX||x<=selectX; x++)
+							for(int y = Math.min(tileY, selectY); y<=tileY||y<=selectY; y++)
+								level.put(x,y,Tile.get(offset+(int)Math.floor(tileOptionOffset)));
+					else
+						level.put(tileX, tileY, Tile.get(offset + (int)Math.floor(tileOptionOffset)));
 				}
 			});
 		}
@@ -144,25 +436,41 @@ public class LevelEditor extends Main {
 			}
 		});
 		updateTileOptions();
-		tileRoot.getChildren().add(tileOptionContainer);
-
-
-		editorRoot.getChildren().add(tileRoot);
-		
-		editorScene = new Scene(editorRoot, 1280, 256);
-		editorStage.setTitle("Editor");
-		editorStage.setScene(editorScene);
-		editorStage.show();
 	}
 
-	public static void main(String[] args) {
-		Application.launch(args);
-	}
-
-	@Override
-	public void tick(double delta) {
-		camera.target(tileX+0.5, tileY+0.5);
-		camera.tick(delta*10);
+	private void setupEntitiesUI() {
+		entityRoot = new HBox(122);
+		currentEntityView = new Canvas(134, 134);
+		entityRoot.getChildren().add(currentEntityView);
+		entityOptionContainer = new HBox();
+		entityOptions = new ArrayList<Canvas>();
+		for(int i = 0; i < 8; i++) {
+			entityOptions.add(new Canvas(128, 128));
+			entityOptionContainer.getChildren().add(entityOptions.get(i));
+			final int offset = i;
+			entityOptions.get(i).setOnMouseClicked(new EventHandler<MouseEvent>() {
+				@Override
+				public void handle(MouseEvent event) {
+					if(!mode.getText().equals("Entity mode"))
+						return;
+					if(selectedEntity==null) {
+						selectedEntity = new EditorEntity(offset + (int)Math.floor(entityOptionOffset), entityX, entityY);
+						entities.add(selectedEntity);
+					} else
+						selectedEntity.entity = offset + (int)Math.floor(entityOptionOffset);
+				}
+			});
+		}
+		entityOptionContainer.setOnScroll(new EventHandler<ScrollEvent>() {
+			@Override
+			public void handle(ScrollEvent event) {
+				int previous = (int)Math.floor(entityOptionOffset);
+				entityOptionOffset+=(event.getDeltaX() + event.getDeltaY())*0.1;
+				if(previous != (int)Math.floor(entityOptionOffset))
+					updateEntityOptions();
+					
+			}
+		});
 	}
 
 	private void updateTileOptions() {
@@ -177,20 +485,97 @@ public class LevelEditor extends Main {
 		}
 	}
 
+	private void updateEntityOptions() {
+		for(int i = 0; i < entityOptions.size(); i++) {
+			GraphicsContext entityContext = entityOptions.get(i).getGraphicsContext2D();
+			entityContext.clearRect(0, 0, 128, 128);
+			int index = i + (int) Math.floor(entityOptionOffset);
+			if(index >= entityInstances.size() || index < 0)
+				continue;
+			entityContext.setImageSmoothing(false);
+			entityContext.save();
+
+			Entity e = entityInstances.get(index);
+			Rectangle2D bounds = e.getRenderBounds().getBounds();
+			entityContext.scale(128, 128);
+			double scale = Math.min(1/bounds.getWidth(), 1/bounds.getHeight());
+			entityContext.translate(-scale*bounds.getX(), -scale*bounds.getY());	
+
+			entityContext.scale(scale, scale);
+			e.render(entityContext, throwAwayContext, entityContext);
+			entityContext.restore();
+		}
+	}
+
+
 	@Override
 	public void render() {
-		super.render();
-		gc.save();
-		camera.transform(gc);
-		gc.setStroke(Color.BLACK);
-		gc.setLineWidth(0.1);
-		gc.strokeRect(tileX, tileY, 1, 1);
-		gc.restore();
+		c0.clearRect(0, 0, layer_0.getWidth(), layer_0.getHeight());
+		c1.clearRect(0, 0, layer_1.getWidth(), layer_1.getHeight());
+		s0.clearRect(0, 0, shadow_0.getWidth(), shadow_0.getHeight());
+		c2.clearRect(0, 0, layer_2.getWidth(), layer_2.getHeight());
+		s1.clearRect(0, 0, shadow_1.getWidth(), shadow_1.getHeight());
+
+		c0.save();
+		c1.save();
+		s0.save();
+		c2.save();
+		s1.save();
 		
+		camera.transform(c0);
+		camera.transform(c1);
+		camera.transform(s0);
+		camera.transform(c2);
+		camera.transform(s1);
+
+		level.render(c0, c1, s0, c2, s1);
+
+		for(EditorEntity e : entities) {
+			e.update();
+			e.get().render(c1, s0, c2);
+			Rectangle2D bounds = e.get().getRenderBounds().getBounds();
+			c2.setStroke(Color.rgb(0, 0, 0, 0.5));
+			c2.setLineWidth(0.05);
+			c2.strokeRect(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+		}
+
+		if(mode.getText().equals("Tile mode")) {
+			c2.setStroke(Color.BLACK);
+			c2.setLineWidth(0.1);
+			if(selecting) {
+				c2.strokeRect(Math.min(tileX, selectX), Math.min(tileY, selectY), Math.abs(tileX-selectX)+1, Math.abs(tileY-selectY)+1);
+			} else
+				c2.strokeRect(tileX, tileY, 1, 1);
+		} else {
+			c2.setFill(Color.RED);
+			c2.fillRect(entityX - 0.1, entityY - 0.1, 0.2, 0.2);
+			if(selectedEntity != null) {
+				selectedEntity.update();
+				Entity e = selectedEntity.get();
+				Rectangle2D bounds = e.getRenderBounds().getBounds();
+				c2.setLineWidth(0.1);
+				c2.setStroke(Color.BLACK);	
+				c2.strokeRect(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+				bounds = e.getSolidBounds().getBounds();
+				c2.setStroke(Color.RED);
+				c2.strokeRect(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+			}
+		}
+
+		s0.applyEffect(new ColorAdjust(-0.8, 0.5, -0.8, 0.0));
+		s0.applyEffect(new GaussianBlur(10)); // blur radius is in pixels
+		s1.applyEffect(new ColorAdjust(-0.8, 0.5, -0.8, 0.0));
+		s1.applyEffect(new GaussianBlur(200)); // blur radius is in pixels
+
+		c0.restore();
+		c1.restore();
+		s0.restore();
+		c2.restore();
+		s1.restore();	
 
 		GraphicsContext gc2 = currentTileView.getGraphicsContext2D();
 		gc2.setImageSmoothing(false);
-		gc2.clearRect(0, 0, 64, 64);
+		gc2.clearRect(0, 0, 70, 70);
 		gc2.setStroke(Color.BLACK);
 		gc2.setLineWidth(3);
 		gc2.strokeRect(3, 3, 64, 64);
@@ -200,5 +585,42 @@ public class LevelEditor extends Main {
 		if(level.get(tileX, tileY) != null)
 			level.get(tileX, tileY).render(gc2);
 		gc2.restore();
+
+		if(selectedEntity==null)
+			return;
+		Entity e = selectedEntity.get();
+		Rectangle2D bounds = e.getRenderBounds().getBounds();
+		gc2 = currentEntityView.getGraphicsContext2D();
+		gc2.setImageSmoothing(false);
+		gc2.clearRect(0, 0, 128, 128);
+		gc2.setStroke(Color.BLACK);
+		gc2.setLineWidth(3);
+		gc2.strokeRect(3, 3, 128, 128);
+		gc2.save();
+		gc2.translate(3, 3);
+		gc2.scale(128, 128);
+		double scale = Math.min(1/bounds.getWidth(), 1/bounds.getHeight());
+		gc2.translate(-scale*bounds.getX(), -scale*bounds.getY());	
+		gc2.scale(scale, scale);
+		e.render(gc2, throwAwayContext, gc2);
+		gc2.restore();
+
+	}
+
+	private class EditorEntity {
+		public double x, y;
+		public int entity;
+		public EditorEntity(int entity, double x, double y) {
+			this.entity = entity;
+			this.x = x;
+			this.y = y;
+		}
+		public void update() {
+			entityInstances.get(entity).setX(x);
+			entityInstances.get(entity).setY(y);
+		}
+		public Entity get() {
+			return entityInstances.get(entity);
+		}
 	}
 }
