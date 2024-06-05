@@ -16,6 +16,7 @@ import java.lang.reflect.Constructor;
 
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.level.tile.Tile;
 
 public abstract class Entity {
 	protected double x, y;
@@ -75,19 +76,18 @@ public abstract class Entity {
 				handleCollision(solid, nextX, nextY, delta);
 		}
 
-		int minX = (int)box.getBounds().getX();
-		int minY = (int)box.getBounds().getY();
-		int maxX = (int)box.getBounds().getWidth() + minX;
-		int maxY = (int)box.getBounds().getHeight() + minY;
-		Hitbox tilebox = new Hitbox(0, 0, 1, 1);
+		int minX = (int)Math.floor(box.getBounds().getMinX());
+		int minY = (int)Math.floor(box.getBounds().getMinY());
+		int maxX = (int)Math.floor(box.getBounds().getMaxX());
+		int maxY = (int)Math.floor(box.getBounds().getMaxY());	
 		for(int i = minX; i <= maxX; i++) {
 			for(int j = minY; j <= maxY; j++) {
-				if(Main.getLevel().get(i, j).solid()) {
-					handleCollision(tilebox.translate(i, j), nextX, nextY, delta);
+				Tile t = Main.getLevel().get(i, j);
+				if(t != null && t.solidBounds(i, j) != null && t.solidBounds(i, j).intersects(box)) {
+					handleCollision(t.solidBounds(i, j), nextX, nextY, delta);
 				}
 			}
 		}
-
 
 		// Move to the next position
 		// If there was a collision, nextX, nextY, xVel, yVel will have been modified

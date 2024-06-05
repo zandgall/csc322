@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import javafx.scene.paint.Color;
 import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
+import com.zandgall.csc322.finalproj.util.Hitbox;
 
 public abstract class Tile {
 
@@ -74,22 +75,42 @@ public abstract class Tile {
 	};
 
 	public static final Tile walls[] = new Tile[] {
-		new ImageTile("res/tiles/wall.png", true),
-		new ImageTile("res/tiles/wall_top.png", true),
-		new ImageTile("res/tiles/wall_bottom.png", true),
-		new ImageTile("res/tiles/wall_top_bottom.png", true),
-		new ImageTile("res/tiles/wall_ramp_bl.png", true),
-		new ImageTile("res/tiles/wall_ramp_bl_top.png", true),
-		new ImageTile("res/tiles/wall_ramp_br.png", true),
-		new ImageTile("res/tiles/wall_ramp_br_top.png", true),
-		new ImageTile("res/tiles/wall_ramp_blr.png", true),
-		new ImageTile("res/tiles/wall_ramp_blr_top.png", true),
-		new ImageTile("res/tiles/wall_ramp_tl.png", true),
-		new ImageTile("res/tiles/wall_ramp_tl_bottom.png", true),
-		new ImageTile("res/tiles/wall_ramp_tr.png", true),
-		new ImageTile("res/tiles/wall_ramp_tr_bottom.png", true),
-		new ImageTile("res/tiles/wall_ramp_tlr.png", true),
-		new ImageTile("res/tiles/wall_ramp_tlr_bottom.png", true),
+		new ImageTile("res/tiles/wall.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_bottom.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_bottom_left.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_bottom_left_right.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_bottom_left_right_top.png", Hitbox.unit()),	
+		new ImageTile("res/tiles/wall_bottom_left_top.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_bottom_right.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_bottom_right_top.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_bottom_top.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_left.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_left_right.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_left_right_top.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_left_top.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_right.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_right_top.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_top.png", Hitbox.unit()),
+		new ImageTile("res/tiles/wall_ramp_bl.png", Hitbox.load("res/tiles/wall_ramp_bl.box")),
+		new ImageTile("res/tiles/wall_ramp_bl_top.png", Hitbox.load("res/tiles/wall_ramp_bl.box")),
+		new ImageTile("res/tiles/wall_ramp_bl_right.png", Hitbox.load("res/tiles/wall_ramp_bl.box")),
+		new ImageTile("res/tiles/wall_ramp_bl_right_top.png", Hitbox.load("res/tiles/wall_ramp_bl.box")),
+		new ImageTile("res/tiles/wall_ramp_blr.png", Hitbox.load("res/tiles/wall_ramp_blr.box")),
+		new ImageTile("res/tiles/wall_ramp_blr_top.png", Hitbox.load("res/tiles/wall_ramp_blr.box")),
+		new ImageTile("res/tiles/wall_ramp_br.png", Hitbox.load("res/tiles/wall_ramp_br.box")),
+		new ImageTile("res/tiles/wall_ramp_br_top.png", Hitbox.load("res/tiles/wall_ramp_br.box")),
+		new ImageTile("res/tiles/wall_ramp_br_left.png", Hitbox.load("res/tiles/wall_ramp_br.box")),
+		new ImageTile("res/tiles/wall_ramp_br_left_top.png", Hitbox.load("res/tiles/wall_ramp_br.box")),
+		new ImageTile("res/tiles/wall_ramp_tl.png", Hitbox.load("res/tiles/wall_ramp_tl.box")),
+		new ImageTile("res/tiles/wall_ramp_tl_bottom.png", Hitbox.load("res/tiles/wall_ramp_tl.box")),
+		new ImageTile("res/tiles/wall_ramp_tl_right.png", Hitbox.load("res/tiles/wall_ramp_tl.box")),
+		new ImageTile("res/tiles/wall_ramp_tl_bottom_right.png", Hitbox.load("res/tiles/wall_ramp_tl.box")),
+		new ImageTile("res/tiles/wall_ramp_tlr.png", Hitbox.load("res/tiles/wall_ramp_tlr.box")),
+		new ImageTile("res/tiles/wall_ramp_tlr_bottom.png", Hitbox.load("res/tiles/wall_ramp_tlr.box")),
+		new ImageTile("res/tiles/wall_ramp_tr.png", Hitbox.load("res/tiles/wall_ramp_tr.box")),
+		new ImageTile("res/tiles/wall_ramp_tr_bottom.png", Hitbox.load("res/tiles/wall_ramp_tr.box")),	
+		new ImageTile("res/tiles/wall_ramp_tr_left.png", Hitbox.load("res/tiles/wall_ramp_tr.box")),	
+		new ImageTile("res/tiles/wall_ramp_tr_bottom_left.png", Hitbox.load("res/tiles/wall_ramp_tr.box")),	
 	};
 
 	private final int ID;
@@ -112,9 +133,9 @@ public abstract class Tile {
 	}
 
 	/**
-	 * Determine whether the tile is solid or not
+	 * Determine whether the tile is solid or not, returning null if not, and a Hitbox if it is
 	 */
-	public abstract boolean solid();
+	public abstract Hitbox solidBounds(int x, int y);
 
 	/**
 	 * Draw a 1x1 size tile. The transformation is set beforehand, including positioning. 
@@ -127,8 +148,8 @@ public abstract class Tile {
 	 */
 	private static class EmptyTile extends Tile {
 		public EmptyTile() {super();}
-		public void render(GraphicsContext g) {}
-		public boolean solid() {return false;}
+		public void render(GraphicsContext g) {}	
+		public Hitbox solidBounds(int x, int y) { return null; }
 	}
 
 	/**
@@ -136,19 +157,21 @@ public abstract class Tile {
 	 */
 	private static class ColorTile extends Tile {
 		private Color color;
-		private boolean solid;
+		private Hitbox solid;
 		public ColorTile(Color color) {
 			super();
 			this.color = color;
-			this.solid = false;
+			this.solid = null;
 		}
-		public ColorTile(Color color, boolean solid) {
+		public ColorTile(Color color, Hitbox solid) {
 			this.color = color;
 			this.solid = solid;
 		}
 
-		public boolean solid() {
-			return solid;
+		public Hitbox solidBounds(int x, int y) {
+			if(solid==null)
+				return null;
+			return solid.translate(x, y);
 		}
 
 		public void render(GraphicsContext g) {
@@ -162,7 +185,7 @@ public abstract class Tile {
 	 */
 	private static class ImageTile extends Tile {
 		private Image image;
-		private boolean solid;
+		private Hitbox solid = null;
 		public ImageTile(String path) {
 			super();
 			try {
@@ -172,13 +195,15 @@ public abstract class Tile {
 				this.image = null;
 			}
 		}
-		public ImageTile(String path, boolean solid) {
+		public ImageTile(String path, Hitbox solid) {
 			this(path);
 			this.solid = solid;
 		}
 
-		public boolean solid() {
-			return solid;
+		public Hitbox solidBounds(int x, int y) {
+			if(solid==null)
+				return null;
+			return solid.translate(x, y);
 		}
 
 		public void render(GraphicsContext g) {

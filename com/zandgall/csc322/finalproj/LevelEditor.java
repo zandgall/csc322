@@ -217,9 +217,9 @@ public class LevelEditor extends Main {
 		s.writeInt(level.bounds.height);
 
 		// Loop through every y value and write a line of tiles
-		for(int y = level.bounds.y; y < level.bounds.y + level.bounds.height; y++) {
+		for(int y = level.bounds.y; y <= level.bounds.y + level.bounds.height; y++) {
 			boolean writing = false, wroteLineEnd = false;
-			for(int x = level.bounds.x; x < level.bounds.x + level.bounds.width; x++) {
+			for(int x = level.bounds.x; x <= level.bounds.x + level.bounds.width; x++) {
 				if(level.get(x, y)==null) {
 					if(!writing)
 						continue; // until we hit tiles

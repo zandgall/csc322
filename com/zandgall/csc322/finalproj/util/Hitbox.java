@@ -13,6 +13,9 @@ package com.zandgall.csc322.finalproj.util;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
 
 public class Hitbox {
 	protected ArrayList<Rectangle2D> boxes = new ArrayList<>();
@@ -40,7 +43,7 @@ public class Hitbox {
 	public void add(Rectangle2D rect) {
 		boxes.add(rect);
 		if(bounds.getWidth() == 0 && bounds.getHeight()==0)
-			bounds = rect;
+			bounds = new Rectangle2D.Double(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 		else
 			bounds.add(rect);
 		// Sort in terms of biggest box to smallest, so that bigger boxes are checked first in terms of intersection and such
@@ -101,5 +104,33 @@ public class Hitbox {
 	public Rectangle2D getBounds() {
 		return bounds;
 	}
+
+	public ArrayList<Rectangle2D> getBoxes() {
+		return boxes;
+	}
+
+	/**
+	* Load hitbox from a text file. Used to load sets of different hitboxes
+	* @param filepath The file to read hitboxes from
+	*/
+	public static Hitbox load(String filepath) {
+		try {
+			Scanner s = new Scanner(new File(filepath));
+			int numBoxes = s.nextInt();
+
+			Hitbox out = new Hitbox();
+			for(int i = 0; i < numBoxes; i++)
+				out.add(s.nextDouble(), s.nextDouble(), s.nextDouble(), s.nextDouble());
+			return out;
+		} catch(Exception e) {
+			return unit();
+		}
+	}
+
+	public static Hitbox unit() {
+		return new Hitbox(0, 0, 1, 1);
+	}
+
+
 
 }
