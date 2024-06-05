@@ -254,7 +254,7 @@ public class LevelEditor extends Main {
 			if(!wroteLineEnd) {
 				s.writeInt(0);
 				s.writeInt(0);
-			}	
+			}
 		}
 
 		// Write number of entities followed by that many entities

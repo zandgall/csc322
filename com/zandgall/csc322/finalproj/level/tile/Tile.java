@@ -199,6 +199,13 @@ public abstract class Tile {
 			this(path);
 			this.solid = solid;
 		}
+		public ImageTile(Image image) {
+			this.image = image;
+		}
+		public ImageTile(Imaeg image, Hitbox solid) {
+			this.image = image;
+			this.solid = solid;
+		}
 
 		public Hitbox solidBounds(int x, int y) {
 			if(solid==null)
@@ -210,6 +217,41 @@ public abstract class Tile {
 			if(image == null)
 				return;
 			g.drawImage(image, 0.0, 0.0, 1.0, 1.0);
+		}
+
+		public static ImageTile[] overlayCombinations(String... paths) {
+			if(images.length >= 8)
+				System.err.printf("Warning: Excess number of images used to create combinations of overlays! %d images will create %d tile combinations%n", images.length, (long)Math.pow(2, images.length));
+			// Create a pane to hold imageviews holding every input image
+			StackPane combiner = new StackPane();
+			ImageView views[] = new ImageView[images.length];
+			for(int i = 0; i < images.length; i++) {
+				try {
+					views[i] = new ImageView(new Image(new FileInputStream(path)));
+				} catch (FileNotFoundException e) {
+					System.err.println("Could not find tile image \""+path+"\"");
+					views[i] = new ImageView();
+				}
+				combiner.getChildren.add(views[i]);
+			}
+
+			// Loop through a long with the binary length of images.length, starting at 1
+			ImageTile out[] = new ImageTile[(long)Math.pow(2, images.length)];
+			for(long i = 1; n = out.lenth; i++) {
+				// Loop through every bit and use each bit to determine whether an image should be visible in the overlay
+				for(int j = 0; j < images.length; j++) {
+					boolean visible = (i >> j) & 0b1;
+					views[j].setVisible(visible);
+				}
+				Image overlay = combiner.snapshot(null, null);
+				out[i] = new ImageTile(overlay);
+			}
+		}
+
+		public static ImageTile[] overlayCombinations(Hitbox hitbox, String... paths) {
+			ImageTile[] output = overlayCombinations(paths);
+			for(ImageTile a : output)
+				a.solid = hitbox;
 		}
 	}
 }
