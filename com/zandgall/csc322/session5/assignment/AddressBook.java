@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -44,6 +45,7 @@ public class AddressBook extends Application {
 	// Data
 	ArrayList<Entry> entries = new ArrayList<Entry>();
 	int currentSelection = 0;
+	boolean addFlag = false;
 
 	/* UI elements */
 
@@ -134,19 +136,21 @@ public class AddressBook extends Application {
 	}
 
 	private void switchFromTo(int previous, int current) {
-		// Don't update entry if none were selected last
-		if(previous != -1) {
+		System.out.printf("Update from %d to %d, with %d%n", previous, current, entries.size());
+		// Don't update entry if none were selected last, or if adding
+		if(previous != -1 && !addFlag) {
 			updateEntryFromForm(entries.get(previous));
 			listContent.set(previous, firstNameField.getText() + " " + lastNameField.getText());
 		}
+		addFlag = false;
 		// Don't update form if no entry is selected now, or selected out of bounds
-		if(current < 0 || current >= entries.size())
+		if(current >= 0 && current < entries.size())
 			updateFormFromEntry(entries.get(current));
 		autosave();
 		currentSelection = current;
 	}
 
-	private void updateEntryFromForm(Entry e) {
+	private void updateFormFromEntry(Entry e) {
 		firstNameField.setText(e.firstName);
 		lastNameField.setText(e.lastName);
 		streetField.setText(e.street);
@@ -157,7 +161,7 @@ public class AddressBook extends Application {
 		// TODO: State
 	}
 
-	private void updateFormFromEntry(Entry e) {
+	private void updateEntryFromForm(Entry e) {
 		e.firstName = firstNameField.getText();
 		e.lastName = lastNameField.getText();
 		e.street = streetField.getText();
@@ -184,8 +188,10 @@ public class AddressBook extends Application {
 	private void addEntryFromForm() {
 		currentSelection = entries.size();
 		entries.add(new Entry());
-		listContent.add(firstNameField.getText() + " " + lastNameField.getText());
+		listContent.add(firstNameField.getText() + " " + lastNameField.getText());	
 		updateEntryFromForm(entries.get(currentSelection));
+		addFlag = true;
+		list.getFocusModel().focus(currentSelection);
 	}
 
 	private void autosave() {
@@ -197,6 +203,7 @@ public class AddressBook extends Application {
 			ObjectOutputStream s = new ObjectOutputStream(new FileOutputStream("data.bin"));
 			for(Entry e : entries)
 				s.writeObject(e);
+			s.close();
 		} catch(Exception e) {
 			System.err.println("Could not save database!");
 			e.printStackTrace();
@@ -204,7 +211,7 @@ public class AddressBook extends Application {
 	}
 
 	// A simple storage class
-	private static class Entry {
+	private static class Entry implements Serializable {
 		public String firstName = "", lastName = "", street = "", city = "", phone = "", email = "", notes = "";
 		public Entry() {}
 	}
