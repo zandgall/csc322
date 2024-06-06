@@ -63,6 +63,7 @@ public class AddressBook extends Application {
 	          phoneField = new TextField(),
 	          emailField = new TextField();
 	ComboBox<String> stateField = new ComboBox<>();
+	ObservableList<String> stateList = FXCollections.observableArrayList();
 	TextArea notesField = new TextArea();
 
 	Label firstNameLabel = new Label("First"),
@@ -105,6 +106,16 @@ public class AddressBook extends Application {
 		mainPane.setMargin(buttonContainer, new Insets(12, 12, 12, 12));
 		mainPane.setBottom(buttonContainer);
 		add.setOnAction(e -> {addEntryFromForm();});
+		update.setOnAction(e -> {
+			if(currentSelection < 0 || currentSelection >= entries.size())
+				return;
+			updateEntryFromForm(entries.get(currentSelection));
+			listContent.set(currentSelection, firstNameField.getText() + " " + lastNameField.getText());
+
+			list.getSelectionModel().select(currentSelection);
+			list.getFocusModel().focus(currentSelection);
+			list.scrollTo(currentSelection);
+		});
 
 		// Add form content
 		content.setAlignment(Pos.CENTER);	
@@ -126,29 +137,36 @@ public class AddressBook extends Application {
 		content.add(notesField, 1, 5, 3, 6); // covers 3 columns x 6 rows
 		mainPane.setMargin(content, new Insets(12, 12, 12, 12));
 		mainPane.setCenter(content);
+		// Add all states abbreviations
+		stateList.addAll("AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY");
+		stateField.setItems(stateList);
 
 		Scene scene = new Scene(mainPane, 900, 500);
 		stage.setTitle("Address Book");
 		stage.setScene(scene);
 		stage.show();
+		// Save when closing
+		stage.onCloseRequestProperty().setValue(e -> { autosave(); });
 
+		// Try loading data.bin
 		autoload();
 	}
 
 	private void switchFromTo(int previous, int current) {
-		System.out.printf("Update from %d to %d, with %d%n", previous, current, entries.size());
 		// Don't update entry if none were selected last, or if adding
 		if(previous != -1 && !addFlag) {
 			updateEntryFromForm(entries.get(previous));
 			listContent.set(previous, firstNameField.getText() + " " + lastNameField.getText());
 		}
 		addFlag = false;
+
 		// Don't update form if no entry is selected now, or selected out of bounds
 		if(current >= 0 && current < entries.size())
 			updateFormFromEntry(entries.get(current));
-		autosave();
+
 		currentSelection = current;
-	}
+		autosave();
+}
 
 	private void updateFormFromEntry(Entry e) {
 		firstNameField.setText(e.firstName);
@@ -158,28 +176,39 @@ public class AddressBook extends Application {
 		phoneField.setText(e.phone);
 		emailField.setText(e.email);
 		notesField.setText(e.notes);
-		// TODO: State
+		stateField.getSelectionModel().select(e.state);
 	}
 
 	private void updateEntryFromForm(Entry e) {
-		e.firstName = firstNameField.getText();
-		e.lastName = lastNameField.getText();
-		e.street = streetField.getText();
-		e.city = cityField.getText();
-		e.phone = phoneField.getText();
-		e.email = emailField.getText();
-		e.notes = notesField.getText();
-		// TODO: State
+		// Using StringBuffer to copy Strings without reference
+		e.firstName = new StringBuffer(firstNameField.getText()).toString();
+		e.lastName = new StringBuffer(lastNameField.getText()).toString();
+		e.street = new StringBuffer(streetField.getText()).toString();
+		e.city = new StringBuffer(cityField.getText()).toString();
+		e.phone = new StringBuffer(phoneField.getText()).toString();
+		e.email = new StringBuffer(emailField.getText()).toString();
+		e.notes = new StringBuffer(notesField.getText()).toString();
+		e.state = stateField.getSelectionModel().getSelectedItem();
 	}
 
 	private void autoload() {
 		try { 
 			ObjectInputStream s = new ObjectInputStream(new FileInputStream("data.bin"));
-			while(s.available()>0)
+			entries.clear();
+			int n = s.readInt();
+			for(int i = 0; i < n; i++) {
 				entries.add((Entry)s.readObject());
+				listContent.add(entries.get(i).firstName + " " + entries.get(i).lastName);
+			}
+			s.close();
 			// If there is a selected entry, update the form to reflect
-			if(currentSelection != -1)
+			if(currentSelection >= 0 && currentSelection < entries.size()) {
 				updateFormFromEntry(entries.get(currentSelection));
+
+				list.getSelectionModel().select(currentSelection);
+				list.getFocusModel().focus(currentSelection);
+				list.scrollTo(currentSelection);
+			}
 		} catch(Exception e) {
 			System.out.println("Could not open database, using blank template");
 		}
@@ -191,16 +220,20 @@ public class AddressBook extends Application {
 		listContent.add(firstNameField.getText() + " " + lastNameField.getText());	
 		updateEntryFromForm(entries.get(currentSelection));
 		addFlag = true;
+
+		list.getSelectionModel().select(currentSelection);
 		list.getFocusModel().focus(currentSelection);
+		list.scrollTo(currentSelection);
 	}
 
 	private void autosave() {
 		// Make sure current entry is updated (if one is selected) before writing it
-		if(currentSelection == -1)
+		if(currentSelection != -1)
 			updateEntryFromForm(entries.get(currentSelection));
 
 		try {
 			ObjectOutputStream s = new ObjectOutputStream(new FileOutputStream("data.bin"));
+			s.writeInt(entries.size());
 			for(Entry e : entries)
 				s.writeObject(e);
 			s.close();
@@ -212,8 +245,12 @@ public class AddressBook extends Application {
 
 	// A simple storage class
 	private static class Entry implements Serializable {
-		public String firstName = "", lastName = "", street = "", city = "", phone = "", email = "", notes = "";
+		public String firstName = "", lastName = "", street = "", city = "", state = "", phone = "", email = "", notes = "";
 		public Entry() {}
+
+		// Used for debugging
+		@Override
+		public String toString() { return firstName + " " + lastName + " (" + notes + ")"; } 
 	}
 }
 
