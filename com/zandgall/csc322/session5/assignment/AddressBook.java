@@ -105,19 +105,39 @@ public class AddressBook extends Application {
 		buttonContainer.setAlignment(Pos.CENTER);
 		mainPane.setMargin(buttonContainer, new Insets(12, 12, 12, 12));
 		mainPane.setBottom(buttonContainer);
+
+		// When "Add" button is hit, run "addEntryFromForm"
 		add.setOnAction(e -> {addEntryFromForm();});
+		// When "Update" button is hit:
 		update.setOnAction(e -> {
+			// If nothing valid is selected, skip
 			if(currentSelection < 0 || currentSelection >= entries.size())
 				return;
+			// Update the entry using form content, including ListView entry
 			updateEntryFromForm(entries.get(currentSelection));
 			listContent.set(currentSelection, firstNameField.getText() + " " + lastNameField.getText());
 
+			// Reselect the updated element in ListView, since the update button deselects other elements
 			list.getSelectionModel().select(currentSelection);
 			list.getFocusModel().focus(currentSelection);
 			list.scrollTo(currentSelection);
 		});
 
-		// Add form content
+		delete.setOnAction(e -> {
+			// If nothing valid is selected, skip
+			if(currentSelection < 0 || currentSelection >= entries.size())
+				return;
+
+			// Remove, set current selection to -1, and save changes
+			// need to remove from entries first, since listContent.remove calls
+			// the 'switchFromTo' function
+			entries.remove(currentSelection);
+			listContent.remove(currentSelection);
+			currentSelection = -1;
+			autosave();
+		});
+
+		// Add form GUI content
 		content.setAlignment(Pos.CENTER);	
 		content.add(firstNameLabel, 0, 0);
 		content.add(firstNameField, 1, 0);
@@ -137,15 +157,18 @@ public class AddressBook extends Application {
 		content.add(notesField, 1, 5, 3, 6); // covers 3 columns x 6 rows
 		mainPane.setMargin(content, new Insets(12, 12, 12, 12));
 		mainPane.setCenter(content);
+
 		// Add all states abbreviations
 		stateList.addAll("AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY");
 		stateField.setItems(stateList);
 
+		// Start scene with stage
 		Scene scene = new Scene(mainPane, 900, 500);
 		stage.setTitle("Address Book");
 		stage.setScene(scene);
 		stage.show();
-		// Save when closing
+
+		// When stage/window is closed, autosave
 		stage.onCloseRequestProperty().setValue(e -> { autosave(); });
 
 		// Try loading data.bin
@@ -153,10 +176,11 @@ public class AddressBook extends Application {
 	}
 
 	private void switchFromTo(int previous, int current) {
-		// Don't update entry if none were selected last, or if adding
-		if(previous != -1 && !addFlag) {
+		// Don't update entry if nothing valid selected last, or if currently adding new entry
+		if(previous >= 0 && previous < entries.size() && !addFlag) {	
 			updateEntryFromForm(entries.get(previous));
 			listContent.set(previous, firstNameField.getText() + " " + lastNameField.getText());
+			System.out.printf("%d out of %d and %d%n", previous, entries.size(), listContent.size());
 		}
 		addFlag = false;
 
@@ -169,6 +193,7 @@ public class AddressBook extends Application {
 }
 
 	private void updateFormFromEntry(Entry e) {
+		// Set all field text from given entry
 		firstNameField.setText(e.firstName);
 		lastNameField.setText(e.lastName);
 		streetField.setText(e.street);
@@ -180,28 +205,32 @@ public class AddressBook extends Application {
 	}
 
 	private void updateEntryFromForm(Entry e) {
-		// Using StringBuffer to copy Strings without reference
-		e.firstName = new StringBuffer(firstNameField.getText()).toString();
-		e.lastName = new StringBuffer(lastNameField.getText()).toString();
-		e.street = new StringBuffer(streetField.getText()).toString();
-		e.city = new StringBuffer(cityField.getText()).toString();
-		e.phone = new StringBuffer(phoneField.getText()).toString();
-		e.email = new StringBuffer(emailField.getText()).toString();
-		e.notes = new StringBuffer(notesField.getText()).toString();
+		// Set all entry properties based on fields
+		e.firstName = firstNameField.getText();
+		e.lastName = lastNameField.getText();
+		e.street = streetField.getText();
+		e.city = cityField.getText();
+		e.phone = phoneField.getText();
+		e.email = emailField.getText();
+		e.notes = notesField.getText();
 		e.state = stateField.getSelectionModel().getSelectedItem();
 	}
 
 	private void autoload() {
 		try { 
+			// Load file, clear entries
 			ObjectInputStream s = new ObjectInputStream(new FileInputStream("data.bin"));
 			entries.clear();
+
+			// Read how many entries are in the file, and then read that many entries and add to the list
 			int n = s.readInt();
 			for(int i = 0; i < n; i++) {
 				entries.add((Entry)s.readObject());
 				listContent.add(entries.get(i).firstName + " " + entries.get(i).lastName);
 			}
 			s.close();
-			// If there is a selected entry, update the form to reflect
+
+			// If there is a selected entry, update the form to reflect, and reselect in the ListView
 			if(currentSelection >= 0 && currentSelection < entries.size()) {
 				updateFormFromEntry(entries.get(currentSelection));
 
@@ -215,12 +244,14 @@ public class AddressBook extends Application {
 	}
 
 	private void addEntryFromForm() {
+		// Update current selection, add entry, update list, and update new entry from form
 		currentSelection = entries.size();
 		entries.add(new Entry());
 		listContent.add(firstNameField.getText() + " " + lastNameField.getText());	
 		updateEntryFromForm(entries.get(currentSelection));
-		addFlag = true;
 
+		// Tick the 'addFlag', otherwise the new entry would be corrupted, and manually select new entry in list
+		addFlag = true;
 		list.getSelectionModel().select(currentSelection);
 		list.getFocusModel().focus(currentSelection);
 		list.scrollTo(currentSelection);
@@ -232,11 +263,15 @@ public class AddressBook extends Application {
 			updateEntryFromForm(entries.get(currentSelection));
 
 		try {
+			// Load file
 			ObjectOutputStream s = new ObjectOutputStream(new FileOutputStream("data.bin"));
+
+			// Write how many entries there are, then write all entries, and close
 			s.writeInt(entries.size());
 			for(Entry e : entries)
 				s.writeObject(e);
 			s.close();
+
 		} catch(Exception e) {
 			System.err.println("Could not save database!");
 			e.printStackTrace();
