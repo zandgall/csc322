@@ -45,7 +45,7 @@ public class AddressBook extends Application {
 	// Data
 	ArrayList<Entry> entries = new ArrayList<Entry>();
 	int currentSelection = 0;
-	boolean addFlag = false;
+	boolean addFlag = false, deleteFlag = false;
 
 	/* UI elements */
 
@@ -92,6 +92,7 @@ public class AddressBook extends Application {
 		mainPane.setTop(title);
 		mainPane.setAlignment(title, Pos.CENTER);
 
+		// Whenever a different item on the list is selected, call switchFromTo with the given indices
 		listListener = new ChangeListener<Number>() {
 			@Override
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -113,27 +114,24 @@ public class AddressBook extends Application {
 			// If nothing valid is selected, skip
 			if(currentSelection < 0 || currentSelection >= entries.size())
 				return;
-			// Update the entry using form content, including ListView entry
+			// Update the entry using form content, and reselect since 'update' button deselects other elements
 			updateEntryFromForm(entries.get(currentSelection));
-			listContent.set(currentSelection, firstNameField.getText() + " " + lastNameField.getText());
-
-			// Reselect the updated element in ListView, since the update button deselects other elements
-			list.getSelectionModel().select(currentSelection);
-			list.getFocusModel().focus(currentSelection);
-			list.scrollTo(currentSelection);
+			select(currentSelection);
 		});
-
+		// When "Delete" is clidked
 		delete.setOnAction(e -> {
 			// If nothing valid is selected, skip
 			if(currentSelection < 0 || currentSelection >= entries.size())
 				return;
 
-			// Remove, set current selection to -1, and save changes
-			// need to remove from entries first, since listContent.remove calls
-			// the 'switchFromTo' function
+			// Remove, select nothing (-1), and save changes
+			// We don't want "switchFromTo" to be called by listContent.remove,
+			// so we tick 'deleteFlag' so it skips execution
+			deleteFlag = true;
 			entries.remove(currentSelection);
-			listContent.remove(currentSelection);
-			currentSelection = -1;
+			listContent.remove(currentSelection);	
+			select(-1);
+			deleteFlag = false;
 			autosave();
 		});
 
@@ -176,13 +174,13 @@ public class AddressBook extends Application {
 	}
 
 	private void switchFromTo(int previous, int current) {
+		// If this is called by 'delete' or 'add', continuing execution might cause an exception, and it would be redundant
+		if(deleteFlag || addFlag)
+			return;
+
 		// Don't update entry if nothing valid selected last, or if currently adding new entry
-		if(previous >= 0 && previous < entries.size() && !addFlag) {	
+		if(previous >= 0 && previous < entries.size())
 			updateEntryFromForm(entries.get(previous));
-			listContent.set(previous, firstNameField.getText() + " " + lastNameField.getText());
-			System.out.printf("%d out of %d and %d%n", previous, entries.size(), listContent.size());
-		}
-		addFlag = false;
 
 		// Don't update form if no entry is selected now, or selected out of bounds
 		if(current >= 0 && current < entries.size())
@@ -190,10 +188,24 @@ public class AddressBook extends Application {
 
 		currentSelection = current;
 		autosave();
-}
+	}
 
-	private void updateFormFromEntry(Entry e) {
-		// Set all field text from given entry
+	/**
+	 * Update 'currentSelection' and bring focus to the target cell in the ListView
+	 * @param selection The index to select
+	 */
+	private void select(int selection) {
+		currentSelection = selection;
+		list.getSelectionModel().select(selection);
+		list.getFocusModel().focus(selection);
+		list.scrollTo(selection);
+	}
+
+	/**
+	* Set all field text from given entry
+	* @param e The entry to update the form using
+	*/
+	private void updateFormFromEntry(Entry e) {	
 		firstNameField.setText(e.firstName);
 		lastNameField.setText(e.lastName);
 		streetField.setText(e.street);
@@ -204,8 +216,11 @@ public class AddressBook extends Application {
 		stateField.getSelectionModel().select(e.state);
 	}
 
-	private void updateEntryFromForm(Entry e) {
-		// Set all entry properties based on fields
+	/**
+	* Set all entry properties based on fields, along with ListView entry
+	* @param e The entry to update using the form
+	*/
+	private void updateEntryFromForm(Entry e) { 
 		e.firstName = firstNameField.getText();
 		e.lastName = lastNameField.getText();
 		e.street = streetField.getText();
@@ -214,8 +229,32 @@ public class AddressBook extends Application {
 		e.email = emailField.getText();
 		e.notes = notesField.getText();
 		e.state = stateField.getSelectionModel().getSelectedItem();
+		// Find index and set corresponding list cell to format 'firstName lastName'
+		int i = entries.indexOf(e);
+		if(i != -1)
+			listContent.set(i, e.firstName + " " + e.lastName);
 	}
 
+	/**
+	 * Create a new entry and add it to the list using the current form content
+	 */
+	private void addEntryFromForm() {
+		// Add to ListView, tick 'addFlag' to avoid corruption, and select the element
+		listContent.add(firstNameField.getText() + " " + lastNameField.getText());
+		addFlag = true;
+		select(entries.size());
+		addFlag = false;
+
+		// Add an entry, and set its content
+		entries.add(new Entry());
+		updateEntryFromForm(entries.get(currentSelection));	
+	}
+
+
+	/**
+	* Attempt to load entries from "data.bin" in the working directory.
+	* If it can't find the file, no changes are made
+	*/
 	private void autoload() {
 		try { 
 			// Load file, clear entries
@@ -243,20 +282,9 @@ public class AddressBook extends Application {
 		}
 	}
 
-	private void addEntryFromForm() {
-		// Update current selection, add entry, update list, and update new entry from form
-		currentSelection = entries.size();
-		entries.add(new Entry());
-		listContent.add(firstNameField.getText() + " " + lastNameField.getText());	
-		updateEntryFromForm(entries.get(currentSelection));
-
-		// Tick the 'addFlag', otherwise the new entry would be corrupted, and manually select new entry in list
-		addFlag = true;
-		list.getSelectionModel().select(currentSelection);
-		list.getFocusModel().focus(currentSelection);
-		list.scrollTo(currentSelection);
-	}
-
+	/**
+	* Attempt to write all entries to a file called "data.bin" in the working directory
+	*/
 	private void autosave() {
 		// Make sure current entry is updated (if one is selected) before writing it
 		if(currentSelection != -1)
