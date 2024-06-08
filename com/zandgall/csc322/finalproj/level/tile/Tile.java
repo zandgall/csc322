@@ -13,6 +13,8 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import javafx.scene.paint.Color;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 import javafx.scene.canvas.GraphicsContext;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 
@@ -74,43 +76,13 @@ public abstract class Tile {
 		new ImageTile("res/tiles/flower_btr.png"),
 	};
 
-	public static final Tile walls[] = new Tile[] {
-		new ImageTile("res/tiles/wall.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_bottom.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_bottom_left.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_bottom_left_right.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_bottom_left_right_top.png", Hitbox.unit()),	
-		new ImageTile("res/tiles/wall_bottom_left_top.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_bottom_right.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_bottom_right_top.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_bottom_top.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_left.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_left_right.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_left_right_top.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_left_top.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_right.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_right_top.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_top.png", Hitbox.unit()),
-		new ImageTile("res/tiles/wall_ramp_bl.png", Hitbox.load("res/tiles/wall_ramp_bl.box")),
-		new ImageTile("res/tiles/wall_ramp_bl_top.png", Hitbox.load("res/tiles/wall_ramp_bl.box")),
-		new ImageTile("res/tiles/wall_ramp_bl_right.png", Hitbox.load("res/tiles/wall_ramp_bl.box")),
-		new ImageTile("res/tiles/wall_ramp_bl_right_top.png", Hitbox.load("res/tiles/wall_ramp_bl.box")),
-		new ImageTile("res/tiles/wall_ramp_blr.png", Hitbox.load("res/tiles/wall_ramp_blr.box")),
-		new ImageTile("res/tiles/wall_ramp_blr_top.png", Hitbox.load("res/tiles/wall_ramp_blr.box")),
-		new ImageTile("res/tiles/wall_ramp_br.png", Hitbox.load("res/tiles/wall_ramp_br.box")),
-		new ImageTile("res/tiles/wall_ramp_br_top.png", Hitbox.load("res/tiles/wall_ramp_br.box")),
-		new ImageTile("res/tiles/wall_ramp_br_left.png", Hitbox.load("res/tiles/wall_ramp_br.box")),
-		new ImageTile("res/tiles/wall_ramp_br_left_top.png", Hitbox.load("res/tiles/wall_ramp_br.box")),
-		new ImageTile("res/tiles/wall_ramp_tl.png", Hitbox.load("res/tiles/wall_ramp_tl.box")),
-		new ImageTile("res/tiles/wall_ramp_tl_bottom.png", Hitbox.load("res/tiles/wall_ramp_tl.box")),
-		new ImageTile("res/tiles/wall_ramp_tl_right.png", Hitbox.load("res/tiles/wall_ramp_tl.box")),
-		new ImageTile("res/tiles/wall_ramp_tl_bottom_right.png", Hitbox.load("res/tiles/wall_ramp_tl.box")),
-		new ImageTile("res/tiles/wall_ramp_tlr.png", Hitbox.load("res/tiles/wall_ramp_tlr.box")),
-		new ImageTile("res/tiles/wall_ramp_tlr_bottom.png", Hitbox.load("res/tiles/wall_ramp_tlr.box")),
-		new ImageTile("res/tiles/wall_ramp_tr.png", Hitbox.load("res/tiles/wall_ramp_tr.box")),
-		new ImageTile("res/tiles/wall_ramp_tr_bottom.png", Hitbox.load("res/tiles/wall_ramp_tr.box")),	
-		new ImageTile("res/tiles/wall_ramp_tr_left.png", Hitbox.load("res/tiles/wall_ramp_tr.box")),	
-		new ImageTile("res/tiles/wall_ramp_tr_bottom_left.png", Hitbox.load("res/tiles/wall_ramp_tr.box")),	
+	public static final Tile walls[][] = new Tile[][] {
+		new Tile[] {new ImageTile("res/tiles/wall.png", Hitbox.unit())},
+		ImageTile.overlayCombinations(Hitbox.unit(), "res/tiles/wall.png", "res/tiles/walls/bottom.png", "res/tiles/walls/top.png", "res/tiles/walls/right.png", "res/tiles/walls/left.png"),
+		ImageTile.overlayCombinations(Hitbox.load("res/tiles/wall_ramp_bl.box"), "res/tiles/walls/bottom_left.png", "res/tiles/walls/right.png", "res/tiles/walls/top.png", "res/tiles/walls/edge_left.png", "res/tiles/walls/edge_bottom.png"),
+		ImageTile.overlayCombinations(Hitbox.load("res/tiles/wall_ramp_br.box"), "res/tiles/walls/bottom_right.png", "res/tiles/walls/edge_right.png", "res/tiles/walls/top.png", "res/tiles/walls/left.png", "res/tiles/walls/edge_bottom.png"),
+		ImageTile.overlayCombinations(Hitbox.load("res/tiles/wall_ramp_tl.box"), "res/tiles/walls/top_left.png", "res/tiles/walls/right.png", "res/tiles/walls/edge_top.png", "res/tiles/walls/edge_left.png", "res/tiles/walls/bottom.png"),
+		ImageTile.overlayCombinations(Hitbox.load("res/tiles/wall_ramp_tl.box"), "res/tiles/walls/top_right.png", "res/tiles/walls/edge_right.png", "res/tiles/walls/edge_top.png", "res/tiles/walls/left.png", "res/tiles/walls/bottom.png"),
 	};
 
 	private final int ID;
@@ -202,7 +174,7 @@ public abstract class Tile {
 		public ImageTile(Image image) {
 			this.image = image;
 		}
-		public ImageTile(Imaeg image, Hitbox solid) {
+		public ImageTile(Image image, Hitbox solid) {
 			this.image = image;
 			this.solid = solid;
 		}
@@ -219,39 +191,55 @@ public abstract class Tile {
 			g.drawImage(image, 0.0, 0.0, 1.0, 1.0);
 		}
 
-		public static ImageTile[] overlayCombinations(String... paths) {
-			if(images.length >= 8)
-				System.err.printf("Warning: Excess number of images used to create combinations of overlays! %d images will create %d tile combinations%n", images.length, (long)Math.pow(2, images.length));
+		public static ImageTile[] overlayCombinations(String background, String... paths) {
+			if(paths.length >= 8)
+				System.err.printf("Warning: Excess number of images used to create combinations of overlays! %d images will create %d tile combinations%n", paths.length, (long)Math.pow(2, paths.length));
 			// Create a pane to hold imageviews holding every input image
 			StackPane combiner = new StackPane();
-			ImageView views[] = new ImageView[images.length];
-			for(int i = 0; i < images.length; i++) {
+
+			// Add background, always visible
+			ImageView bgView = new ImageView();
+			try {
+				bgView.setImage(new Image(new FileInputStream(background)));
+			} catch(FileNotFoundException e) {
+				System.err.println("Could not find tile image \""+background+"\"");
+			}
+			combiner.getChildren().add(bgView);
+
+			// Add variable images which are toggled on and off
+			ImageView views[] = new ImageView[paths.length];
+			for(int i = 0; i < paths.length; i++) {
 				try {
-					views[i] = new ImageView(new Image(new FileInputStream(path)));
+					views[i] = new ImageView(new Image(new FileInputStream(paths[i])));
 				} catch (FileNotFoundException e) {
-					System.err.println("Could not find tile image \""+path+"\"");
+					System.err.println("Could not find tile image \""+paths[i]+"\"");
 					views[i] = new ImageView();
 				}
-				combiner.getChildren.add(views[i]);
+				combiner.getChildren().add(views[i]);
 			}
 
 			// Loop through a long with the binary length of images.length, starting at 1
-			ImageTile out[] = new ImageTile[(long)Math.pow(2, images.length)];
-			for(long i = 1; n = out.lenth; i++) {
-				// Loop through every bit and use each bit to determine whether an image should be visible in the overlay
-				for(int j = 0; j < images.length; j++) {
-					boolean visible = (i >> j) & 0b1;
+			ImageTile out[] = new ImageTile[(int)Math.pow(2, paths.length) - 1];
+			for(int i = 1; i <= out.length; i++) {
+				// Loop through every bit of the index and use each bit to determine whether an image should be visible in the overlay
+				for(int j = 0; j < paths.length; j++) {
+					boolean visible = ((i >> j) & 0b1)==1;
 					views[j].setVisible(visible);
 				}
 				Image overlay = combiner.snapshot(null, null);
-				out[i] = new ImageTile(overlay);
+				out[i - 1] = new ImageTile(overlay);
 			}
+			return out;
 		}
 
-		public static ImageTile[] overlayCombinations(Hitbox hitbox, String... paths) {
-			ImageTile[] output = overlayCombinations(paths);
-			for(ImageTile a : output)
-				a.solid = hitbox;
+		public static ImageTile[] overlayCombinations(Hitbox hitbox, String background, String... paths) {
+			ImageTile[] output = overlayCombinations(background, paths);
+			for(ImageTile a : output) {
+				if(a != null && hitbox != null)
+					a.solid = hitbox;
+				else System.err.println((a==null) + " " + (hitbox==null));
+			}
+			return output;
 		}
 	}
 }
