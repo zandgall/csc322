@@ -8,9 +8,11 @@
 
 package com.zandgall.csc322.finalproj.level.tile;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Scanner;
 import javafx.scene.paint.Color;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -76,14 +78,8 @@ public abstract class Tile {
 		new ImageTile("res/tiles/flower_btr.png"),
 	};
 
-	public static final Tile walls[][] = new Tile[][] {
-		new Tile[] {new ImageTile("res/tiles/wall.png", Hitbox.unit())},
-		ImageTile.overlayCombinations(Hitbox.unit(), "res/tiles/wall.png", "res/tiles/walls/bottom.png", "res/tiles/walls/top.png", "res/tiles/walls/right.png", "res/tiles/walls/left.png"),
-		ImageTile.overlayCombinations(Hitbox.load("res/tiles/wall_ramp_bl.box"), "res/tiles/walls/bottom_left.png", "res/tiles/walls/right.png", "res/tiles/walls/top.png", "res/tiles/walls/edge_left.png", "res/tiles/walls/edge_bottom.png"),
-		ImageTile.overlayCombinations(Hitbox.load("res/tiles/wall_ramp_br.box"), "res/tiles/walls/bottom_right.png", "res/tiles/walls/edge_right.png", "res/tiles/walls/top.png", "res/tiles/walls/left.png", "res/tiles/walls/edge_bottom.png"),
-		ImageTile.overlayCombinations(Hitbox.load("res/tiles/wall_ramp_tl.box"), "res/tiles/walls/top_left.png", "res/tiles/walls/right.png", "res/tiles/walls/edge_top.png", "res/tiles/walls/edge_left.png", "res/tiles/walls/bottom.png"),
-		ImageTile.overlayCombinations(Hitbox.load("res/tiles/wall_ramp_tl.box"), "res/tiles/walls/top_right.png", "res/tiles/walls/edge_right.png", "res/tiles/walls/edge_top.png", "res/tiles/walls/left.png", "res/tiles/walls/bottom.png"),
-	};
+	public static final Tile walls[] = ImageTile.loadCombinations("res/tiles/walls/wall.combinations");
+	public static final Tile edges[] = ImageTile.loadCombinations("res/tiles/walls/edges.combinations");
 
 	private final int ID;
 
@@ -240,6 +236,47 @@ public abstract class Tile {
 				else System.err.println((a==null) + " " + (hitbox==null));
 			}
 			return output;
+		}
+
+		public static Image overlay(String... paths) {
+			// Create a pane to hold imageviews holding every input image (given by paths)
+			StackPane combiner = new StackPane();
+			ImageView views[] = new ImageView[paths.length];
+			for(int i = 0; i < paths.length; i++) {
+				try {
+					views[i] = new ImageView(new Image(new FileInputStream(paths[i])));
+				} catch (FileNotFoundException e) {
+					System.err.println("Could not find tile image \""+paths[i]+"\"");
+					views[i] = new ImageView();
+				}
+				combiner.getChildren().add(views[i]);
+			}
+			// Take a 'snapshot' which returns an image of everything overlayed
+			return combiner.snapshot(null, null);
+		}
+
+		public static ImageTile[] loadCombinations(String filepath) {
+			try {
+				Scanner s = new Scanner(new File(filepath));
+				ArrayList<ImageTile> output = new ArrayList<>();
+				while(s.hasNext()) {
+					String tags[] = s.nextLine().split("\\s+");
+					ArrayList<String> paths = new ArrayList<>();
+					Hitbox box = new Hitbox();
+					for(int i = 0; i < tags.length; i++) {
+						if(new File(tags[i] + ".box").exists())
+							box.add(Hitbox.load(tags[i] + ".box"));
+						if(new File(tags[i] + ".png").exists())
+							paths.add(tags[i] + ".png");
+					}
+					output.add(new ImageTile(overlay(paths.toArray(new String[paths.size()])), box));
+				}
+				return output.toArray(new ImageTile[output.size()]);
+			} catch (Exception e) {
+				System.err.println("Could not load combinations from " + filepath);
+				e.printStackTrace();
+			}
+			return new ImageTile[0];
 		}
 	}
 }

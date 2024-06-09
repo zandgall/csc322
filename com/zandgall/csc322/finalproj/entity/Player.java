@@ -19,6 +19,7 @@ import com.zandgall.csc322.finalproj.level.tile.Tile;
 
 public class Player extends Entity {
 
+	private boolean hasSword = false;
 	private double dashTimer = 0;
 
 	public Player() {
@@ -99,6 +100,10 @@ public class Player extends Entity {
 
 	public Hitbox getSolidBounds() {
 		return new Hitbox(x - 0.4, y - 0.4, 0.8, 0.8);
+	}
+
+	public void giveSword() {
+		hasSword = true;
 	}
 
 }

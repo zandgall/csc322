@@ -33,6 +33,7 @@ import javafx.scene.control.Label;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -208,9 +209,9 @@ public class LevelEditor extends Main {
 		ObjectOutputStream s = new ObjectOutputStream(fos);
 
 		// Version header
-		// Currently: 1.0
+		// Currently: 1.1
 		s.writeByte(1);
-		s.writeByte(0);
+		s.writeByte(1);
 		
 		// Write the y range of the tiles in this level
 		s.writeInt(level.bounds.y);
@@ -219,7 +220,7 @@ public class LevelEditor extends Main {
 		// Loop through every y value and write a line of tiles
 		for(int y = level.bounds.y; y <= level.bounds.y + level.bounds.height; y++) {
 			boolean writing = false, wroteLineEnd = false;
-			for(int x = level.bounds.x; x <= level.bounds.x + level.bounds.width; x++) {
+			for(int x = level.bounds.x; x <= level.bounds.x + level.bounds.width && !wroteLineEnd; x++) {
 				if(level.get(x, y)==null) {
 					if(!writing)
 						continue; // until we hit tiles
@@ -227,33 +228,41 @@ public class LevelEditor extends Main {
 					// we wrote tiles and hit an empty tile, see if there are any more proper tiles after this point
 					boolean endOfLine = true;
 					s.writeInt(0); // write empty tile
+					System.out.println("Writing empty tile");
 					for(int i = x; i < level.bounds.getWidth(); i++) {
 						if(level.get(i, y)!=null) {
 							endOfLine = false;
 							s.writeInt(i - x); // write number of empty tiles in this line
+							System.out.printf("Length %d%n", i-x);
+							x = i;
 							break;
 						}
 					}
 					// If we didn't hit any other tiles, it's the end of the line, write second 0
 					if(endOfLine) {
 						s.writeInt(0);
+						System.out.printf("Didn't hit end at %d, %d, writing line%n", x, y);
 						wroteLineEnd = true;
 					}
 				} else {
 					if(!writing) {
 						s.writeInt(x); // Write x position where this line actually starts
 						writing = true;
+						System.out.printf("Writing beginning x %d%n", x);
 					}
 					s.writeInt(level.get(x, y).getID());
 				}
 			}
 
 			// If we didn't write anything, add 'int 0' for starting x, and 'int 0 int 0' (equiv of newline)
-			if(!writing)
+			if(!writing) {
 				s.writeInt(0);
+				System.out.printf("We didn't write anything! Writing 0 for starting x, %b %b", writing, wroteLineEnd);
+			}
 			if(!wroteLineEnd) {
 				s.writeInt(0);
 				s.writeInt(0);
+				System.out.println("Writing escape line feed");
 			}
 		}
 
@@ -292,19 +301,23 @@ public class LevelEditor extends Main {
 		int minY = s.readInt();
 		int height = s.readInt();
 
-		for(int y = minY; y < minY + height; y++) {
+		for(int y = minY; y <= minY + height; y++) {
 			int x = s.readInt();
-			while(true) {
+			boolean reading = true;
+			System.out.printf("Reading line %d starting at %d", y, x);
+			while(reading) {
 				int tile = s.readInt();
 				if(tile == 0) {
 					int spacing = s.readInt(); // number of empty spaces OR 0 = newline
-					if(spacing == 0)
-						break; // new line
-
-					x += spacing;
+					if(spacing == 0) {
+						reading = false;
+						System.out.printf(" to %d%n", x);
+					} else
+						x += spacing;
+				} else {
+					level.put(x, y, Tile.get(tile));
+					x++;
 				}
-				level.put(x, y, Tile.get(tile));
-				x++;
 			}
 		}
 
@@ -312,6 +325,17 @@ public class LevelEditor extends Main {
 		for(int i = 0; i < numEntities; i++) {
 			entities.add(new EditorEntity(EntityRegistry.classes.indexOf(EntityRegistry.nameMap.get(s.readUTF())), s.readDouble(), s.readDouble()));
 		}
+
+		// Remove duplicates
+		LinkedHashSet<EditorEntity> duplicates = new LinkedHashSet<>();
+		for(int i = 0; i < entities.size(); i++)
+			for(int j = i + 1; j < entities.size(); j++) {
+				if(entities.get(i).equals(entities.get(j)))
+					duplicates.add(entities.get(i));
+			}
+		for(EditorEntity a : duplicates)
+			entities.remove(a);
+
 		s.close();
 		frame.dispose();
 	}
@@ -621,6 +645,12 @@ public class LevelEditor extends Main {
 		}
 		public Entity get() {
 			return entityInstances.get(entity);
+		}
+
+		public boolean equals(Object other) {
+			if(other instanceof EditorEntity e)
+				return e.entity == entity && e.x == x && e.y == y;
+			return false;
 		}
 	}
 }

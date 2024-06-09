@@ -50,7 +50,11 @@ public class Hitbox {
 		boxes.sort((a, b) -> {
 			return (int)(a.getWidth() * a.getHeight() - b.getWidth() * b.getHeight());
 		});
+	}
 
+	public void add(Hitbox other) {
+		for(Rectangle2D box : other.boxes)
+			add(box);
 	}
 
 	public boolean intersects(Rectangle2D rect) {

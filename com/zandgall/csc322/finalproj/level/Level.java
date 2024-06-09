@@ -33,7 +33,7 @@ public class Level {
 	public Rectangle bounds = new Rectangle(0,0,0,0);
 	private HashMap<Integer, HashMap<Integer, Tile>> level = new HashMap<>();
 
-	private ArrayList<Entity> entities = new ArrayList<>();
+	private ArrayList<Entity> entities = new ArrayList<>(), removeQueue = new ArrayList<>();
 	private ArrayList<Cloud> clouds = new ArrayList<>();
 
 	public Level() {}
@@ -59,16 +59,17 @@ public class Level {
 		byte major = s.readByte();
 		byte minor = s.readByte();
 
-		if(major != 1 || minor != 0) {
+		if(major != 1 || minor != 1) {
 			System.err.println("Unknown level version!!");
 			return;
 		}
 
 		// Read Y range
-		for(int y = s.readInt(), end = y + s.readInt(); y < end; y++) {
+		for(int y = s.readInt(), end = y + s.readInt(); y <= end; y++) {
 			// The left x position of this line
 			int x = s.readInt();
-			while(true) {
+			boolean reading = true;
+			while(reading) {
 				// Read tile for this position
 				int tile = s.readInt();
 
@@ -78,16 +79,16 @@ public class Level {
 					int next = s.readInt();
 					// If it is 0, it signifies the end of this line
 					if(next == 0)
-						break; // from while(true) loop
-
+						reading = false;
 					// If it's not 0, jump forward 'next' number of tiles
 					// Functionally the same as adding 'next' number of empty tiles
-					x += next;
+					else
+						x += next;
+				} else {
+					// Place the tile
+					put(x, y, Tile.get(tile));
+					x++;
 				}
-
-				// Place the tile
-				put(x, y, Tile.get(tile));
-				x++;
 			}
 		}
 
@@ -105,12 +106,9 @@ public class Level {
 		Random r = new Random();
 		for(int i = 0; i < bounds.width * bounds.height / 200; i++) {
 			clouds.add(new Cloud(r.nextDouble(bounds.x, bounds.x+bounds.width), r.nextDouble(bounds.y, bounds.y+bounds.height)));
-			System.out.println("Adding cloud!!");
 		}
 
-
 		s.close();
-
 	}
 
 	public void tick(Double delta) {
@@ -120,6 +118,12 @@ public class Level {
 		for(Entity e : entities)
 			if(e.getUpdateBounds().intersects(screen))
 				e.tick(delta);
+
+		for(Entity e : removeQueue)
+			if(!entities.remove(e))
+				System.err.println("Asked to remove entity that does not exist...");
+		removeQueue.clear();
+
 		for(Cloud cloud : clouds)
 			cloud.tick(delta);
 	}
@@ -177,6 +181,10 @@ public class Level {
 
 	public void addEntity(Entity e) {
 		entities.add(e);
+	}
+
+	public void removeEntity(Entity e) {
+		removeQueue.add(e);
 	}
 
 	public ArrayList<Entity> getEntities() {
