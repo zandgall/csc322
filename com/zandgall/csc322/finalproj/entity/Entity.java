@@ -60,9 +60,16 @@ public abstract class Entity {
 	public abstract Hitbox getUpdateBounds();
 	public abstract Hitbox getSolidBounds();
 
-	protected void move(double delta) {
+	/**
+	* Handles movement and collision. Use delta to move with xVel and yVel. Also applies friction to xVel and yVel.
+	* @param delta The time slice to process
+	* @returns True whether hit a wall/solid object
+	*/
+	protected boolean move(double delta) {
 		if(xVel == 0 && yVel == 0)
-			return;
+			return false;
+
+		boolean hitWall = false;
 
 		double nextX = x, nextY = y;
 
@@ -72,8 +79,10 @@ public abstract class Entity {
 			if(e == this)
 				continue; // don't collide with self
 			Hitbox solid = e.getSolidBounds();	
-			if(solid.intersects(box))
+			if(solid.intersects(box)) {
 				handleCollision(solid, nextX, nextY, delta);
+				hitWall = true;
+			}
 		}
 
 		int minX = (int)Math.floor(box.getBounds().getMinX());
@@ -85,6 +94,7 @@ public abstract class Entity {
 				Tile t = Main.getLevel().get(i, j);
 				if(t != null && t.solidBounds(i, j) != null && t.solidBounds(i, j).intersects(box)) {
 					handleCollision(t.solidBounds(i, j), nextX, nextY, delta);
+					hitWall = true;
 				}
 			}
 		}
@@ -100,6 +110,7 @@ public abstract class Entity {
 		xVel *= frictionRatio;
 		yVel *= frictionRatio;
 
+		return hitWall;
 	}
 
 	private void handleCollision(Hitbox solid, double nextX, double nextY, double delta) {

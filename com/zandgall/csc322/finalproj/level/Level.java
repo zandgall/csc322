@@ -104,8 +104,10 @@ public class Level {
 
 		// Populate clouds
 		Random r = new Random();
+		System.out.printf("Using bounds to create clouds: %d %d %d %d%n", bounds.x, bounds.x + bounds.width, bounds.y, bounds.y+bounds.height);
 		for(int i = 0; i < bounds.width * bounds.height / 200; i++) {
 			clouds.add(new Cloud(r.nextDouble(bounds.x, bounds.x+bounds.width), r.nextDouble(bounds.y, bounds.y+bounds.height)));
+			System.out.printf("Adding cloud at %.2f %.2f%n", clouds.get(i).getX(), clouds.get(i).getY());
 		}
 
 		s.close();

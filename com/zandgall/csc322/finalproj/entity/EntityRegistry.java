@@ -25,6 +25,7 @@ public class EntityRegistry {
 	public static void registerClasses() {
 		register("Tree", Tree.class);
 		register("PlantedSword", PlantedSword.class);
+		register("Plorp", Plorp.class);
 	}
 
 	public static Entity construct(Class<?> clazz, double x, double y) {

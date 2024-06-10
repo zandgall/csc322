@@ -51,6 +51,8 @@ public class Cloud {
 	}
 
 	public Cloud(double x, double y) {
+		this.x = x;
+		this.y = y;
 		type = new Random().nextInt(8);
 		speed = new Random().nextDouble(0.2, 0.5);
 	}
@@ -68,4 +70,7 @@ public class Cloud {
 	}	
 
 	public Hitbox getRenderBounds() { return new Hitbox(x, y, 16, 16); }
+
+	public double getX() {return x;}
+	public double getY() {return y;}
 }

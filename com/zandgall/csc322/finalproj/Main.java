@@ -60,6 +60,21 @@ public class Main extends Application {
 		stage.toFront();
 		stage.requestFocus();
 
+		stage.widthProperty().addListener((obs, oldVal, newVal) -> {
+			layer_0.setWidth(newVal.doubleValue());
+			layer_1.setWidth(newVal.doubleValue());
+			layer_2.setWidth(newVal.doubleValue());
+			shadow_0.setWidth(newVal.doubleValue());
+			shadow_1.setWidth(newVal.doubleValue());
+		});
+		stage.heightProperty().addListener((obs, oldVal, newVal) -> {
+			layer_0.setHeight(newVal.doubleValue());
+			layer_1.setHeight(newVal.doubleValue());
+			layer_2.setHeight(newVal.doubleValue());
+			shadow_0.setHeight(newVal.doubleValue());
+			shadow_1.setHeight(newVal.doubleValue());
+		});
+
 		keys = new HashMap<KeyCode, Boolean>();
 		for(KeyCode a : KeyCode.values())
 			keys.put(a, false); // Initialize all keys to false
@@ -75,7 +90,7 @@ public class Main extends Application {
 			public void handle(KeyEvent event) {
 				Main.keys.put(event.getCode(), false);
 			}
-		});
+		});	
 
 		player = new Player();
 		camera = new Camera();
