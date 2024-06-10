@@ -1,4 +1,5 @@
 /* CSC322 SESSION 5: EXERCISE - PROF. SUSAN FURTNEY
+ > I certify, that this computer program submitted by me is all of my own work.
  > ZANDER GALL - GALLA@CSP.EDU
 
  ## Calculator

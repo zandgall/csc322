@@ -1,6 +1,38 @@
 # CSC322
 Class projects for CSC322 - Object Oriented Programming in Java
 
+## Session 5
+
+### Assignment
+
+A simple 'AddressBook' GUI that loads and saves a data.bin file to keep track of people with information. This assignment utilizes Java Object I/O Streams, with a custom Serializable class. This project also uses JavaFX. See [this section](#javafx) to set up JavaFX on command-line.
+
+Compile and Run: (Works with JavaFX 21 SDK)
+```sh
+javac -p $JAVAFX_PATH --add-modules javafx.controls -d build com/zandgall/csc322/session5/assignment/AddressBook.java
+java -p $JAVAFX_PATH --add-modules javafx.controls -cp build com.zandgall.csc322.session5.assignment.AddressBook
+
+# or
+
+javafxc -d build com/zandgall/csc322/session5/assignment/AddressBook.java
+javafx -cp build com.zandgall.csc322.session5.assignment.AddressBook
+```
+
+### Exercise
+
+A simple JavaFX program that gives you a UI to type in two numbers, and add, subtract, multiply, or divide them. [How to set up JavaFX](#javafx)
+
+Compile and Run: (Works with JavaFX 21 SDK)
+```sh
+javac -p $JAVAFX_PATH --add-modules javafx.controls -d build com/zandgall/csc322/session5/exercise/Calculator.java
+java -p $JAVAFX_PATH --add-modules javafx.controls -cp build com.zandgall.csc322.session5.exercise.Calculator
+
+# or
+
+javafxc -d build com/zandgall/csc322/session5/exercise/Calculator.java
+javafx -cp build com.zandgall.csc322.session5.exercise.Calculator
+```
+
 ## Session 4
 
 ### Assignment (cont. from Session 3)
@@ -132,3 +164,27 @@ cd csc322
 javac -d build com/zandgall/csc322/session1/exercises/TimeTest.java
 java -cp build com.zandgall.csc322.session1.exercises.TimeTest
 ```
+
+
+# JavaFX
+
+Here I'll explain two ways to set up JavaFX
+
+## Method 1: Download and link as module
+
+This is the way that [openjfx](https://openjfx.io/openjfx-docs/#install-javafx) teaches you how to install.
+
+The first thing you do, is download a [JavaFX SDK](https://gluonhq.com/products/javafx/). The second thing you'll want to do, is add the path to JavaFX as a path variable.
+
+This can be done on Windows with: `set JAVAFX_PATH="path\to\javafx-sdk\lib"`
+And on Linux/Mac with: `export JAVAFX_PATH="path/to/javafx-sdk/lib"`
+
+(System environment changes can be made permanent on Linux by modifying your ~/.bashrc or ~/.zshrc depending on the shell you use)
+
+## Method 2: Use a standalone Runtime Environment
+
+Some people repackage Java to include JavaFX, so you wouldn't need to specify and add modules every time you compile and run.
+
+You can download one of these packages from [Azul](https://www.azul.com/downloads/?package=jdk-fx#zulu). Once downloaded, you'll see a `java` and `javac` executable file that operates the exact same way as your normal java/javac.
+
+I recommend *making a shortcut/symlink* of these two files, with 'fx' in the name. I use 'javafx' and 'javafxc'. You can place these shortcuts/symlinks either somewhere that is already included in the system Path, for example your current Java's installation bin directory, or add it's location to the path yourself.
