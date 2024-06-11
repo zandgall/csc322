@@ -9,25 +9,46 @@
 package com.zandgall.csc322.finalproj.entity;
 
 import javafx.scene.paint.Color;
+import javafx.scene.image.Image;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import java.awt.geom.Rectangle2D;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 import com.zandgall.csc322.finalproj.level.tile.Tile;
 
 public class Player extends Entity {
 
+	public static Image sword;
+
+	static {
+		try {
+			sword = new Image(new FileInputStream("res/entity/sword.png"));
+		} catch (FileNotFoundException e) {
+			System.err.println("Could not load player sword");
+			sword = null;
+		}
+	}
+
 	private boolean hasSword = false;
+	private double swordTimer = 0, swordDirection = 0, swordRotationalVelocity = 0;
+	private Hitbox swordBox;
 	private double dashTimer = 0;
+
+	private double health;
+	private long lastHit = System.currentTimeMillis();
 
 	public Player() {
 		super();
+		health = 20;
 	}
 
 	public Player(double x, double y) {
 		super(x, y);
+		health = 20;
 	}
 
 	public void tick(double delta) {
@@ -58,10 +79,61 @@ public class Player extends Entity {
 	
 		//System.out.printf("%.2f, %.2f%n", xVel, yVel);
 		move(delta);
+
+		if(hasSword) {
+			if(Main.keys.get(KeyCode.X)) {
+				double xTarg = 0, yTarg = 0;
+				if(Main.keys.get(KeyCode.RIGHT))
+					xTarg = 1;
+					// swordRotationalVelocity += (swordDirection > 3.14159) ? 5*delta : -5*delta;
+				if(Main.keys.get(KeyCode.LEFT))
+					xTarg = -1;
+					// swordRotationalVelocity += (swordDirection > 3.14159) ? -5*delta : 5*delta;
+				if(Main.keys.get(KeyCode.UP))
+					yTarg = -1;
+					// swordRotationalVelocity += (swordDirection < 1.57079 || swordDirection > 4.71238) ? -5*delta : 5*delta;
+				if(Main.keys.get(KeyCode.DOWN))
+					yTarg = 1;
+					// swordRotationalVelocity += (swordDirection < 1.57079 || swordDirection > 4.71238) ? 5*delta : -5*delta;
+				if(xTarg != 0 || yTarg != 0) {
+					double diff = (swordDirection - Math.atan2(yTarg, xTarg)) % (2*3.14159265);	
+					while(diff < 0)
+						diff += 2*3.14159265;
+					swordRotationalVelocity += (diff < 3.14159265) ? -5*delta : 5*delta;
+				} else { // If no arrow keys held, apply friction
+					double frictionRatio = 1 / (1 + 10*delta);
+					swordRotationalVelocity *= frictionRatio;
+				}
+			} else { // Or no X key held, apply friction
+				double frictionRatio = 1 / (1 + 10*delta);
+				swordRotationalVelocity *= frictionRatio;			
+			}
+			if(Math.abs(swordRotationalVelocity) > 0.5) // Sword is swinging fast enough, check if it hits any entities
+				for(Entity e : Main.getLevel().getEntities())
+					if(e.getHitBounds().intersects(swordBox))
+						e.dealPlayerDamage(Math.abs(swordRotationalVelocity)*0.1);
+
+			swordDirection += swordRotationalVelocity * delta;
+			swordDirection %= 2*3.14159265359;
+			while(swordDirection < 0)
+				swordDirection += 2*3.14159265359;
+
+			// Apply minimal friction
+			double frictionRatio = 1 / (1 + 0.1*delta);
+			swordRotationalVelocity *= frictionRatio;	
+
+			swordBox = new Hitbox(x + Math.cos(swordDirection)*0.5-0.5, y + Math.sin(swordDirection)*0.5-0.5, 1.0, 1.0);
+			swordBox.add(x+Math.cos(swordDirection)*1.5-0.5, y + Math.sin(swordDirection)*1.5-0.5, 1.0, 1.0);
+		}
 	}
 
 	@Override
 	public void render(GraphicsContext g, GraphicsContext ignore_shadow, GraphicsContext ignore_2) {
+		g.save();
+		if(System.currentTimeMillis() - lastHit < 1000) {
+			if((System.currentTimeMillis() / 100) % 2 == 0)
+				g.setGlobalAlpha(0.5);
+		}
 		g.setFill(Color.color(1, 0, 0, 1));
 		g.fillRect(x-0.5, y-0.5, 1, 1);
 		g.setStroke(Color.BLACK);
@@ -88,6 +160,20 @@ public class Player extends Entity {
 				}
 			}
 		}
+
+		if(hasSword) {
+			// g.setFill(Color.GREEN);
+			// g.fillRect(x+Math.cos(swordDirection)*0.5-0.5, y+Math.sin(swordDirection)*0.5-0.5, 1.0, 1.0);
+			// g.fillRect(x+Math.cos(swordDirection)*1.5-0.5, y+Math.sin(swordDirection)*1.5-0.5, 1.0, 1.0);
+			if(Math.abs(swordRotationalVelocity) > 0.2)
+				g.setGlobalAlpha(1.0);
+			else g.setGlobalAlpha(0.5);
+			g.translate(x, y);
+			g.rotate(180 * swordDirection / 3.14159265);
+			g.drawImage(sword, 0, -0.5, 2, 1);
+		}
+
+		g.restore();
 	}
 
 	public Hitbox getRenderBounds() {
@@ -100,6 +186,25 @@ public class Player extends Entity {
 
 	public Hitbox getSolidBounds() {
 		return new Hitbox(x - 0.4, y - 0.4, 0.8, 0.8);
+	}
+
+	public Hitbox getHitBounds() {
+		return new Hitbox(x - 0.4, y - 0.4, 0.8, 0.8);
+	}
+
+	public void dealEnemyDamage(double damage) {
+		if(System.currentTimeMillis()-lastHit < 1000)
+			return;
+		lastHit = System.currentTimeMillis();
+		health -= damage;
+		if(health < 0) {
+			Main.getLevel().removeEntity(this);
+			System.out.println("Died!");
+		}
+	}
+
+	public double getHealth() {
+		return health;
 	}
 
 	public void giveSword() {

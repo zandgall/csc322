@@ -10,6 +10,8 @@ package com.zandgall.csc322.finalproj.entity;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+
 
 import java.util.Random;
 import java.io.FileInputStream;
@@ -42,6 +44,9 @@ public class Plorp extends Entity {
 	private double xTarget = Double.NaN, yTarget = Double.NaN;
 
 	private boolean hitWall = false;
+
+	private double health = 5;
+	private long lastHit = 0;
 
 	public Plorp() {
 		super();
@@ -167,8 +172,8 @@ public class Plorp extends Entity {
 
 			case CHASING:
 				if(pursueTarget(delta)) {
-					if(new Hitbox(x-0.35, y-0.1, 0.7, 0.7).intersects(Main.getPlayer().getSolidBounds())) { // If close enough to player
-						// Main.getPlayer().dealEnemyDamage(1.0);
+					if(new Hitbox(x-0.35, y-0.1, 0.7, 0.7).intersects(Main.getPlayer().getHitBounds())) { // If close enough to player
+						Main.getPlayer().dealEnemyDamage(1.0);
 					} else if (!new Hitbox(x-4, y-4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
 						// Ran into a wall or something else stopped it, if can't see player, stop
 						timer = 0;
@@ -200,7 +205,7 @@ public class Plorp extends Entity {
 	}
 
 	private boolean checkForPlayer() {
-		if(new Hitbox(x - 4, y - 4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
+		if(new Hitbox(x - 4, y - 4, 8, 8).intersects(Main.getPlayer().getHitBounds())) {
 			timer = 0;
 			frame = 0;
 			xTarget = Main.getPlayer().getX();
@@ -237,6 +242,8 @@ public class Plorp extends Entity {
 	@Override
 	public void render(GraphicsContext g1, GraphicsContext gs, GraphicsContext g2) {
 		g1.save();
+		if(state != State.DEAD && System.currentTimeMillis() - lastHit < 100 && (System.currentTimeMillis()/20) % 2 == 0)
+			g1.setGlobalAlpha(0.5);
 		g1.translate(x, y);
 		g1.scale(horizontalFlip, 1);
 		switch (state) {
@@ -275,8 +282,14 @@ public class Plorp extends Entity {
 				break;
 			default:
 				break;
-		}
+		}	
 		g1.restore();
+		if(state != State.DEAD && health < 5) {
+			g2.setFill(Color.RED);
+			g2.fillRect(x-0.5, y-1.0, 1.0, 0.25);
+			g2.setFill(Color.GREEN);
+			g2.fillRect(x-0.5, y-1.0, health / 5.0, 0.25);
+		}
 	}
 
 	public Hitbox getRenderBounds() {
@@ -288,6 +301,24 @@ public class Plorp extends Entity {
 	}
 
 	public Hitbox getSolidBounds() {
-		return new Hitbox(x - 0.25, y, 0.5, 0.5);
+		return new Hitbox(x - 0.05, y-0.05, 0.1, 0.1);
+	}
+
+	public Hitbox getHitBounds() {
+		return new Hitbox(x - 0.4, y-0.2, 0.8, 0.5);
+	}
+
+	public void dealPlayerDamage(double damage) {
+		if(state == State.DEAD || state == State.SURPRISED)
+			return;
+		lastHit = System.currentTimeMillis();
+		health -= damage;
+		state = State.SURPRISED;
+
+		if(health <= 0 && state != State.DEAD) {
+			timer = 0;
+			frame = new Random().nextInt(2); // pick between 2 random dead sprites
+			state = State.DEAD;
+		}
 	}
 }

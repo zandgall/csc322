@@ -91,6 +91,10 @@ public class Tree extends Entity {
 		return new Hitbox(x-0.3, y-0.3, 0.6, 0.6);
 	}
 
+	public Hitbox getHitBounds() {
+		return new Hitbox();
+	}
+
 	public double getRenderLayer() {
 		return Math.floor(y) + 0.7;
 	}

@@ -66,4 +66,8 @@ public class PlantedSword extends Entity {
 		return new Hitbox();
 	}
 
+	public Hitbox getHitBounds() {
+		return new Hitbox();
+	}
+
 }

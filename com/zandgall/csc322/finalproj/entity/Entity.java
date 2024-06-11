@@ -59,6 +59,12 @@ public abstract class Entity {
 	public abstract Hitbox getRenderBounds();
 	public abstract Hitbox getUpdateBounds();
 	public abstract Hitbox getSolidBounds();
+	public abstract Hitbox getHitBounds();
+
+	// Overrideable functions to handle different types of damage
+	public void dealEnemyDamage(double damage) {}
+	public void dealPlayerDamage(double damage) {}
+
 
 	/**
 	* Handles movement and collision. Use delta to move with xVel and yVel. Also applies friction to xVel and yVel.
