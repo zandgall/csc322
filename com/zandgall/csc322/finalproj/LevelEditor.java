@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.awt.geom.Rectangle2D;
 import javax.swing.JFrame;
 import javax.swing.JFileChooser;
+import javax.swing.UIManager;
 
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.entity.Entity;
@@ -74,7 +75,7 @@ public class LevelEditor extends Main {
 	/* Tiles */
 	private HBox tileRoot;
 	private Canvas currentTileView;
-	private HBox tileOptionContainer;
+	private GridPane tileOptionContainer;
 	private double tileOptionOffset = 0;
 	private ArrayList<Canvas> tileOptions;
 
@@ -192,6 +193,16 @@ public class LevelEditor extends Main {
 					}
 				}
 			}
+		});
+		
+		stage.heightProperty().addListener((obs, oldVal, newVal) -> {
+			if(newVal.doubleValue() <= 138)
+				return;
+			layer_0.setHeight(newVal.doubleValue()-138);
+			layer_1.setHeight(newVal.doubleValue()-138);
+			layer_2.setHeight(newVal.doubleValue()-138);
+			shadow_0.setHeight(newVal.doubleValue()-138);
+			shadow_1.setHeight(newVal.doubleValue()-138);
 		});
 
 	}
@@ -427,25 +438,28 @@ public class LevelEditor extends Main {
 
 	private void setupTilesUI() {
 		tileRoot = new HBox(58);
-		currentTileView = new Canvas(70, 70);
+		currentTileView = new Canvas(72, 72);
 		tileRoot.getChildren().add(currentTileView);
-		tileOptionContainer = new HBox();
+		tileOptionContainer = new GridPane();
 		tileOptions = new ArrayList<Canvas>();
-		for(int i = 0; i < 18; i++) {
-			tileOptions.add(new Canvas(64, 64));
-			tileOptionContainer.getChildren().add(tileOptions.get(i));
+		for(int i = 0; i < 104; i++) {
+			tileOptions.add(new Canvas(36, 36));
+			tileOptionContainer.add(tileOptions.get(i), i/2, i%2);
 			final int offset = i;
 			tileOptions.get(i).setOnMouseClicked(new EventHandler<MouseEvent>() {
 				@Override
 				public void handle(MouseEvent event) {
 					if(!mode.getText().equals("Tile mode"))
 						return;
+					int sel = (offset + (int)Math.floor(tileOptionOffset)) % (Tile.maxID()+1);
+					if(sel < 0)
+						sel += Tile.maxID() + 1;
 					if(selecting)
 						for(int x = Math.min(tileX, selectX); x<=tileX||x<=selectX; x++)
 							for(int y = Math.min(tileY, selectY); y<=tileY||y<=selectY; y++)
-								level.put(x,y,Tile.get(offset+(int)Math.floor(tileOptionOffset)));
+								level.put(x,y,Tile.get(sel));
 					else
-						level.put(tileX, tileY, Tile.get(offset + (int)Math.floor(tileOptionOffset)));
+						level.put(tileX, tileY, Tile.get(sel));
 				}
 			});
 		}
@@ -453,7 +467,7 @@ public class LevelEditor extends Main {
 			@Override
 			public void handle(ScrollEvent event) {
 				int previous = (int)Math.floor(tileOptionOffset);
-				tileOptionOffset+=(event.getDeltaX() + event.getDeltaY())*0.1;
+				tileOptionOffset-=(event.getDeltaX() + event.getDeltaY())*0.1;
 				if(previous != (int)Math.floor(tileOptionOffset))
 					updateTileOptions();
 					
@@ -463,13 +477,13 @@ public class LevelEditor extends Main {
 	}
 
 	private void setupEntitiesUI() {
-		entityRoot = new HBox(122);
-		currentEntityView = new Canvas(134, 134);
+		entityRoot = new HBox(56);
+		currentEntityView = new Canvas(66, 66);
 		entityRoot.getChildren().add(currentEntityView);
 		entityOptionContainer = new HBox();
 		entityOptions = new ArrayList<Canvas>();
 		for(int i = 0; i < 8; i++) {
-			entityOptions.add(new Canvas(128, 128));
+			entityOptions.add(new Canvas(66, 66));
 			entityOptionContainer.getChildren().add(entityOptions.get(i));
 			final int offset = i;
 			entityOptions.get(i).setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -489,7 +503,7 @@ public class LevelEditor extends Main {
 			@Override
 			public void handle(ScrollEvent event) {
 				int previous = (int)Math.floor(entityOptionOffset);
-				entityOptionOffset+=(event.getDeltaX() + event.getDeltaY())*0.1;
+				entityOptionOffset-=(event.getDeltaX() + event.getDeltaY())*0.025;
 				if(previous != (int)Math.floor(entityOptionOffset))
 					updateEntityOptions();
 					
@@ -500,11 +514,18 @@ public class LevelEditor extends Main {
 	private void updateTileOptions() {
 		for(int i = 0; i < tileOptions.size(); i++) {
 			GraphicsContext tileContext = tileOptions.get(i).getGraphicsContext2D();
-			tileContext.clearRect(0, 0, 64, 64);
+			tileContext.clearRect(0, 0, 36, 36);
 			tileContext.setImageSmoothing(false);
+			tileContext.setStroke(Color.BLACK);
+			tileContext.setLineWidth(2);
+			tileContext.strokeRect(0, 0, 36, 36);
 			tileContext.save();
-			tileContext.scale(64, 64);
-			Tile.get(i + (int)Math.floor(tileOptionOffset)).render(tileContext);
+			tileContext.translate(2, 2);
+			tileContext.scale(32, 32);	
+			int sel = (i + (int)Math.floor(tileOptionOffset)) % (Tile.maxID()+1);
+			if(sel < 0)
+				sel += Tile.maxID() + 1;
+			Tile.get(sel).render(tileContext);
 			tileContext.restore();
 		}
 	}
@@ -512,20 +533,25 @@ public class LevelEditor extends Main {
 	private void updateEntityOptions() {
 		for(int i = 0; i < entityOptions.size(); i++) {
 			GraphicsContext entityContext = entityOptions.get(i).getGraphicsContext2D();
-			entityContext.clearRect(0, 0, 128, 128);
+			entityContext.clearRect(0, 0, 66, 66);
 			int index = i + (int) Math.floor(entityOptionOffset);
 			if(index >= entityInstances.size() || index < 0)
 				continue;
 			entityContext.setImageSmoothing(false);
 			entityContext.save();
 
+			entityContext.setStroke(Color.BLACK);
+			entityContext.setLineWidth(2);
+			entityContext.strokeRect(0, 0, 66, 66);
+
 			Entity e = entityInstances.get(index);
 			Rectangle2D bounds = e.getRenderBounds().getBounds();
-			entityContext.scale(128, 128);
-			double scale = Math.min(1/bounds.getWidth(), 1/bounds.getHeight());
-			entityContext.translate(-scale*bounds.getX(), -scale*bounds.getY());	
-
+			entityContext.translate(2, 2);
+			entityContext.scale(64, 64);
+			double maxDim = Math.max(bounds.getWidth(), bounds.getHeight());
+			double scale = 1.0/maxDim;
 			entityContext.scale(scale, scale);
+			entityContext.translate(-bounds.getX() + (maxDim-bounds.getWidth())/2, -bounds.getY() + (maxDim-bounds.getHeight())/2);
 			e.render(entityContext, throwAwayContext, entityContext);
 			entityContext.restore();
 		}

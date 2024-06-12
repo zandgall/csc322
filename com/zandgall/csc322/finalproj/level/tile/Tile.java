@@ -100,6 +100,8 @@ public abstract class Tile {
 		return ID;
 	}
 
+	public static int maxID() {return tilemap.size() - 1;}
+
 	/**
 	 * Determine whether the tile is solid or not, returning null if not, and a Hitbox if it is
 	 */
