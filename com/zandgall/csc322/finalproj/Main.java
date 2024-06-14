@@ -23,6 +23,7 @@ import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.GaussianBlur;
 
 import java.util.HashMap;
+import java.util.Scanner;
 
 import com.zandgall.csc322.finalproj.entity.EntityRegistry;
 import com.zandgall.csc322.finalproj.entity.Player;
@@ -32,6 +33,8 @@ import com.zandgall.csc322.finalproj.level.tile.Tile;
 
 public class Main extends Application {
 
+	public static boolean SHADOWS_ENABLED = false;
+
 	public static Main instance = null;
 
 	public static HashMap<KeyCode, Boolean> keys;
@@ -39,16 +42,25 @@ public class Main extends Application {
 	public static Scene scene;
 	public static Stage stage;
 	public static Pane root;
-	public static Canvas layer_0, layer_1, shadow_0, layer_2, shadow_1;
-	public static GraphicsContext c0, c1, s0, c2, s1;
+	public static Canvas layer_0, layer_1, shadow_0, layer_2, shadow_1, hudCanvas, throwawayCanvas;
+	public static GraphicsContext c0, c1, s0, c2, s1, throwawayContext, hudContext;
 
 	protected Player player;
 	protected Camera camera;
 	protected Level level;
+	protected Hud hud;
 
 	@Override
 	public void start(Stage stage) {
-		instance = this;
+		String res = "";
+		do {
+			System.out.println("Would you like to enable shadows? (Disable for low end systems) Y/N: ");
+			Scanner s = new Scanner(System.in);
+			res = s.nextLine().toLowerCase();
+		} while(!res.equals("y") && !res.equals("n"));
+
+		Main.SHADOWS_ENABLED = res=="y";
+		Main.instance = this;
 		Main.stage = stage;
 
 		EntityRegistry.registerClasses();
@@ -66,6 +78,7 @@ public class Main extends Application {
 			layer_2.setWidth(newVal.doubleValue());
 			shadow_0.setWidth(newVal.doubleValue());
 			shadow_1.setWidth(newVal.doubleValue());
+			hudCanvas.setWidth(newVal.doubleValue());
 		});
 		stage.heightProperty().addListener((obs, oldVal, newVal) -> {
 			layer_0.setHeight(newVal.doubleValue());
@@ -73,6 +86,7 @@ public class Main extends Application {
 			layer_2.setHeight(newVal.doubleValue());
 			shadow_0.setHeight(newVal.doubleValue());
 			shadow_1.setHeight(newVal.doubleValue());
+			hudCanvas.setHeight(newVal.doubleValue());
 		});
 
 		keys = new HashMap<KeyCode, Boolean>();
@@ -95,6 +109,7 @@ public class Main extends Application {
 		player = new Player();
 		camera = new Camera();
 		level = new Level();
+		hud = new Hud();
 		try {
 			level.load("res/level/test.bin");
 		} catch(Exception e) {
@@ -146,11 +161,19 @@ public class Main extends Application {
 		s1.setImageSmoothing(false);
 		s1.setGlobalAlpha(0.7);
 
+		hudCanvas = new Canvas(1280, 720);
+		hudContext = hudCanvas.getGraphicsContext2D();
+		hudContext.setImageSmoothing(false);
+
+		throwawayCanvas = new Canvas(0,0);
+		throwawayContext = throwawayCanvas.getGraphicsContext2D();
+
 		root.getChildren().add(layer_0);
 		root.getChildren().add(layer_1);
 		root.getChildren().add(shadow_0);
 		root.getChildren().add(layer_2);
 		root.getChildren().add(shadow_1);
+		root.getChildren().add(hudCanvas);
 
 		scene = new Scene(root, 1280, 720);
 	}
@@ -172,31 +195,42 @@ public class Main extends Application {
 		s0.clearRect(0, 0, shadow_0.getWidth(), shadow_0.getHeight());
 		c2.clearRect(0, 0, layer_2.getWidth(), layer_2.getHeight());
 		s1.clearRect(0, 0, shadow_1.getWidth(), shadow_1.getHeight());
+		hudContext.clearRect(0, 0, hudCanvas.getWidth(), hudCanvas.getHeight());
 
 		c0.save();
 		c1.save();
 		s0.save();
 		c2.save();
 		s1.save();
+		hudContext.save();
 		
 		camera.transform(c0);
 		camera.transform(c1);
 		camera.transform(s0);
 		camera.transform(c2);
 		camera.transform(s1);
+		// Don't transform hudContext
 
-		level.render(c0, c1, s0, c2, s1);
 
-		s0.applyEffect(new ColorAdjust(-0.8, 0.5, -0.8, 0.0));
-		s0.applyEffect(new GaussianBlur(10)); // blur radius is in pixels
-		s1.applyEffect(new ColorAdjust(-0.8, 0.5, -0.8, 0.0));
-		s1.applyEffect(new GaussianBlur(200)); // blur radius is in pixels
+		if(SHADOWS_ENABLED) {
+			level.render(c0, c1, s0, c2, s1);
+			s0.applyEffect(new ColorAdjust(-0.8, 0.5, -0.8, 0.0));
+			s0.applyEffect(new GaussianBlur(10)); // blur radius is in pixels
+			s1.applyEffect(new ColorAdjust(-0.8, 0.5, -0.8, 0.0));
+			s1.applyEffect(new GaussianBlur(200)); // blur radius is in pixels
+		} else {
+			level.render(c0, c1, s0, c2, throwawayContext);
+			s0.applyEffect(new ColorAdjust(-0.8, 0.5, -0.8, 0.0));
+		}
+
+		hud.render(hudContext);
 
 		c0.restore();
 		c1.restore();
 		s0.restore();
 		c2.restore();
 		s1.restore();
+		hudContext.restore();
 	}
 
 	// Global accessers
