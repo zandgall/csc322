@@ -1,8 +1,9 @@
 /* CSC322 SESSION 6: ASSIGNMENT - PROF. SUSAN FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
 
- ## Unsorted Bag
- # A generic implementation of "IBag" that wraps an ArrayList
+ ## Sorted Bag
+ # An implementation of "IBag" that wraps an ArrayList and sorts it,
+ # Also uses binary search to see if an item is in the bag
 
  : MADE IN NEOVIM */
 
@@ -22,19 +23,28 @@ public class SortedBag<E extends Comparable<E>> implements IBag<E> {
 	public E remove() { return data.remove(0); }
 
 	public boolean contains(E item) {
+		// Set lower and upper bounds, and check middle
 		int lower = 0, upper = data.size()-1, mid = (lower + upper) / 2;
+
+		// Repeat until lower bound passes/passed by upper bound
 		while(lower <= upper) {
+			// Get data and use "String.compareTo" to see if it's alphabetically
+			// lower or higher than the item we're looking for
 			int result = data.get(mid).compareTo(item);
-			// Used to track the binary search process
-			// System.out.printf("Checking %d (%d %d) to get %s%n", mid, lower, upper, data.get(mid).toString());
+
+			// If the item is the same as what's at data[mid], return found true
 			if(result == 0)
 				return true;
+			// If data[mid] is alphabetically lower (closer to A) than 'item',
 			else if(result > 0)
-				upper = mid - 1;
+				upper = mid - 1; // set upper bound
 			else
-				lower = mid + 1;
+				lower = mid + 1; // otherwise set lower bound
+			// update mid value
 			mid = (lower + upper) / 2;
 		}
+
+		// Couldn't find it!
 		return false;
 	}
 

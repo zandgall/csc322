@@ -16,6 +16,7 @@ public class Program4 {
 	public Program4() {}
 
 	public void run() {
+		// Get what bag type to use, and generater one
 		System.out.print("What type of bag do you want? ");
 		String answer = "";
 		Scanner s = new Scanner(System.in);
@@ -23,11 +24,12 @@ public class Program4 {
 			System.out.print("sorted/unsorted: ");
 			answer = s.next();
 		}
+
+		// The only mention of UnsortedBag and SortedBag class, everything else is just "IBag" methods
 		if(answer.equals("unsorted"))
 			bag = new UnsortedBag<String>();
-		else {
+		else
 			bag = new SortedBag<String>();
-		}
 
 		System.out.print("How many items do you want in the bag? ");
 		int capacity = -1;

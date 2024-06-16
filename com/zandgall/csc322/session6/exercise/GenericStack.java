@@ -3,6 +3,8 @@
 
  ## GenericStack
  # A generic stack that utilizes an array to provide all the functionality of a Stack
+ # It has special feature where it automatically allocates and deallocates space
+ # in the array as the stack grows and shrinks
 
  - You should see me do this in Assembly!
 
@@ -24,7 +26,7 @@ public class GenericStack<E> {
 	// Start with size of 4 to test extending list size easily
 	@SuppressWarnings("unchecked") // <- what super smart and cool people do when working with java generics
 	public GenericStack() {
-		// Not allowed to just allocate a new array of a generic, using new Object[], and ignoring warnings	
+		// Not allowed to just allocate a new array of a generic, using new Object[], and ignoring warnings
 		this.array = (E[])new Object[MIN_CAPACITY];
 	}
 

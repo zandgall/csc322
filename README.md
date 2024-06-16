@@ -1,6 +1,43 @@
 # CSC322
 Class projects for CSC322 - Object Oriented Programming in Java
 
+## Session 6
+
+### Assignment
+
+An interface called "IBag" that just declares methods for adding an item, taking out an item, and checking if a bag contains an item. Two implementations, one "UnsortedBag" that is just a functional wrapper for ArrayList, another "SortedBag" that sorts the list every time you add an item, and uses the binary search algorithm to check whether an item exists in the bag.
+
+Compile and Run:
+```sh
+javac -d build com/zandgall/csc322/session6/assignment/Program4.java
+java -cp build com.zandgall.csc322.session6.assignment.Program4
+```
+
+### Exercise
+
+Generic stack implementation. Using generics to construct a stack that reallocates as the stack outgrows its capacity or shrinks too little.
+
+Compile and Run:
+```sh
+javac -d build com/zandgall/csc322/session6/exercise/Main.java
+java -cp build com.zandgall.csc322.session6.exercise.Main
+```
+
+### Discussion
+
+A demonstration of recursion. Create a tree where each branch has it's own tree with n-1 and m-2 branches depending on the direction (left vs right).
+Uses [JavaFX](#javafx)
+
+```sh
+javac -p $JAVAFX_PATH --add-modules javafx.controls -d build com/zandgall/csc322/session6/discussion/Recursion.java
+java -p $JAVAFX_PATH --add-modules javafx.controls -cp build Recursion
+
+# or
+
+javafxc -d build com/zandgall/csc322/session6/discussion/Recursion.java
+javafx -cp build Recursion
+```
+
 ## Session 5
 
 ### Assignment
