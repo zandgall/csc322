@@ -11,6 +11,7 @@ package com.zandgall.csc322.finalproj;
 import javafx.scene.canvas.GraphicsContext;
 
 public class Camera {
+	public static final double SMOOTHING = 0.01;
 	private double x, y;
 	private double zoom; // The size a single pixel will be after transform
 
@@ -22,9 +23,9 @@ public class Camera {
 		this.zoom = 64;
 	}
 
-	public void tick(double delta) {
-		this.x = x * (1-delta) + targetX * delta;
-		this.y = y * (1-delta) + targetY * delta;
+	public void tick() {
+		this.x = x * (1-SMOOTHING) + targetX * SMOOTHING;
+		this.y = y * (1-SMOOTHING) + targetY * SMOOTHING;
 	}
 
 	public void target(double x, double y) {

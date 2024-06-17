@@ -22,6 +22,8 @@ import com.zandgall.csc322.finalproj.level.tile.Tile;
 
 public class Player extends Entity {
 
+	public static final double DASH_SPEED = 20, DASH_TIMER = 0.5, MOVE_SPEED = 0.2;
+
 	public static Image sword;
 
 	static {
@@ -51,76 +53,74 @@ public class Player extends Entity {
 		health = 20;
 	}
 
-	public void tick(double delta) {
+	public void tick() {
 		// Arrow keys to move
 		if(Main.keys.get(KeyCode.RIGHT))
-			xVel += delta * 20;
+			xVel += MOVE_SPEED;
 		if(Main.keys.get(KeyCode.LEFT))
-			xVel -= delta * 20;
+			xVel -= MOVE_SPEED;
 		if(Main.keys.get(KeyCode.DOWN))
-			yVel += delta * 20;
+			yVel += MOVE_SPEED;
 		if(Main.keys.get(KeyCode.UP))
-			yVel -= delta * 20;
+			yVel -= MOVE_SPEED;
 
 		// If player presses Z and ready to dash, dash in direction we're moving
 		if(Main.keys.get(KeyCode.Z) && dashTimer <= 0) {
 			double vel = Math.sqrt(xVel * xVel + yVel * yVel);
 
-			xVel *= delta * 1000 / vel;
-			yVel *= delta * 1000 / vel;
+			xVel *= DASH_SPEED / vel;
+			yVel *= DASH_SPEED / vel;
 
 			// Next dash in 0.5 seconds
-			dashTimer = 0.5;
+			dashTimer = DASH_TIMER;
 		}
 		
 		// Decrease dash timer to 0 over time
 		if(dashTimer > 0)
-			dashTimer -= delta;
+			dashTimer -= Main.TIMESTEP;
 	
 		//System.out.printf("%.2f, %.2f%n", xVel, yVel);
-		move(delta);
+		move();
 
 		if(hasSword) {
 			if(Main.keys.get(KeyCode.X)) {
 				double xTarg = 0, yTarg = 0;
 				if(Main.keys.get(KeyCode.RIGHT))
 					xTarg = 1;
-					// swordRotationalVelocity += (swordDirection > 3.14159) ? 5*delta : -5*delta;
 				if(Main.keys.get(KeyCode.LEFT))
 					xTarg = -1;
-					// swordRotationalVelocity += (swordDirection > 3.14159) ? -5*delta : 5*delta;
 				if(Main.keys.get(KeyCode.UP))
 					yTarg = -1;
-					// swordRotationalVelocity += (swordDirection < 1.57079 || swordDirection > 4.71238) ? -5*delta : 5*delta;
 				if(Main.keys.get(KeyCode.DOWN))
 					yTarg = 1;
-					// swordRotationalVelocity += (swordDirection < 1.57079 || swordDirection > 4.71238) ? 5*delta : -5*delta;
 				if(xTarg != 0 || yTarg != 0) {
-					double diff = (swordDirection - Math.atan2(yTarg, xTarg)) % (2*3.14159265);	
+					double diff = (swordDirection - Math.atan2(yTarg, xTarg)) % (2*Math.PI);
 					while(diff < 0)
-						diff += 2*3.14159265;
-					swordRotationalVelocity += (diff < 3.14159265) ? -5*delta : 5*delta;
+						diff += 2*Math.PI;
+
+					swordRotationalVelocity += (diff < Math.PI) ? -0.075 : 0.075;
+					// If the sword is pointed close to the opposite direction, apply a little bit of friction to reduce
+					// Just holding one directional key and swinging forever
+					if(Math.abs(diff - Math.PI) < 0.3)
+						swordRotationalVelocity *= 0.95;
 				} else { // If no arrow keys held, apply friction
-					double frictionRatio = 1 / (1 + 10*delta);
-					swordRotationalVelocity *= frictionRatio;
+					swordRotationalVelocity *= 0.9;
 				}
 			} else { // Or no X key held, apply friction
-				double frictionRatio = 1 / (1 + 10*delta);
-				swordRotationalVelocity *= frictionRatio;			
+				swordRotationalVelocity *= 0.9;
 			}
-			if(Math.abs(swordRotationalVelocity) > 0.5) // Sword is swinging fast enough, check if it hits any entities
+			if(Math.abs(swordRotationalVelocity) > 2.0) // Sword is swinging fast enough, check if it hits any entities
 				for(Entity e : Main.getLevel().getEntities())
 					if(e.getHitBounds().intersects(swordBox))
 						e.dealPlayerDamage(Math.abs(swordRotationalVelocity)*0.1);
 
-			swordDirection += swordRotationalVelocity * delta;
-			swordDirection %= 2*3.14159265359;
+			swordDirection += swordRotationalVelocity * Main.TIMESTEP;
+			swordDirection %= 2*Math.PI;
 			while(swordDirection < 0)
-				swordDirection += 2*3.14159265359;
+				swordDirection += 2*Math.PI;
 
 			// Apply minimal friction
-			double frictionRatio = 1 / (1 + 0.1*delta);
-			swordRotationalVelocity *= frictionRatio;	
+			// swordRotationalVelocity *= 0.99;
 
 			swordBox = new Hitbox(x + Math.cos(swordDirection)*0.5-0.5, y + Math.sin(swordDirection)*0.5-0.5, 1.0, 1.0);
 			swordBox.add(x+Math.cos(swordDirection)*1.5-0.5, y + Math.sin(swordDirection)*1.5-0.5, 1.0, 1.0);
@@ -130,10 +130,9 @@ public class Player extends Entity {
 	@Override
 	public void render(GraphicsContext g, GraphicsContext ignore_shadow, GraphicsContext ignore_2) {
 		g.save();
-		if(System.currentTimeMillis() - lastHit < 1000) {
+		if(System.currentTimeMillis() - lastHit < 1000)
 			if((System.currentTimeMillis() / 100) % 2 == 0)
 				g.setGlobalAlpha(0.5);
-		}
 		g.setFill(Color.color(1, 0, 0, 1));
 		g.fillRect(x-0.5, y-0.5, 1, 1);
 		g.setStroke(Color.BLACK);
@@ -165,11 +164,11 @@ public class Player extends Entity {
 			// g.setFill(Color.GREEN);
 			// g.fillRect(x+Math.cos(swordDirection)*0.5-0.5, y+Math.sin(swordDirection)*0.5-0.5, 1.0, 1.0);
 			// g.fillRect(x+Math.cos(swordDirection)*1.5-0.5, y+Math.sin(swordDirection)*1.5-0.5, 1.0, 1.0);
-			if(Math.abs(swordRotationalVelocity) > 0.2)
+			if(Math.abs(swordRotationalVelocity) > 2.0)
 				g.setGlobalAlpha(1.0);
 			else g.setGlobalAlpha(0.5);
 			g.translate(x, y);
-			g.rotate(180 * swordDirection / 3.14159265);
+			g.rotate(180 * swordDirection / Math.PI);
 			g.drawImage(sword, 0, -0.5, 2, 1);
 		}
 

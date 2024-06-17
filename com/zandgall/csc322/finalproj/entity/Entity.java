@@ -36,7 +36,7 @@ public abstract class Entity {
 		this.xVel = 0;
 	}
 
-	public abstract void tick(double delta);
+	public abstract void tick();
 
 	/*
 	* A method to define how to draw each type of entity
@@ -67,11 +67,10 @@ public abstract class Entity {
 
 
 	/**
-	* Handles movement and collision. Use delta to move with xVel and yVel. Also applies friction to xVel and yVel.
-	* @param delta The time slice to process
+	* Handles movement and collision. Also applies friction to xVel and yVel.
 	* @returns True whether hit a wall/solid object
 	*/
-	protected boolean move(double delta) {
+	protected boolean move() {
 		if(xVel == 0 && yVel == 0)
 			return false;
 
@@ -80,13 +79,13 @@ public abstract class Entity {
 		double nextX = x, nextY = y;
 
 		// Check it against all solid entities
-		Hitbox box = getSolidBounds().translate(xVel * delta, yVel * delta);
+		Hitbox box = getSolidBounds().translate(xVel * Main.TIMESTEP, yVel * Main.TIMESTEP);
 		for(Entity e : Main.getLevel().getEntities()) {
 			if(e == this)
 				continue; // don't collide with self
 			Hitbox solid = e.getSolidBounds();	
 			if(solid.intersects(box)) {
-				handleCollision(solid, nextX, nextY, delta);
+				handleCollision(solid, nextX, nextY);
 				hitWall = true;
 			}
 		}
@@ -99,7 +98,7 @@ public abstract class Entity {
 			for(int j = minY; j <= maxY; j++) {
 				Tile t = Main.getLevel().get(i, j);
 				if(t != null && t.solidBounds(i, j) != null && t.solidBounds(i, j).intersects(box)) {
-					handleCollision(t.solidBounds(i, j), nextX, nextY, delta);
+					handleCollision(t.solidBounds(i, j), nextX, nextY);
 					hitWall = true;
 				}
 			}
@@ -108,18 +107,17 @@ public abstract class Entity {
 		// Move to the next position
 		// If there was a collision, nextX, nextY, xVel, yVel will have been modified
 		// and we will be pressed up against a solid wall
-		x = nextX + xVel * delta;
-		y = nextY + yVel * delta;
+		x = nextX + xVel * Main.TIMESTEP;
+		y = nextY + yVel * Main.TIMESTEP;
 
 		// Handle friction
-		double frictionRatio = 1 / (1 + (delta*10));
-		xVel *= frictionRatio;
-		yVel *= frictionRatio;
+		xVel *= 0.9;
+		yVel *= 0.9;
 
 		return hitWall;
 	}
 
-	private void handleCollision(Hitbox solid, double nextX, double nextY, double delta) {
+	private void handleCollision(Hitbox solid, double nextX, double nextY) {
 		// We increment by 1/100th of a tile until we find the exact moment we intersect with something solid
 		double stepLength = Math.sqrt(xVel * xVel + yVel * yVel) * 100;
 		double xStep = xVel / stepLength, yStep = yVel / stepLength;

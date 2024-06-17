@@ -33,7 +33,10 @@ import com.zandgall.csc322.finalproj.level.tile.Tile;
 
 public class Main extends Application {
 
-	public static boolean SHADOWS_ENABLED = false;
+	// How long each timestep is that tick updates
+	public static final double TIMESTEP = 0.01;
+
+	public static boolean SHADOWS_ENABLED, FRAME_LIMITED;
 
 	public static Main instance = null;
 
@@ -50,16 +53,20 @@ public class Main extends Application {
 	protected Level level;
 	protected Hud hud;
 
-	@Override
-	public void start(Stage stage) {
+	private static boolean askBooleanOption(String question) {
 		String res = "";
 		do {
-			System.out.println("Would you like to enable shadows? (Disable for low end systems) Y/N: ");
+			System.out.println(question);
 			Scanner s = new Scanner(System.in);
 			res = s.nextLine().toLowerCase();
 		} while(!res.equals("y") && !res.equals("n"));
+		return res.equals("y");
+	}
 
-		Main.SHADOWS_ENABLED = res=="y";
+	@Override
+	public void start(Stage stage) {
+		Main.SHADOWS_ENABLED = askBooleanOption("Would you like to enable shadows? (Disable for low end systems) Y/N: ");
+		Main.FRAME_LIMITED = askBooleanOption("Would you like to limit the frame rate? (Disable if your machine overworks itself) Y/N: ");
 		Main.instance = this;
 		Main.stage = stage;
 
@@ -120,19 +127,21 @@ public class Main extends Application {
 
 		new AnimationTimer() {
 			private long lastTime = System.nanoTime(); 
+			double delta = 0;
 
 			@Override 
 			public void handle(long currentNanoTime) {
-				double delta = (currentNanoTime - lastTime)*0.000000001;
+				delta += (currentNanoTime - lastTime)*0.000000001;
 				lastTime = currentNanoTime;
-				tick(delta);
+				// We tick in 1/100 second increments in order to ensure game physics/interaction consistency
+				while(delta >= TIMESTEP) {
+					tick();
+					delta -= TIMESTEP;
+				}
 				render();
 
-				try {
-					Thread.sleep(13);
-				} catch (InterruptedException e) {
-					// Do nothing
-				}
+				if(FRAME_LIMITED) // Limit to 60fps
+					try { Thread.sleep(13); } catch (InterruptedException ignored) { }
 			}
 		}.start();
 	}
@@ -182,11 +191,12 @@ public class Main extends Application {
 		Application.launch(args);
 	}
 
-	public void tick(double delta) {
+	public void tick() {
 		//player.tick(delta);
-		level.tick(delta);
+		double delta = TIMESTEP;
+		level.tick();
 		camera.target(player.getX() + player.getXVel()*1.5, player.getY() + player.getYVel()*1.5);
-		camera.tick(delta*0.9);
+		camera.tick();
 	}
 
 	public void render() {

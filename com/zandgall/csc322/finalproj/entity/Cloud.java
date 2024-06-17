@@ -47,19 +47,19 @@ public class Cloud {
 
 	public Cloud() {
 		type = new Random().nextInt(8);
-		speed = new Random().nextDouble(0.2, 0.5);
+		speed = new Random().nextDouble(0.2, 0.5) * Main.TIMESTEP;
 	}
 
 	public Cloud(double x, double y) {
 		this.x = x;
 		this.y = y;
 		type = new Random().nextInt(8);
-		speed = new Random().nextDouble(0.2, 0.5);
+		speed = new Random().nextDouble(0.2, 0.5) * Main.TIMESTEP;
 	}
 
-	public void tick(double delta) {
+	public void tick() {
 		// Glide across the screen;
-		x -= delta * speed;
+		x -= speed;
 		// check against level bounds, if too far left, respawn on right side
 		if(!getRenderBounds().intersects(Main.getLevel().bounds))
 			x = Main.getLevel().bounds.x + Main.getLevel().bounds.width;

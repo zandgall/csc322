@@ -39,7 +39,7 @@ public class PlantedSword extends Entity {
 	}
 
 	@Override
-	public void tick(double delta) {
+	public void tick() {
 		if(swordbox == null)
 			swordbox = new Hitbox(x - 0.5, y - 0.2, 1.0, 0.4);
 		// Check if intersects with player, if so, give the player a sword

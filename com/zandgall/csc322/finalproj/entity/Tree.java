@@ -43,7 +43,7 @@ public class Tree extends Entity {
 	}
 
 	@Override
-	public void tick(double delta) {
+	public void tick() {
 		// Tree does nothing
 	}
 

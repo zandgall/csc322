@@ -59,7 +59,7 @@ public class Plorp extends Entity {
 	}
 
 	@Override
-	public void tick(double delta) {
+	public void tick() {
 
 		// If home position varaibles are unset, set them
 		if(Double.isNaN(xHome) || Double.isNaN(yHome)) {
@@ -77,7 +77,7 @@ public class Plorp extends Entity {
 				break;
 
 			case FALLING_ASLEEP:
-				timer += delta;
+				timer += Main.TIMESTEP;
 				frame = (int) timer;
 
 				if(frame >= 2) {
@@ -88,7 +88,7 @@ public class Plorp extends Entity {
 				break;
 
 			case RESTING:
-				timer += delta;
+				timer += Main.TIMESTEP;
 
 				if(r.nextDouble() < 0.005) // 5% chance of looking in a new direction
 					frame = r.nextInt(4);
@@ -110,7 +110,7 @@ public class Plorp extends Entity {
 				break;
 
 			case STANDING:
-				timer += delta;
+				timer += Main.TIMESTEP;
 
 				if(r.nextDouble() < 0.001) {
 					state = State.WALKING;
@@ -131,7 +131,7 @@ public class Plorp extends Entity {
 				break;
 
 			case WALKING:
-				if(pursueTarget(delta)) {
+				if(pursueTarget(0.15)) {
 					frame = 0;
 					// Friction will apply and slow creature down
 					// xVel = 0;
@@ -155,7 +155,7 @@ public class Plorp extends Entity {
 				break;
 
 			case WALKING_HOME:
-				if(pursueTarget(delta)) {
+				if(pursueTarget(0.15)) {
 					frame = 0;
 					timer = 0;
 					state = State.STANDING;
@@ -163,30 +163,31 @@ public class Plorp extends Entity {
 				break;
 
 			case SURPRISED:
-				timer += delta;
-				if(timer > 0.5) {
+				timer += Main.TIMESTEP;
+				if(timer > 0.25) {
 					timer = 0;
 					state = State.CHASING;
 				}
 				break;
 
 			case CHASING:
-				if(pursueTarget(delta)) {
-					if(new Hitbox(x-0.35, y-0.1, 0.7, 0.7).intersects(Main.getPlayer().getHitBounds())) { // If close enough to player
+				if(pursueTarget(0.3)) {
+					if(new Hitbox(x-0.5, y-0.5, 1, 1).intersects(Main.getPlayer().getHitBounds())) { // If close enough to player
 						Main.getPlayer().dealEnemyDamage(1.0);
 					} else if (!new Hitbox(x-4, y-4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
 						// Ran into a wall or something else stopped it, if can't see player, stop
 						timer = 0;
 						frame = 0;
-						xTarget = x;
-						yTarget = y;
+						xTarget = Main.getPlayer().getX();
+						yTarget = Main.getPlayer().getY();
 						state = State.WALKING;
+					} else { // Hit a wall but sees player still	
 					}
 				}
 
-				// End of every half a second, recheck if the player is within chasing bounds
+				// End of every eighth a second, recheck if the player is within chasing bounds
 				// Updating the target position if so
-				if((int)(timer*2+delta) != (int)(timer*2) && new Hitbox(x-4, y-4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
+				if((int)(timer*8+Main.TIMESTEP*8) != (int)(timer*8) && new Hitbox(x-8, y-8, 16, 16).intersects(Main.getPlayer().getSolidBounds())) {
 					// update target position
 					xTarget = Main.getPlayer().getX();
 					yTarget = Main.getPlayer().getY();
@@ -197,7 +198,7 @@ public class Plorp extends Entity {
 			default:
 		}
 		if(Math.abs(xVel) > 0.001 && Math.abs(yVel) > 0.001) {
-			hitWall |= move(delta);
+			hitWall |= move();
 		} else {
 			xVel = 0;
 			yVel = 0;
@@ -207,7 +208,7 @@ public class Plorp extends Entity {
 	private boolean checkForPlayer() {
 		if(new Hitbox(x - 4, y - 4, 8, 8).intersects(Main.getPlayer().getHitBounds())) {
 			timer = 0;
-			frame = 0;
+			frame = 0;	
 			xTarget = Main.getPlayer().getX();
 			yTarget = Main.getPlayer().getY();
 			state = State.SURPRISED;
@@ -218,11 +219,11 @@ public class Plorp extends Entity {
 
 	/**
 	* Used by the "WALKING", "WALKING_HOME", and "CHASING" states. And as such, updates 'frame' and 'timer' as they would otherwise
-	* @param delta The timestep to use
+	* @param speed The speed to move at
 	*/
-	private boolean pursueTarget(double delta) {
+	private boolean pursueTarget(double speed) {
 		double distance = Math.sqrt((xTarget-x)*(xTarget-x)+(yTarget-y)*(yTarget-y));
-		timer+=delta;
+		timer+=Main.TIMESTEP;
 
 		if(distance < 0.1 || hitWall) {
 			xTarget = x;
@@ -234,15 +235,15 @@ public class Plorp extends Entity {
 		horizontalFlip = (xTarget < x) ? 1 : -1;
 		frame = (int)(timer*3) % 4;
 
-		xVel += 15 * delta * (xTarget - x) / distance;
-		yVel += 15 * delta * (yTarget - y) / distance;
+		xVel += 0.3 * (xTarget - x) / distance;
+		yVel += 0.3 * (yTarget - y) / distance;
 		return false;
 	}
 
 	@Override
 	public void render(GraphicsContext g1, GraphicsContext gs, GraphicsContext g2) {
 		g1.save();
-		if(state != State.DEAD && System.currentTimeMillis() - lastHit < 100 && (System.currentTimeMillis()/20) % 2 == 0)
+		if(state != State.DEAD && System.currentTimeMillis() - lastHit < 100 && (System.currentTimeMillis()/50) % 2 == 0)
 			g1.setGlobalAlpha(0.5);
 		g1.translate(x, y);
 		g1.scale(horizontalFlip, 1);
@@ -290,6 +291,9 @@ public class Plorp extends Entity {
 			g2.setFill(Color.GREEN);
 			g2.fillRect(x-0.5, y-1.0, health / 5.0, 0.25);
 		}
+
+		g1.setFill(Color.RED);
+		g1.fillRect(xTarget - 0.1, yTarget - 0.1, 0.2, 0.2);
 	}
 
 	public Hitbox getRenderBounds() {
@@ -301,6 +305,8 @@ public class Plorp extends Entity {
 	}
 
 	public Hitbox getSolidBounds() {
+		if(state==State.DEAD)
+			return new Hitbox();
 		return new Hitbox(x - 0.05, y-0.05, 0.1, 0.1);
 	}
 
