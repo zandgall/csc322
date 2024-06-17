@@ -35,10 +35,15 @@ public class Player extends Entity {
 		}
 	}
 
+	static enum Special {
+		NONE, SLASH, STAB
+	}
+
 	private boolean hasSword = false;
 	private double swordTimer = 0, swordDirection = 0, swordRotationalVelocity = 0;
 	private Hitbox swordBox;
-	private double dashTimer = 0;
+	private double dashTimer = 0, specialTimer = 0;
+	private Special specialMove = Special.NONE;
 
 	private double health;
 	private long lastHit = System.currentTimeMillis();
@@ -54,36 +59,36 @@ public class Player extends Entity {
 	}
 
 	public void tick() {
-		// Arrow keys to move
-		if(Main.keys.get(KeyCode.RIGHT))
-			xVel += MOVE_SPEED;
-		if(Main.keys.get(KeyCode.LEFT))
-			xVel -= MOVE_SPEED;
-		if(Main.keys.get(KeyCode.DOWN))
-			yVel += MOVE_SPEED;
-		if(Main.keys.get(KeyCode.UP))
-			yVel -= MOVE_SPEED;
-
-		// If player presses Z and ready to dash, dash in direction we're moving
-		if(Main.keys.get(KeyCode.Z) && dashTimer <= 0) {
-			double vel = Math.sqrt(xVel * xVel + yVel * yVel);
-
-			xVel *= DASH_SPEED / vel;
-			yVel *= DASH_SPEED / vel;
-
-			// Next dash in 0.5 seconds
-			dashTimer = DASH_TIMER;
-		}
-		
-		// Decrease dash timer to 0 over time
-		if(dashTimer > 0)
-			dashTimer -= Main.TIMESTEP;
-	
-		//System.out.printf("%.2f, %.2f%n", xVel, yVel);
-		move();
-
+		// Do sword mechanics
 		if(hasSword) {
-			if(Main.keys.get(KeyCode.X)) {
+			specialTimer -= Main.TIMESTEP;
+			System.out.println(specialTimer);
+			if(specialMove == Special.SLASH) {
+				for(Entity e : Main.getLevel().getEntities())
+					if(e.getHitBounds().intersects(new Hitbox(x + Math.cos(swordDirection) - 1, y + Math.sin(swordDirection) - 1, 2, 2)))
+						e.dealPlayerDamage(2);
+				if(specialTimer <= 0) {
+					specialMove = Special.NONE;
+					// Super Boost swinging in the proper direction 
+					double diff = (swordDirection - Math.atan2(yVel, xVel)) % (2*Math.PI);
+					while(diff < 0)
+						diff += 2*Math.PI;
+					if(diff < Math.PI)
+						swordRotationalVelocity = -50;
+					else
+						swordRotationalVelocity = 50;
+					specialTimer = 5;
+				}
+			} else if(specialMove == Special.STAB) {
+				for(Entity e : Main.getLevel().getEntities())
+					if(e.getHitBounds().intersects(new Hitbox(x + Math.cos(swordDirection) - 1, y + Math.sin(swordDirection) - 1, 2, 2)))
+						e.dealPlayerDamage(2);
+				if(specialTimer <= 0) {
+					specialMove = Special.NONE;
+					specialTimer = 5;
+					lastHit = System.currentTimeMillis(); // give vulnerability for a second
+				}
+			} else if(Main.keys.get(KeyCode.X)) {
 				double xTarg = 0, yTarg = 0;
 				if(Main.keys.get(KeyCode.RIGHT))
 					xTarg = 1;
@@ -103,9 +108,41 @@ public class Player extends Entity {
 					// Just holding one directional key and swinging forever
 					if(Math.abs(diff - Math.PI) < 0.3)
 						swordRotationalVelocity *= 0.95;
+
+					// If the player is dashing, perform a special move if applicable
+					else if(Main.keys.get(KeyCode.Z) && dashTimer <= 0 && specialTimer <= 0) {
+						if(Math.abs(diff) < 0.25 * Math.PI || Math.abs(diff) > 1.75*Math.PI) {
+							specialMove = Special.STAB;
+							swordRotationalVelocity = 0;
+							swordDirection = Math.atan2(yVel, xVel);
+							specialTimer = 0.5;
+
+							double vel = Math.sqrt(xVel * xVel + yVel * yVel);
+
+							xVel *= 2*DASH_SPEED / vel;
+							yVel *= 2*DASH_SPEED / vel;
+
+							// Next dash in 0.5 seconds
+							dashTimer = DASH_TIMER;
+						} else if(Math.abs(diff - Math.PI * 0.5) < 0.25 * Math.PI) {
+							specialMove = Special.SLASH;
+							swordRotationalVelocity = 0;
+							specialTimer = 0.5;
+
+							double vel = Math.sqrt(xVel * xVel + yVel * yVel);
+
+							xVel *= 1.5*DASH_SPEED / vel;
+							yVel *= 1.5*DASH_SPEED / vel;
+
+							// Next dash in 0.5 seconds
+							dashTimer = DASH_TIMER;
+						}
+					}
 				} else { // If no arrow keys held, apply friction
 					swordRotationalVelocity *= 0.9;
 				}
+
+
 			} else { // Or no X key held, apply friction
 				swordRotationalVelocity *= 0.9;
 			}
@@ -125,6 +162,37 @@ public class Player extends Entity {
 			swordBox = new Hitbox(x + Math.cos(swordDirection)*0.5-0.5, y + Math.sin(swordDirection)*0.5-0.5, 1.0, 1.0);
 			swordBox.add(x+Math.cos(swordDirection)*1.5-0.5, y + Math.sin(swordDirection)*1.5-0.5, 1.0, 1.0);
 		}
+
+		// Arrow keys to move
+		if(specialMove == Special.NONE) {
+			if(Main.keys.get(KeyCode.RIGHT))
+				xVel += MOVE_SPEED;
+			if(Main.keys.get(KeyCode.LEFT))
+				xVel -= MOVE_SPEED;
+			if(Main.keys.get(KeyCode.DOWN))
+				yVel += MOVE_SPEED;
+			if(Main.keys.get(KeyCode.UP))
+				yVel -= MOVE_SPEED;
+
+			// If player presses Z and ready to dash, dash in direction we're moving
+			if(Main.keys.get(KeyCode.Z) && dashTimer <= 0) {
+				double vel = Math.sqrt(xVel * xVel + yVel * yVel);
+
+				xVel *= DASH_SPEED / vel;
+				yVel *= DASH_SPEED / vel;
+
+				// Next dash in 0.5 seconds
+				dashTimer = DASH_TIMER;
+			}
+
+			// Decrease dash timer to 0 over time
+			if(dashTimer > 0)
+				dashTimer -= Main.TIMESTEP;
+		}
+		
+		//System.out.printf("%.2f, %.2f%n", xVel, yVel);
+		move();
+
 	}
 
 	@Override
@@ -192,7 +260,7 @@ public class Player extends Entity {
 	}
 
 	public void dealEnemyDamage(double damage) {
-		if(System.currentTimeMillis()-lastHit < 1000)
+		if(System.currentTimeMillis()-lastHit < 1000 || specialMove != Special.NONE)
 			return;
 		lastHit = System.currentTimeMillis();
 		health -= damage;
