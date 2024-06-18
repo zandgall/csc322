@@ -9,8 +9,9 @@ An interface called "IBag" that just declares methods for adding an item, taking
 
 Compile and Run:
 ```sh
-javac -d build com/zandgall/csc322/session6/assignment/Program4.java
-java -cp build com.zandgall.csc322.session6.assignment.Program4
+cd csc322/src
+javac -d ../build com/zandgall/csc322/session6/assignment/Program4.java
+java -cp ../build com.zandgall.csc322.session6.assignment.Program4
 ```
 
 ### Exercise
@@ -19,8 +20,9 @@ Generic stack implementation. Using generics to construct a stack that reallocat
 
 Compile and Run:
 ```sh
-javac -d build com/zandgall/csc322/session6/exercise/Main.java
-java -cp build com.zandgall.csc322.session6.exercise.Main
+cd csc322/src
+javac -d ../build com/zandgall/csc322/session6/exercise/Main.java
+java -cp ../build com.zandgall.csc322.session6.exercise.Main
 ```
 
 ### Discussion
@@ -29,13 +31,15 @@ A demonstration of recursion. Create a tree where each branch has it's own tree 
 Uses [JavaFX](#javafx)
 
 ```sh
-javac -p $JAVAFX_PATH --add-modules javafx.controls -d build com/zandgall/csc322/session6/discussion/Recursion.java
-java -p $JAVAFX_PATH --add-modules javafx.controls -cp build Recursion
+cd csc322/src
+javac -p $JAVAFX_PATH --add-modules javafx.controls -d ../build com/zandgall/csc322/session6/discussion/Recursion.java
+java -p $JAVAFX_PATH --add-modules javafx.controls -cp ../build Recursion
 
 # or
 
-javafxc -d build com/zandgall/csc322/session6/discussion/Recursion.java
-javafx -cp build Recursion
+cd csc322/src
+javafxc -d ../build com/zandgall/csc322/session6/discussion/Recursion.java
+javafx -cp ../build Recursion
 ```
 
 ## Session 5
@@ -46,13 +50,15 @@ A simple 'AddressBook' GUI that loads and saves a data.bin file to keep track of
 
 Compile and Run: (Works with JavaFX 21 SDK)
 ```sh
-javac -p $JAVAFX_PATH --add-modules javafx.controls -d build com/zandgall/csc322/session5/assignment/AddressBook.java
-java -p $JAVAFX_PATH --add-modules javafx.controls -cp build com.zandgall.csc322.session5.assignment.AddressBook
+cd csc322/src
+javac -p $JAVAFX_PATH --add-modules javafx.controls -d ../build com/zandgall/csc322/session5/assignment/AddressBook.java
+java -p $JAVAFX_PATH --add-modules javafx.controls -cp ../build com.zandgall.csc322.session5.assignment.AddressBook
 
 # or
 
-javafxc -d build com/zandgall/csc322/session5/assignment/AddressBook.java
-javafx -cp build com.zandgall.csc322.session5.assignment.AddressBook
+cd csc322/src
+javafxc -d ../build com/zandgall/csc322/session5/assignment/AddressBook.java
+javafx -cp ../build com.zandgall.csc322.session5.assignment.AddressBook
 ```
 
 ### Exercise
@@ -61,13 +67,15 @@ A simple JavaFX program that gives you a UI to type in two numbers, and add, sub
 
 Compile and Run: (Works with JavaFX 21 SDK)
 ```sh
-javac -p $JAVAFX_PATH --add-modules javafx.controls -d build com/zandgall/csc322/session5/exercise/Calculator.java
-java -p $JAVAFX_PATH --add-modules javafx.controls -cp build com.zandgall.csc322.session5.exercise.Calculator
+cd csc322/src
+javac -p $JAVAFX_PATH --add-modules javafx.controls -d ../build com/zandgall/csc322/session5/exercise/Calculator.java
+java -p $JAVAFX_PATH --add-modules javafx.controls -cp ../build com.zandgall.csc322.session5.exercise.Calculator
 
 # or
 
-javafxc -d build com/zandgall/csc322/session5/exercise/Calculator.java
-javafx -cp build com.zandgall.csc322.session5.exercise.Calculator
+cd csc322/src
+javafxc -d ../build com/zandgall/csc322/session5/exercise/Calculator.java
+javafx -cp ../build com.zandgall.csc322.session5.exercise.Calculator
 ```
 
 ## Session 4
@@ -79,12 +87,12 @@ An implementation of a provided set of interfaces. A larger project that provide
 
 You first use the TestMaker program to make a test, then you use the TestTaker program to take a test.
 ```sh
-cd csc322
-javac -d build com/jsoftware/test/TestMaker.java
-java -cp build com.jsoftware.test.TestMaker
+cd csc322/src
+javac -d ../build com/jsoftware/test/TestMaker.java
+java -cp ../build com.jsoftware.test.TestMaker
 
-javac -d build com/jsoftware/test/TestTaker.java
-java -cp build com.jsoftware.test.TestTaker
+javac -d ../build com/jsoftware/test/TestTaker.java
+java -cp ../build com.jsoftware.test.TestTaker
 ```
 
 ### Exercise
@@ -93,9 +101,9 @@ A simple demonstration of Object I/O Streams
 
 Compile and Run:
 ```sh
-cd csc322
-javac -d build com/zandgall/csc322/session4/exercise/BinaryIO.java
-java -cp build com.zandgall.csc322.session4.exercise.BinaryIO
+cd csc322/src
+javac -d ../build com/zandgall/csc322/session4/exercise/BinaryIO.java
+java -cp ../build com.zandgall.csc322.session4.exercise.BinaryIO
 ```
 
 ### Discussion
@@ -104,9 +112,9 @@ A humorous maze generator, made without consulting any outside resources like do
 
 Compile and Run:
 ```sh
-cd csc322
-javac -d build com/zandgall/csc322/session4/discussion/GallDiscussion4.java
-java -cp build com.zandgall.csc322.session4.discussion.GallDiscussion4
+cd csc322/src
+javac -d ../build com/zandgall/csc322/session4/discussion/GallDiscussion4.java
+java -cp ../build com.zandgall.csc322.session4.discussion.GallDiscussion4
 ```
 
 ## Session 3
@@ -118,9 +126,9 @@ A simple project that prints the vertex form of a parabola entered by the user. 
 
 Compile and Run:
 ```sh
-cd csc322
-javac -d build com/zandgall/csc322/session3/exercise/Parabola.java
-java -cp build com.zandgall.csc322.session3.exercise.Parabola
+cd csc322/src
+javac -d ../build com/zandgall/csc322/session3/exercise/Parabola.java
+java -cp ../build com.zandgall.csc322.session3.exercise.Parabola
 ```
 
 ### Discussion
@@ -129,9 +137,9 @@ An example that demonstrates ways to use abstract classes. Including having a li
 
 Compile and Run:
 ```sh
-cd csc322
-javac -d build com/zandgall/csc322/session3/discussion/GallDiscussion3.java
-java -cp build com.zandgall.csc322.session3.discussion.GallDiscussion3
+cd csc322/src
+javac -d ../build com/zandgall/csc322/session3/discussion/GallDiscussion3.java
+java -cp ../build com.zandgall.csc322.session3.discussion.GallDiscussion3
 ```
 
 ## Session 2
@@ -142,9 +150,9 @@ A project that loads a text file to parse an Inventory, and provides a command l
 
 Compile and Run:
 ```sh
-cd csc322
-javac -d build com/zandgall/csc322/session2/assignment/Main.java
-java -cp build com.zandgall.csc322.session2.assignment.Main
+cd csc322/src
+javac -d ../build com/zandgall/csc322/session2/assignment/Main.java
+java -cp ../build com.zandgall.csc322.session2.assignment.Main
 ```
 (Make sure that inventory.txt is in your working directory)
 
@@ -154,9 +162,9 @@ A small class that overrides the `Object.equals()` function, with a demonstratio
 
 Compile and Run:
 ```sh
-cd csc322
-javac -d build com/zandgall/csc322/session2/discussion/Comparison.java
-java -ea -cp build com.zandgall.csc322.session2.exercise.Comparison
+cd csc322/src
+javac -d ../build com/zandgall/csc322/session2/discussion/Comparison.java
+java -ea -cp ../build com.zandgall.csc322.session2.exercise.Comparison
 ```
 
 ### Exercise
@@ -170,9 +178,9 @@ for (i from 0 to size of list)
 
 Compile and Run:
 ```sh
-cd csc322
-javac -d build com/zandgall/csc322/session2/exercise/Shuffle.java
-java -cp build com.zandgall.csc322.session2.exercise.Shuffle
+cd csc322/src
+javac -d ../build com/zandgall/csc322/session2/exercise/Shuffle.java
+java -cp ../build com.zandgall.csc322.session2.exercise.Shuffle
 ```
 
 ## Session 1
@@ -184,9 +192,9 @@ Along with an `ATM` class with a main method that allows a user to interact with
 
 Compile and Run: 
 ```sh
-cd csc322
-javac -d build com/zandgall/csc322/session1/assignment1/ATM.java
-java -cp build com.zandgall.csc322.session1.assignment1.ATM
+cd csc322/src
+javac -d ../build com/zandgall/csc322/session1/assignment1/ATM.java
+java -cp ../build com.zandgall.csc322.session1.assignment1.ATM
 ```
 
 ### Exercises
@@ -197,9 +205,9 @@ Also includes a chart that shows how the Time class is designed.
 
 Compile and Run: 
 ```sh
-cd csc322
-javac -d build com/zandgall/csc322/session1/exercises/TimeTest.java
-java -cp build com.zandgall.csc322.session1.exercises.TimeTest
+cd csc322/src
+javac -d ../build com/zandgall/csc322/session1/exercises/TimeTest.java
+java -cp ../build com.zandgall.csc322.session1.exercises.TimeTest
 ```
 
 
