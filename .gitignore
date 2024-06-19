@@ -1,2 +1,16 @@
 build/
+bin/
 external/
+
+# Language Server related
+.classpath
+.project
+
+# Gradle related
+gradlew
+gradlew.bat
+.gradle
+.settings
+gradle
+
+
