@@ -66,9 +66,6 @@ public class LevelEditor extends Main {
 
 	private VBox editorRoot;
 
-	private Canvas throwAwayCanvas;
-	private GraphicsContext throwAwayContext;
-
 	/* Information */
 	private Text mode;
 
@@ -371,7 +368,6 @@ public class LevelEditor extends Main {
 		shadow_0 = new Canvas(1280, 720);
 		s0 = shadow_0.getGraphicsContext2D();
 		s0.setImageSmoothing(false);
-		s0.setGlobalAlpha(0.6);
 
 		layer_2 = new Canvas(1280, 720);
 		c2 = layer_2.getGraphicsContext2D();
@@ -380,16 +376,20 @@ public class LevelEditor extends Main {
 		shadow_1 = new Canvas(1280, 720);
 		s1 = shadow_1.getGraphicsContext2D();
 		s1.setImageSmoothing(false);
-		s1.setGlobalAlpha(0.7);
+
+		hudCanvas = new Canvas(1280, 720);
+		hudContext = hudCanvas.getGraphicsContext2D();
+		hudContext.setImageSmoothing(false);
 
 		root.getChildren().add(layer_0);
 		root.getChildren().add(layer_1);
 		root.getChildren().add(shadow_0);
 		root.getChildren().add(layer_2);
 		root.getChildren().add(shadow_1);
+		// Don't add HUD
 
-		throwAwayCanvas = new Canvas(0, 0);
-		throwAwayContext = throwAwayCanvas.getGraphicsContext2D();
+		throwawayCanvas = new Canvas(0, 0);
+		throwawayContext = throwawayCanvas.getGraphicsContext2D();
 
 		// Create layout to include editor tools
 		editorRoot = new VBox();
@@ -559,7 +559,7 @@ public class LevelEditor extends Main {
 			entityContext.scale(scale, scale);
 			entityContext.translate(-bounds.getX() + (maxDim - bounds.getWidth()) / 2,
 					-bounds.getY() + (maxDim - bounds.getHeight()) / 2);
-			e.render(entityContext, throwAwayContext, entityContext);
+			e.render(entityContext, throwawayContext, entityContext);
 			entityContext.restore();
 		}
 	}
@@ -583,6 +583,11 @@ public class LevelEditor extends Main {
 		camera.transform(s0);
 		camera.transform(c2);
 		camera.transform(s1);
+
+		if (mode.getText().equals("Tile mode")) {
+			c1.setGlobalAlpha(0.5);
+			c2.setGlobalAlpha(0.5);
+		}
 
 		level.render(c0, c1, s0, c2, s1);
 
@@ -619,11 +624,6 @@ public class LevelEditor extends Main {
 			}
 		}
 
-		s0.applyEffect(new ColorAdjust(-0.8, 0.5, -0.8, 0.0));
-		s0.applyEffect(new GaussianBlur(10)); // blur radius is in pixels
-		s1.applyEffect(new ColorAdjust(-0.8, 0.5, -0.8, 0.0));
-		s1.applyEffect(new GaussianBlur(200)); // blur radius is in pixels
-
 		c0.restore();
 		c1.restore();
 		s0.restore();
@@ -659,7 +659,7 @@ public class LevelEditor extends Main {
 		double scale = Math.min(1 / bounds.getWidth(), 1 / bounds.getHeight());
 		gc2.translate(-scale * bounds.getX(), -scale * bounds.getY());
 		gc2.scale(scale, scale);
-		e.render(gc2, throwAwayContext, gc2);
+		e.render(gc2, throwawayContext, gc2);
 		gc2.restore();
 
 	}
