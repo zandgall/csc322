@@ -369,6 +369,8 @@ public class Player extends Entity {
 
 	public void addHealth(double health) {
 		this.health += health;
+		if (this.health > 20)
+			this.health = 20;
 	}
 
 	public void giveSword() {

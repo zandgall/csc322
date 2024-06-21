@@ -438,7 +438,9 @@ public class LevelEditor extends Main {
 			}
 			camera.target(entityX, entityY);
 		}
-		camera.tick();
+		// Tick camera 10 times to speed up targetting
+		for (int i = 0; i < 10; i++)
+			camera.tick();
 	}
 
 	private void setupTilesUI() {

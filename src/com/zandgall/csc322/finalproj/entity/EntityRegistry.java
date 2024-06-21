@@ -12,11 +12,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.lang.reflect.Constructor;
 
-public class EntityRegistry { 
+public class EntityRegistry {
 	public static final ArrayList<Class> classes = new ArrayList<Class>();
 	public static final HashMap<String, Class<?>> nameMap = new HashMap<String, Class<?>>();
 	public static final HashMap<Class<?>, String> reverseNameMap = new HashMap<Class<?>, String>();
-	public static void register(String name, Class<?> clazz) {	
+
+	public static void register(String name, Class<?> clazz) {
 		classes.add(clazz);
 		nameMap.put(name, clazz);
 		reverseNameMap.put(clazz, name);
@@ -26,24 +27,27 @@ public class EntityRegistry {
 		register("Tree", Tree.class);
 		register("PlantedSword", PlantedSword.class);
 		register("Plorp", Plorp.class);
+		register("HealthFlower", HealthFlower.class);
 	}
 
 	public static Entity construct(Class<?> clazz, double x, double y) {
-		if(!Entity.class.isAssignableFrom(clazz)) {
+		if (!Entity.class.isAssignableFrom(clazz)) {
 			System.err.println(clazz.getCanonicalName() + " is not child class of entity");
 			return null;
 		}
 		try {
 			Constructor posC = clazz.getConstructor(double.class, double.class);
-			return (Entity)posC.newInstance(x, y);
-		} catch(Exception ignored) {}
+			return (Entity) posC.newInstance(x, y);
+		} catch (Exception ignored) {
+		}
 		try {
 			Constructor defaultC = clazz.getConstructor();
-			Entity out = (Entity)defaultC.newInstance();
+			Entity out = (Entity) defaultC.newInstance();
 			out.setX(x);
 			out.setY(y);
 			return out;
-		} catch(Exception ignored) {}
+		} catch (Exception ignored) {
+		}
 
 		System.err.println("Could not construct instance of " + clazz.getCanonicalName());
 		return null;
