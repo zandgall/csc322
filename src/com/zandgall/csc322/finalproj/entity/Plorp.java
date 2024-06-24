@@ -38,7 +38,7 @@ public class Plorp extends Entity {
 
 	private State state = State.RESTING;
 
-	private double timer = 0;
+	private double timer = 0, pathfindTimer = 0;
 	private int frame = 0, horizontalFlip = 1;
 
 	private double xHome = Double.NaN, yHome = Double.NaN;
@@ -62,6 +62,7 @@ public class Plorp extends Entity {
 
 	@Override
 	public void tick() {
+		pathfindTimer += Main.TIMESTEP;
 
 		// If home position varaibles are unset, set them
 		if (Double.isNaN(xHome) || Double.isNaN(yHome)) {
@@ -171,9 +172,8 @@ public class Plorp extends Entity {
 
 			case CHASING:
 				if (pursueTarget(0.3)) {
-					if (new Hitbox(x - 0.5, y - 0.5, 1, 1).intersects(Main.getPlayer().getHitBounds())) { // If close
-																											// enough
-																											// player
+					if (new Hitbox(x - 0.5, y - 0.5, 1, 1)
+							.intersects(Main.getPlayer().getHitBounds())) { // If close enough player
 						Main.getPlayer().dealEnemyDamage(1.0);
 					} else if (!new Hitbox(x - 4, y - 4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
 						// Ran into a wall or something else stopped it, if can't see player, stop
@@ -197,7 +197,7 @@ public class Plorp extends Entity {
 			case DEAD:
 			default:
 		}
-		if (Math.abs(xVel) > 0.001 && Math.abs(yVel) > 0.001) {
+		if (Math.abs(xVel) > 0.001 || Math.abs(yVel) > 0.001) {
 			hitWall |= move();
 		} else {
 			xVel = 0;
@@ -216,10 +216,37 @@ public class Plorp extends Entity {
 		return false;
 	}
 
-	private void target(double x, double y) {
-		xTarget = x;
-		yTarget = y;
-		PATHFIND_FLAG = true;
+	private void target(double tx, double ty) {
+		xTarget = tx;
+		yTarget = ty;
+
+		// Check if there is a wall between here and the target. If there is,
+		// pathfinding is necessary
+		boolean wall = false;
+		// As long as we're within 'checkbox', we're between (x, y) and (tx, ty)
+		Hitbox checkbox = new Hitbox(Math.min(tx, x), Math.min(ty, y), Math.abs(tx - x), Math.abs(ty - y));
+		// Unit direction from (x, y) -> (tx, ty)
+		double dir = Math.sqrt((x - tx) * (x - tx) + (y - ty) * (y - ty));
+		double dirX = (tx - x) / dir, dirY = (ty - y) / dir;
+
+		// Create a box from solid bounds. While it intersects 'checkbox', and a wall
+		// hasn't been found, move it in the unit direction and check for a solid tile
+		for (Hitbox box = getSolidBounds(); checkbox.intersects(box) && !wall; box = box.translate(dirX, dirY)) {
+			int tileX = (int) Math.floor(box.getBounds().getCenterX());
+			int tileY = (int) Math.floor(box.getBounds().getCenterY());
+			// if the tile at the center of the box has a hitbox, we'll need to pathfind
+			// around it
+			wall |= Main.getLevel().get(tileX, tileY).solidBounds(tileX, tileY) != null;
+		}
+
+		// Pathfind if there are obstacles,
+		if (wall) {
+			following = Path.pathfind((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(tx),
+					(int) Math.floor(ty));
+			if (!following.empty())
+				following.progress();
+		} else
+			following = new Path(); // Empty path to just follow x/yTarget
 	}
 
 	/**
@@ -230,36 +257,43 @@ public class Plorp extends Entity {
 	 */
 	private boolean pursueTarget(double speed) {
 		timer += Main.TIMESTEP;
+
+		// Create a target, if there's a following path, follow that
+		// otherwise, follow x/yTarget
 		double tX, tY;
 		if (!following.empty()) {
-			tX = following.current().x;
-			tY = following.current().y;
+			tX = following.current().x + 0.5;
+			tY = following.current().y + 0.5;
 		} else {
-			// System.out.println("Path is empty, chasing target directly");
 			tX = xTarget;
 			tY = yTarget;
 		}
 
+		// If we're close enough to the target, progress path or update x/yTarget
 		double distance = Math.sqrt((tX - x) * (tX - x) + (tY - y) * (tY - y));
-
-		if (distance < 0.1) {
-			if (following.empty()) {
-				xTarget = x;
-				yTarget = y;
+		if (distance < 0.1 || hitWall) {
+			// Hitwall is flagged when the Plorp hits something, which might be the player
+			if (following.empty() || hitWall || Math.pow(xTarget - x, 2) + Math.pow(yTarget - y, 2) < 0.2) {
+				// xTarget = x;
+				// yTarget = y;
 				hitWall = false;
+				// Hit target
 				return true;
 			} else {
-				System.out.println("Progressing path");
+				// System.out.println("Progressing path");
 				following.progress();
 			}
 		}
 
-		horizontalFlip = (xTarget < x) ? 1 : -1;
+		// Update graphics flags
+		horizontalFlip = (tX < x) ? 1 : -1;
 		frame = (int) (timer * 3) % 4;
 
-		xVel += 0.3 * (xTarget - x) / distance;
-		yVel += 0.3 * (yTarget - y) / distance;
+		// Accelerate 0.3 units/sec^2 towards (tX, tY)
+		xVel += 0.3 * (tX - x) / distance;
+		yVel += 0.3 * (tY - y) / distance;
 
+		// Did not hit target
 		return false;
 	}
 
@@ -316,17 +350,18 @@ public class Plorp extends Entity {
 			g2.fillRect(x - 0.5, y - 1.0, health / 5.0, 0.25);
 		}
 
-		if (PATHFIND_FLAG) {
-			following = Path.pathfind((int) this.x, (int) this.y, (int) xTarget, (int) yTarget, g1);
-			System.out.printf("Pathfind %b !!%n", following.empty());
-		}
-
-		if (!following.empty()) {
-			following.debugRender(g1);
-		}
+		// if (!following.empty()) {
+		following.debugRender(g1);
+		// }
 
 		g1.setFill(Color.RED);
 		g1.fillRect(xTarget - 0.1, yTarget - 0.1, 0.2, 0.2);
+
+		g1.setStroke(Color.DIMGREY);
+		g1.setLineWidth(0.1);
+		g1.strokeRect((int) Math.floor(x), (int) Math.floor(y), 1, 1);
+		g1.setFill(Color.BLUE);
+		g1.strokeRect(x - 0.05, y - 0.05, 0.1, 0.1);
 	}
 
 	public Hitbox getRenderBounds() {
