@@ -12,13 +12,14 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
-
 import java.util.Random;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Path;
+import com.zandgall.csc322.finalproj.util.Path.Node;
 
 public class Plorp extends Entity {
 	private static Image sheet;
@@ -26,7 +27,7 @@ public class Plorp extends Entity {
 	static {
 		try {
 			sheet = new Image(new FileInputStream("res/entity/little_guy.png"));
-		} catch(FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			sheet = null;
 		}
 	}
@@ -41,9 +42,10 @@ public class Plorp extends Entity {
 	private int frame = 0, horizontalFlip = 1;
 
 	private double xHome = Double.NaN, yHome = Double.NaN;
+	private Path following = new Path();
 	private double xTarget = Double.NaN, yTarget = Double.NaN;
 
-	private boolean hitWall = false;
+	private boolean hitWall = false, PATHFIND_FLAG = false;
 
 	private double health = 5;
 	private long lastHit = 0;
@@ -62,15 +64,15 @@ public class Plorp extends Entity {
 	public void tick() {
 
 		// If home position varaibles are unset, set them
-		if(Double.isNaN(xHome) || Double.isNaN(yHome)) {
+		if (Double.isNaN(xHome) || Double.isNaN(yHome)) {
 			xHome = x;
 			yHome = y;
 		}
 
 		Random r = new Random();
-		switch(state) {
+		switch (state) {
 			case SLEEPING:
-				if(r.nextDouble()<0.001) { // 1% chance of waking up
+				if (r.nextDouble() < 0.001) { // 1% chance of waking up
 					state = State.RESTING;
 					frame = r.nextInt(4); // look in random direction
 				}
@@ -80,7 +82,7 @@ public class Plorp extends Entity {
 				timer += Main.TIMESTEP;
 				frame = (int) timer;
 
-				if(frame >= 2) {
+				if (frame >= 2) {
 					state = State.SLEEPING;
 					frame = 0;
 					timer = 0;
@@ -90,72 +92,69 @@ public class Plorp extends Entity {
 			case RESTING:
 				timer += Main.TIMESTEP;
 
-				if(r.nextDouble() < 0.005) // 5% chance of looking in a new direction
+				if (r.nextDouble() < 0.005) // 5% chance of looking in a new direction
 					frame = r.nextInt(4);
 
-				if(r.nextDouble() < 0.001) { // 0.1% chance of standing up
+				if (r.nextDouble() < 0.001) { // 0.1% chance of standing up
 					state = State.STANDING;
 					frame = r.nextInt(2); // Look up or down randomly
 					timer = 0;
 				}
 
-				if(timer > 10) { // fall asleep after 10 seconds
+				if (timer > 10) { // fall asleep after 10 seconds
 					state = State.FALLING_ASLEEP;
 					frame = 0;
 					timer = 0;
 				}
 
-				if(timer > 0.5) // Only check for player 0.5 seconds after switching states
+				if (timer > 0.5) // Only check for player 0.5 seconds after switching states
 					checkForPlayer();
 				break;
 
 			case STANDING:
 				timer += Main.TIMESTEP;
 
-				if(r.nextDouble() < 0.001) {
+				if (r.nextDouble() < 0.001) {
 					state = State.WALKING;
 					frame = 0;
 					timer = 0;
-					xTarget = r.nextDouble(-2, 2) + xHome;
-					yTarget = r.nextDouble(-2, 2) + yHome;
+					target(r.nextDouble(-2, 2) + xHome, r.nextDouble(-2, 2) + yHome);
 				}
 
-				if(timer > 5) {
+				if (timer > 5) {
 					state = State.RESTING;
 					frame = 0;
 					timer = 0;
 				}
 
-				if(timer > 0.5) // Only check for player 0.5 seconds after switching states
+				if (timer > 0.5) // Only check for player 0.5 seconds after switching states
 					checkForPlayer();
 				break;
 
 			case WALKING:
-				if(pursueTarget(0.15)) {
+				if (pursueTarget(0.15)) {
 					frame = 0;
 					// Friction will apply and slow creature down
 					// xVel = 0;
 					// yVel = 0;
 				}
 
-				if(r.nextDouble() < 0.001) {
-					xTarget = r.nextDouble(-2, 2) + xHome;
-					yTarget = r.nextDouble(-2, 2) + yHome;
+				if (r.nextDouble() < 0.001) {
+					target(r.nextDouble(-2, 2) + xHome, r.nextDouble(-2, 2) + yHome);
 				}
 
-				if(r.nextDouble() < 0.0005) {
+				if (r.nextDouble() < 0.0005) {
 					timer = 0;
-					xTarget = xHome;
-					yTarget = yHome;
+					target(xHome, yHome);
 					state = State.WALKING_HOME;
 				}
 
-				if(timer > 0.5) // Only check for player 0.5 seconds after switching states
+				if (timer > 0.5) // Only check for player 0.5 seconds after switching states
 					checkForPlayer();
 				break;
 
 			case WALKING_HOME:
-				if(pursueTarget(0.15)) {
+				if (pursueTarget(0.15)) {
 					frame = 0;
 					timer = 0;
 					state = State.STANDING;
@@ -164,40 +163,41 @@ public class Plorp extends Entity {
 
 			case SURPRISED:
 				timer += Main.TIMESTEP;
-				if(timer > 0.25) {
+				if (timer > 0.25) {
 					timer = 0;
 					state = State.CHASING;
 				}
 				break;
 
 			case CHASING:
-				if(pursueTarget(0.3)) {
-					if(new Hitbox(x-0.5, y-0.5, 1, 1).intersects(Main.getPlayer().getHitBounds())) { // If close enough to player
+				if (pursueTarget(0.3)) {
+					if (new Hitbox(x - 0.5, y - 0.5, 1, 1).intersects(Main.getPlayer().getHitBounds())) { // If close
+																											// enough
+																											// player
 						Main.getPlayer().dealEnemyDamage(1.0);
-					} else if (!new Hitbox(x-4, y-4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
+					} else if (!new Hitbox(x - 4, y - 4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
 						// Ran into a wall or something else stopped it, if can't see player, stop
 						timer = 0;
 						frame = 0;
-						xTarget = Main.getPlayer().getX();
-						yTarget = Main.getPlayer().getY();
+						target(Main.getPlayer().getX(), Main.getPlayer().getY());
 						state = State.WALKING;
-					} else { // Hit a wall but sees player still	
+					} else { // Hit a wall but sees player still
 					}
 				}
 
 				// End of every eighth a second, recheck if the player is within chasing bounds
 				// Updating the target position if so
-				if((int)(timer*8+Main.TIMESTEP*8) != (int)(timer*8) && new Hitbox(x-8, y-8, 16, 16).intersects(Main.getPlayer().getSolidBounds())) {
+				if ((int) (timer * 8 + Main.TIMESTEP * 8) != (int) (timer * 8)
+						&& new Hitbox(x - 8, y - 8, 16, 16).intersects(Main.getPlayer().getSolidBounds())) {
 					// update target position
-					xTarget = Main.getPlayer().getX();
-					yTarget = Main.getPlayer().getY();
+					target(Main.getPlayer().getX(), Main.getPlayer().getY());
 				}
 				break;
 
 			case DEAD:
 			default:
 		}
-		if(Math.abs(xVel) > 0.001 && Math.abs(yVel) > 0.001) {
+		if (Math.abs(xVel) > 0.001 && Math.abs(yVel) > 0.001) {
 			hitWall |= move();
 		} else {
 			xVel = 0;
@@ -206,44 +206,68 @@ public class Plorp extends Entity {
 	}
 
 	private boolean checkForPlayer() {
-		if(new Hitbox(x - 4, y - 4, 8, 8).intersects(Main.getPlayer().getHitBounds())) {
+		if (new Hitbox(x - 4, y - 4, 8, 8).intersects(Main.getPlayer().getHitBounds())) {
 			timer = 0;
-			frame = 0;	
-			xTarget = Main.getPlayer().getX();
-			yTarget = Main.getPlayer().getY();
+			frame = 0;
+			target(Main.getPlayer().getX(), Main.getPlayer().getY());
 			state = State.SURPRISED;
 			return true;
 		}
 		return false;
 	}
 
-	/**
-	* Used by the "WALKING", "WALKING_HOME", and "CHASING" states. And as such, updates 'frame' and 'timer' as they would otherwise
-	* @param speed The speed to move at
-	*/
-	private boolean pursueTarget(double speed) {
-		double distance = Math.sqrt((xTarget-x)*(xTarget-x)+(yTarget-y)*(yTarget-y));
-		timer+=Main.TIMESTEP;
+	private void target(double x, double y) {
+		xTarget = x;
+		yTarget = y;
+		PATHFIND_FLAG = true;
+	}
 
-		if(distance < 0.1 || hitWall) {
-			xTarget = x;
-			yTarget = y;
-			hitWall = false;
-			return true;
+	/**
+	 * Used by the "WALKING", "WALKING_HOME", and "CHASING" states. And as such,
+	 * updates 'frame' and 'timer' as they would otherwise
+	 * 
+	 * @param speed The speed to move at
+	 */
+	private boolean pursueTarget(double speed) {
+		timer += Main.TIMESTEP;
+		double tX, tY;
+		if (!following.empty()) {
+			tX = following.current().x;
+			tY = following.current().y;
+		} else {
+			// System.out.println("Path is empty, chasing target directly");
+			tX = xTarget;
+			tY = yTarget;
+		}
+
+		double distance = Math.sqrt((tX - x) * (tX - x) + (tY - y) * (tY - y));
+
+		if (distance < 0.1) {
+			if (following.empty()) {
+				xTarget = x;
+				yTarget = y;
+				hitWall = false;
+				return true;
+			} else {
+				System.out.println("Progressing path");
+				following.progress();
+			}
 		}
 
 		horizontalFlip = (xTarget < x) ? 1 : -1;
-		frame = (int)(timer*3) % 4;
+		frame = (int) (timer * 3) % 4;
 
 		xVel += 0.3 * (xTarget - x) / distance;
 		yVel += 0.3 * (yTarget - y) / distance;
+
 		return false;
 	}
 
 	@Override
 	public void render(GraphicsContext g1, GraphicsContext gs, GraphicsContext g2) {
 		g1.save();
-		if(state != State.DEAD && System.currentTimeMillis() - lastHit < 100 && (System.currentTimeMillis()/50) % 2 == 0)
+		if (state != State.DEAD && System.currentTimeMillis() - lastHit < 100
+				&& (System.currentTimeMillis() / 50) % 2 == 0)
 			g1.setGlobalAlpha(0.5);
 		g1.translate(x, y);
 		g1.scale(horizontalFlip, 1);
@@ -253,43 +277,52 @@ public class Plorp extends Entity {
 				// TODO: "zzz" particles
 				break;
 			case FALLING_ASLEEP:
-				g1.drawImage(sheet, frame*16, 32, 16, 16, -0.5, -0.5, 1, 1);
+				g1.drawImage(sheet, frame * 16, 32, 16, 16, -0.5, -0.5, 1, 1);
 				break;
 			case RESTING:
-				if((int)(timer*10) % 20 == 0) { // 1 out of 20 frames are a blink
-					if(frame >= 2) // Looking back
+				if ((int) (timer * 10) % 20 == 0) { // 1 out of 20 frames are a blink
+					if (frame >= 2) // Looking back
 						g1.drawImage(sheet, 16, 48, 16, 16, -0.5, -0.5, 1, 1);
 					else
 						g1.drawImage(sheet, 0, 48, 16, 16, -0.5, -0.5, 1, 1);
 				} else {
-					int xoff[] = {0, 16, 0, 16}, yoff[] = {0, 0, 16, 16};
+					int xoff[] = { 0, 16, 0, 16 }, yoff[] = { 0, 0, 16, 16 };
 					g1.drawImage(sheet, xoff[frame], yoff[frame], 16, 16, -0.5, -0.5, 1, 1);
 				}
 				break;
 			case STANDING:
-				g1.drawImage(sheet, 32+16*frame, 0, 16, 16, -0.5, -0.5, 1, 1);
+				g1.drawImage(sheet, 32 + 16 * frame, 0, 16, 16, -0.5, -0.5, 1, 1);
 				break;
 			case WALKING:
 			case WALKING_HOME:
 			case CHASING:
 				int up = (yTarget < y) ? 16 : 0;
-				g1.drawImage(sheet, 32 + up, frame*16, 16, 16, -0.5, -0.5, 1, 1);
+				g1.drawImage(sheet, 32 + up, frame * 16, 16, 16, -0.5, -0.5, 1, 1);
 				break;
 			case SURPRISED:
 				g1.drawImage(sheet, 16, 64, 16, 16, -0.5, -0.5, 1, 1);
 				break;
 			case DEAD:
-				g1.drawImage(sheet, 32 + frame*16, 64, 16, 16, -0.5, -0.5, 1, 1);
+				g1.drawImage(sheet, 32 + frame * 16, 64, 16, 16, -0.5, -0.5, 1, 1);
 				break;
 			default:
 				break;
-		}	
+		}
 		g1.restore();
-		if(state != State.DEAD && health < 5) {
+		if (state != State.DEAD && health < 5) {
 			g2.setFill(Color.RED);
-			g2.fillRect(x-0.5, y-1.0, 1.0, 0.25);
+			g2.fillRect(x - 0.5, y - 1.0, 1.0, 0.25);
 			g2.setFill(Color.GREEN);
-			g2.fillRect(x-0.5, y-1.0, health / 5.0, 0.25);
+			g2.fillRect(x - 0.5, y - 1.0, health / 5.0, 0.25);
+		}
+
+		if (PATHFIND_FLAG) {
+			following = Path.pathfind((int) this.x, (int) this.y, (int) xTarget, (int) yTarget, g1);
+			System.out.printf("Pathfind %b !!%n", following.empty());
+		}
+
+		if (!following.empty()) {
+			following.debugRender(g1);
 		}
 
 		g1.setFill(Color.RED);
@@ -297,31 +330,31 @@ public class Plorp extends Entity {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(x-0.5, y-0.5, 1, 1);
+		return new Hitbox(x - 0.5, y - 0.5, 1, 1);
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(x-5, y-5, 10, 10);
+		return new Hitbox(x - 5, y - 5, 10, 10);
 	}
 
 	public Hitbox getSolidBounds() {
-		if(state==State.DEAD)
+		if (state == State.DEAD)
 			return new Hitbox();
-		return new Hitbox(x - 0.05, y-0.05, 0.1, 0.1);
+		return new Hitbox(x - 0.05, y - 0.05, 0.1, 0.1);
 	}
 
 	public Hitbox getHitBounds() {
-		return new Hitbox(x - 0.4, y-0.2, 0.8, 0.5);
+		return new Hitbox(x - 0.4, y - 0.2, 0.8, 0.5);
 	}
 
 	public void dealPlayerDamage(double damage) {
-		if(state == State.DEAD || state == State.SURPRISED)
+		if (state == State.DEAD || state == State.SURPRISED)
 			return;
 		lastHit = System.currentTimeMillis();
 		health -= damage;
 		state = State.SURPRISED;
 
-		if(health <= 0 && state != State.DEAD) {
+		if (health <= 0 && state != State.DEAD) {
 			timer = 0;
 			frame = new Random().nextInt(2); // pick between 2 random dead sprites
 			state = State.DEAD;
