@@ -14,6 +14,7 @@ package com.zandgall.csc322.finalproj.entity;
 import java.util.ArrayList;
 
 import com.zandgall.csc322.finalproj.Main;
+import com.zandgall.csc322.finalproj.staging.Cutscene;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 
 import javafx.scene.canvas.GraphicsContext;
@@ -26,12 +27,26 @@ public class Octoplorp extends Entity {
 
 	private int eyeFrameX = 2, eyeFrameY = 1;
 
+	private boolean initialized = false;
+
 	public Octoplorp(double x, double y) {
 		super(x, y);
 	}
 
 	public void tick() {
+		if (!initialized && new Hitbox(x - 10, y - 10, 20, 20).intersects(Main.getPlayer().getRenderBounds())) {
+			initialized = true;
+			Main.playCutscene(new Cutscene(5, x, y, 48) {
+				@Override
+				public void tick() {
 
+				}
+
+				public void onEnd() {
+
+				}
+			});
+		}
 	}
 
 	public void render(GraphicsContext g, GraphicsContext shadow, GraphicsContext g2) {

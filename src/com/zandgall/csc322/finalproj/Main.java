@@ -28,6 +28,7 @@ import java.util.Scanner;
 import com.zandgall.csc322.finalproj.entity.EntityRegistry;
 import com.zandgall.csc322.finalproj.entity.Player;
 import com.zandgall.csc322.finalproj.entity.Tree;
+import com.zandgall.csc322.finalproj.staging.Cutscene;
 import com.zandgall.csc322.finalproj.level.Level;
 import com.zandgall.csc322.finalproj.level.tile.Tile;
 
@@ -50,6 +51,7 @@ public class Main extends Application {
 	protected Camera camera;
 	protected Level level;
 	protected Hud hud;
+	protected Cutscene cutscene = null;
 
 	private static boolean askBooleanOption(String question) {
 		String res = "";
@@ -184,9 +186,12 @@ public class Main extends Application {
 	}
 
 	public void tick() {
-		level.tick();
-		camera.target(player.getX() + player.getXVel() * 1.5, player.getY() + player.getYVel() * 1.5);
-		camera.tick();
+		if (cutscene == null) {
+			level.tick();
+			camera.target(player.getX() + player.getXVel() * 1.5, player.getY() + player.getYVel() * 1.5);
+			camera.tick();
+		} else if (cutscene.run())
+			cutscene = null;
 	}
 
 	public void render() {
@@ -234,6 +239,10 @@ public class Main extends Application {
 
 	public static Player getPlayer() {
 		return instance.player;
+	}
+
+	public static void playCutscene(Cutscene cutscene) {
+		instance.cutscene = cutscene;
 	}
 
 }

@@ -28,6 +28,7 @@ public class EntityRegistry {
 		register("PlantedSword", PlantedSword.class);
 		register("Plorp", Plorp.class);
 		register("HealthFlower", HealthFlower.class);
+		register("Octoplorp", Octoplorp.class);
 	}
 
 	public static Entity construct(Class<?> clazz, double x, double y) {
