@@ -190,8 +190,10 @@ public class Main extends Application {
 			level.tick();
 			camera.target(player.getX() + player.getXVel() * 1.5, player.getY() + player.getYVel() * 1.5);
 			camera.tick();
-		} else if (cutscene.run())
+		} else if (cutscene.run()) {
+			System.out.printf("Turning off cutscene, targetting %.1f %.1f%n", player.getX(), player.getY());
 			cutscene = null;
+		}
 	}
 
 	public void render() {
