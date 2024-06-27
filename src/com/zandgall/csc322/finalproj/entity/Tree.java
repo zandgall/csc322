@@ -1,5 +1,6 @@
 /* CSC 322 FINAL PROJECT - PROF. FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
+ -- I certify, that this computer program submitted by me is all of my own work.
 
  ## Tree
  # A basic entity that simply displays a tree
@@ -8,8 +9,6 @@
 
 package com.zandgall.csc322.finalproj.entity;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
 
@@ -19,22 +18,9 @@ import com.zandgall.csc322.finalproj.util.ShadowImage;
 
 public class Tree extends Entity {
 
-	private static Image trunk, leaves;
-	private static ShadowImage shadow;
+	private static Image trunk = new Image("/entity/tree_trunk.png"), leaves = new Image("/entity/tree_leaves.png");
+	private static ShadowImage shadow = new ShadowImage("/entity/tree_shadow.png", 5, 0.6);
 	private double peekTransparency = 1;
-
-	static {
-		try {
-			trunk = new Image(new FileInputStream("res/entity/tree_trunk.png"));
-			leaves = new Image(new FileInputStream("res/entity/tree_leaves.png"));
-			shadow = new ShadowImage("res/entity/tree_shadow.png", 5, 0.6);
-		} catch (FileNotFoundException e) {
-			trunk = null;
-			leaves = null;
-			shadow = null;
-			System.err.println("Could not find tree textures!");
-		}
-	};
 
 	public Tree() {
 		super();
@@ -55,16 +41,15 @@ public class Tree extends Entity {
 		// if the player is behind the leaves, slowly shift "peekTransparency" to 0.75
 		// opacity, otherwise shift it to full opacity
 		if (treebox.intersects(Main.getPlayer().getRenderBounds()))
-			peekTransparency = peekTransparency * 0.9 + 0.75 * 0.1;
+			peekTransparency = peekTransparency * 0.95 + 0.75 * 0.05;
 		else
-			peekTransparency = peekTransparency * 0.9 + 1.0 * 0.1;
+			peekTransparency = peekTransparency * 0.95 + 1.0 * 0.05;
 
 		// Tree texture is 3 x 4 tiles in dimensions. offset by -1.5, -3.5
 		g1.drawImage(trunk, x - 1.5, y - 3.5, 3, 4);
 		// Shadow is 1 tile lower
 		shadow.render(gs, x - 1.5, y - 2.5, 3, 4);
 
-		// We *might* draw leaves with transparency, so we backup here
 		if (peekTransparency != 1.0) {
 			g2.save();
 			g2.setGlobalAlpha(peekTransparency);
@@ -72,12 +57,6 @@ public class Tree extends Entity {
 			g2.restore();
 		} else
 			g2.drawImage(leaves, x - 1.5, y - 3.5, 3, 4);
-
-		// Debug hitboxes
-		g2.setLineWidth(0.01);
-		g2.strokeRect(x - 0.3, y - 0.3, 0.6, 0.6);
-		g2.strokeRect(x - 1.0, y - 2.5, 2.0, 1.6);
-
 	}
 
 	public Hitbox getRenderBounds() {

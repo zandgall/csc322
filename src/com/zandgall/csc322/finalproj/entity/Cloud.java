@@ -1,5 +1,6 @@
 /* CSC322 FINAL PROJECT - PROF. FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
+ -- I certify, that this computer program submitted by me is all of my own work.
 
  ## Cloud
  # A simple entity that just layers shadows across the ground
@@ -12,35 +13,25 @@ import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 import com.zandgall.csc322.finalproj.util.ShadowImage;
 
-import java.io.FileNotFoundException;
 import java.util.Random;
 
 import javafx.scene.canvas.GraphicsContext;
 
 public class Cloud {
-	public static ShadowImage textures[];
+	public static ShadowImage textures[] = new ShadowImage[] {
+			new ShadowImage("/entity/cloud_0.png", 10, 0.7),
+			new ShadowImage("/entity/cloud_1.png", 10, 0.7),
+			new ShadowImage("/entity/cloud_2.png", 10, 0.7),
+			new ShadowImage("/entity/cloud_3.png", 10, 0.7),
+			new ShadowImage("/entity/cloud_4.png", 10, 0.7),
+			new ShadowImage("/entity/cloud_5.png", 10, 0.7),
+			new ShadowImage("/entity/cloud_6.png", 10, 0.7),
+			new ShadowImage("/entity/cloud_7.png", 10, 0.7)
+	};
 
 	private int type;
 	private double speed;
 	private double x, y;
-
-	static {
-		try {
-			textures = new ShadowImage[] {
-					new ShadowImage("res/entity/cloud_0.png", 10, 0.7),
-					new ShadowImage("res/entity/cloud_1.png", 10, 0.7),
-					new ShadowImage("res/entity/cloud_2.png", 10, 0.7),
-					new ShadowImage("res/entity/cloud_3.png", 10, 0.7),
-					new ShadowImage("res/entity/cloud_4.png", 10, 0.7),
-					new ShadowImage("res/entity/cloud_5.png", 10, 0.7),
-					new ShadowImage("res/entity/cloud_6.png", 10, 0.7),
-					new ShadowImage("res/entity/cloud_7.png", 10, 0.7)
-			};
-		} catch (FileNotFoundException e) {
-			textures = new ShadowImage[8];
-			System.err.println("Could not find cloud textures!");
-		}
-	}
 
 	public Cloud() {
 		type = new Random().nextInt(8);

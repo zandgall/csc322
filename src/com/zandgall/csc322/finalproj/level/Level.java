@@ -1,5 +1,6 @@
 /* CSC 322 FINAL PROJECT - PROF. SUSAN FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
+ -- I certify, that this computer program submitted by me is all of my own work.
 
  ## Level
  # Stores information about the world, and serves as a wrapper to update and render all things in a level
@@ -8,7 +9,6 @@
 
 package com.zandgall.csc322.finalproj.level;
 
-import com.zandgall.csc322.finalproj.level.tile.Tile;
 import com.zandgall.csc322.finalproj.entity.EntityRegistry;
 import com.zandgall.csc322.finalproj.entity.Entity;
 import com.zandgall.csc322.finalproj.entity.Cloud;
@@ -25,9 +25,7 @@ import java.util.Random;
 import java.awt.geom.Rectangle2D;
 import java.awt.Rectangle;
 import java.io.ObjectInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.FileNotFoundException;
 
 public class Level {
 	public Rectangle bounds = new Rectangle(0, 0, 0, 0);
@@ -40,22 +38,14 @@ public class Level {
 	public Level() {
 	}
 
-	public void load(String filepath) throws IOException {
+	public void load(String path) throws IOException {
 
 		// Clear level data
 		level.clear();
 		entities.clear();
 
-		// Load file
-		FileInputStream fis;
-		try {
-			fis = new FileInputStream(filepath);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			return;
-		}
-
-		ObjectInputStream s = new ObjectInputStream(fis);
+		// Load resource
+		ObjectInputStream s = new ObjectInputStream(Level.class.getResourceAsStream(path));
 
 		// Check version number
 		byte major = s.readByte();
@@ -100,7 +90,7 @@ public class Level {
 			String entityName = s.readUTF();
 			double x = s.readDouble(), y = s.readDouble();
 
-			Class entityClass = EntityRegistry.nameMap.get(entityName);
+			Class<?> entityClass = EntityRegistry.nameMap.get(entityName);
 			addEntity(EntityRegistry.construct(entityClass, x, y));
 		}
 
@@ -138,17 +128,16 @@ public class Level {
 			cloud.tick();
 	}
 
-	/*
+	/**
 	 * A level render method provided with several graphical layers
 	 * 
 	 * @param context_0 A context for layer 0 - usually reserved for tiles
-	 * 
 	 * @param context_1 A context for layer 1
-	 * 
-	 * @param context_shadow A context specifically for shadows (applies to layers 1
-	 * and 0)
-	 * 
+	 * @param shadow_0  A context specifically for shadows (applies to layers 1
+	 *                  and 0)
 	 * @param context_2 A context for layer 2
+	 * @param shadow_1  A context specifically for shadows (applies to all layers
+	 *                  below)
 	 */
 	public void render(GraphicsContext context_0, GraphicsContext context_1, GraphicsContext shadow_0,
 			GraphicsContext context_2, GraphicsContext shadow_1) {
@@ -170,6 +159,7 @@ public class Level {
 				context_0.restore();
 			}
 
+		// Sort and draw all entities and then clouds if they intersect the screen
 		Rectangle2D.Double screenBounds = new Rectangle2D.Double(-af.getTx() / af.getMxx(), -af.getTy() / af.getMyy(),
 				Main.layer_0.getWidth() / af.getMxx(), Main.layer_0.getHeight() / af.getMyy());
 		entities.sort((a, b) -> {

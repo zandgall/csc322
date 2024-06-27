@@ -1,5 +1,13 @@
 /* CSC322 FINAL PROJECT - PROF. FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
+ -- I certify, that this computer program submitted by me is all of my own work.
+
+*--------------------------------------------------------------------------------*
+| THIS FILE IS MISCELLANEOUS                                                     |
+| Although this file is being submitted as a part of the assignment, the content |
+| of this file isn't related to the assignment. It serves as a subproject used to|
+| assist in designing the level for the game. It is unorganized.                 |
+*--------------------------------------------------------------------------------*
 
  ## Level Editor
  # An application built with the final project in order to edit and create levels
@@ -8,7 +16,6 @@
 
 package com.zandgall.csc322.finalproj;
 
-import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -16,8 +23,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.canvas.Canvas;
@@ -27,11 +32,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.effect.GaussianBlur;
-import javafx.scene.effect.ColorAdjust;
-import javafx.scene.control.Label;
 
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.io.File;
@@ -43,14 +44,11 @@ import java.io.IOException;
 import java.awt.geom.Rectangle2D;
 import javax.swing.JFrame;
 import javax.swing.JFileChooser;
-import javax.swing.UIManager;
 
-import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.entity.Entity;
-import com.zandgall.csc322.finalproj.entity.Tree;
 import com.zandgall.csc322.finalproj.entity.EntityRegistry;
 import com.zandgall.csc322.finalproj.level.Level;
-import com.zandgall.csc322.finalproj.level.tile.Tile;
+import com.zandgall.csc322.finalproj.level.Tile;
 
 public class LevelEditor extends Main {
 
@@ -87,7 +85,7 @@ public class LevelEditor extends Main {
 	public void start(Stage stage) {
 		super.start(stage);
 
-		for (Class e : EntityRegistry.classes)
+		for (Class<?> e : EntityRegistry.classes)
 			entityInstances.add(EntityRegistry.construct(e, 0, 0));
 
 		updateEntityOptions();

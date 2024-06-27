@@ -1,5 +1,6 @@
 /* CSC322 FINAL PROJECT - PROF. FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
+ -- I certify, that this computer program submitted by me is all of my own work.
 
  ## Shadow Image
  # Caches a shadow texture with blur and a color effect, reduces overhead later
@@ -16,36 +17,34 @@ import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
-import java.io.FileNotFoundException;
-import java.io.FileInputStream;
-
 public class ShadowImage {
 	private Image img;
-	private double blur;
 
-	public ShadowImage(String filepath, double blur, double alpha) throws FileNotFoundException {
-		Image base = new Image(new FileInputStream(filepath));
+	public ShadowImage(String resource, double blur, double alpha) {
+		// Load the image,
+		Image base = new Image(resource);
+
+		// Create a canvas and set parameters of a graphics context
 		Canvas c = new Canvas(base.getWidth() + blur * 2, base.getHeight() + blur * 2);
 		GraphicsContext g = c.getGraphicsContext2D();
-		g.clearRect(0, 0, base.getWidth() + blur * 2, base.getHeight() + blur * 2);
 		g.setGlobalAlpha(alpha);
 		g.setImageSmoothing(false);
+
+		// Clear and draw the image, accounting for blur radius
+		g.clearRect(0, 0, c.getWidth(), c.getHeight());
 		g.drawImage(base, blur, blur);
+
+		// Apply given effects
 		g.applyEffect(new ColorAdjust(-0.8, 0.5, -0.8, 0.0));
 		g.applyEffect(new GaussianBlur(blur));
+
+		// Take a snapshot and set our image
 		SnapshotParameters p = new SnapshotParameters();
 		p.setFill(Color.TRANSPARENT);
 		img = c.snapshot(p, null);
-		this.blur = blur;
 	}
 
 	public void render(GraphicsContext g, double x, double y, double w, double h) {
-		double wRatio = w / img.getWidth();
-		double hRatio = h / img.getHeight();
 		g.drawImage(img, x, y, w, h);
-	}
-
-	public void render(GraphicsContext g, double x, double y) {
-		g.drawImage(img, x - blur, y - blur);
 	}
 }

@@ -1,9 +1,11 @@
 /* CSC 322 FINAL PROJECT - PROF. SUSAN FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
+ -- I certify, that this computer program submitted by me is all of my own work.
 
  ## Path
  # A class that stores details on how to get from one place to another
- # Used in pathfinding
+ # Functions as a Queue of Points, with a big main "pathfind" function
+ # This is just an implementation of the A* algorithm https://en.wikipedia.org/wiki/A*_search_algorithm
 
  : MADE IN NEOVIM */
 
@@ -11,34 +13,35 @@ package com.zandgall.csc322.finalproj.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.PriorityQueue;
 import java.awt.Point;
 
 import com.zandgall.csc322.finalproj.Main;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 
 public class Path {
-	private ArrayList<Node> path = new ArrayList<>();
+	private ArrayList<Point> path = new ArrayList<>();
 
 	public Path() {
 	}
 
-	public Node current() {
+	public void prepend(int x, int y) {
+		path.addFirst(new Point(x, y));
+	}
+
+	public Point current() {
 		return path.get(0);
 	}
 
-	public Node next() {
+	public Point next() {
 		if (path.size() > 1)
 			return path.get(1);
 		return null;
 	}
 
-	public void progress() {
-		path.remove(0);
+	public Point progress() {
+		return path.remove(0);
 	}
 
 	public boolean empty() {
@@ -59,7 +62,7 @@ public class Path {
 	private static Path reconstruct(Node endPoint) {
 		Path p = new Path();
 		for (Node n = endPoint; n != null; n = n.getParent())
-			p.path.addFirst(n);
+			p.prepend(n.x, n.y);
 		return p;
 	}
 
@@ -78,15 +81,25 @@ public class Path {
 	 * @param startY  Starting Y position
 	 * @param targetX Target X position
 	 * @param targetY Target Y position
+	 * @param start   Predetermined steps to prepend to the path. Can be used to
+	 *                define a starting direction, or to chain multiple paths.
 	 * @see <a href="https://en.wikipedia.org/wiki/A*_search_algorithm">A*
 	 *      Wikipedia</a>
 	 */
-	public static Path pathfind(int startX, int startY, int targetX, int targetY) {
+	public static Path pathfind(int startX, int startY, int targetX, int targetY, Point... start) {
 		ArrayList<Point> open = new ArrayList<>();
 
 		HashMap<Point, Node> map = new HashMap<>();
 		map.put(new Point(startX, startY),
 				new Node(null, startX, startY, 0.0, heuristic(startX, startY, targetX, targetY)));
+
+		// Mark out any previously trecked
+		for (int i = 0; i < start.length; i++)
+			map.put(start[i], new Node(i > 0 ? map.get(start[i - 1]) : null, start[i].x, start[i].y, 0.0, 0.0));
+		if (start.length > 0 && !start[start.length - 1].equals(new Point(startX, startY)))
+			map.get(new Point(startX, startY)).parent = map.get(start[start.length - 1]);
+
+		// Add the starting point as a
 		open.add(new Point(startX, startY));
 
 		// Have a limit to how many pathfind iterations we take
@@ -94,13 +107,17 @@ public class Path {
 		while (!open.isEmpty() && iter < 100) {
 			iter++;
 
+			// Sort by lowest 'fScore'
 			open.sort((a, b) -> {
 				double aV = (map.containsKey(a) ? map.get(a).fScore : Double.POSITIVE_INFINITY);
 				double bV = (map.containsKey(b) ? map.get(b).fScore : Double.POSITIVE_INFINITY);
 				return (int) Math.signum(aV - bV);
 			});
+
+			// Poll first point,
 			Node current = map.get(open.get(0));
 			open.removeFirst();
+
 			if (current.x == targetX && current.y == targetY)
 				return reconstruct(current);
 
@@ -118,8 +135,11 @@ public class Path {
 						|| Main.getLevel().get(p.x, p.y).solidBounds(p.x, p.y) != null)
 					continue;
 
+				// A node has a default gScore of infinity
+				// if we found a shorter path to this point than what existed before,
+				// or the first discovered path to this point, mark the path and see if we can
+				// mark it as a new open node
 				Node n = map.getOrDefault(p, new Node(p.x, p.y));
-
 				if (n.gScore > current.gScore + 1) {
 					n.parent = current;
 					n.gScore = current.gScore + 1;
@@ -136,6 +156,8 @@ public class Path {
 		return new Path();
 	}
 
+	// A storage class that just keeps a position, parent node,
+	// and a gscore and fscore for pathfinding
 	public static class Node {
 		public Node parent = null;
 		public Double gScore = Double.POSITIVE_INFINITY, fScore = Double.POSITIVE_INFINITY;

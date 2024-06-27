@@ -1,5 +1,6 @@
 /* CSC322 FINAL PROJECT - PROF. FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
+ -- I certify, that this computer program submitted by me is all of my own work.
 
  ## Plorp
  # A basic enemy entity
@@ -13,39 +14,31 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
 import java.util.Random;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 import com.zandgall.csc322.finalproj.util.Path;
-import com.zandgall.csc322.finalproj.util.Path.Node;
 
 public class Plorp extends Entity {
-	private static Image sheet;
+	private static Image sheet = new Image("/entity/little_guy.png");
 
-	static {
-		try {
-			sheet = new Image(new FileInputStream("res/entity/little_guy.png"));
-		} catch (FileNotFoundException e) {
-			sheet = null;
-		}
-	}
-
+	// State handling
 	static enum State {
 		DEAD, SLEEPING, FALLING_ASLEEP, RESTING, STANDING, WALKING, WALKING_HOME, SURPRISED, CHASING
 	}
 
 	private State state = State.RESTING;
 
-	private double timer = 0, pathfindTimer = 0;
+	// Timing and rendering flags
+	private double timer = 0;
 	private int frame = 0, horizontalFlip = 1;
 
+	// Pathfinding elements
 	private double xHome = Double.NaN, yHome = Double.NaN;
 	private Path following = new Path();
 	private double xTarget = Double.NaN, yTarget = Double.NaN;
 
-	private boolean hitWall = false, PATHFIND_FLAG = false;
+	private boolean hitWall = false;
 
 	private double health = 5;
 	private long lastHit = 0;
@@ -62,8 +55,6 @@ public class Plorp extends Entity {
 
 	@Override
 	public void tick() {
-		pathfindTimer += Main.TIMESTEP;
-
 		// If home position varaibles are unset, set them
 		if (Double.isNaN(xHome) || Double.isNaN(yHome)) {
 			xHome = x;
@@ -73,7 +64,7 @@ public class Plorp extends Entity {
 		Random r = new Random();
 		switch (state) {
 			case SLEEPING:
-				if (r.nextDouble() < 0.001) { // 1% chance of waking up
+				if (r.nextDouble() < 0.001) { // 0.1% chance of waking up
 					state = State.RESTING;
 					frame = r.nextInt(4); // look in random direction
 				}
@@ -91,67 +82,15 @@ public class Plorp extends Entity {
 				break;
 
 			case RESTING:
-				timer += Main.TIMESTEP;
-
-				if (r.nextDouble() < 0.005) // 5% chance of looking in a new direction
-					frame = r.nextInt(4);
-
-				if (r.nextDouble() < 0.001) { // 0.1% chance of standing up
-					state = State.STANDING;
-					frame = r.nextInt(2); // Look up or down randomly
-					timer = 0;
-				}
-
-				if (timer > 10) { // fall asleep after 10 seconds
-					state = State.FALLING_ASLEEP;
-					frame = 0;
-					timer = 0;
-				}
-
-				if (timer > 0.5) // Only check for player 0.5 seconds after switching states
-					checkForPlayer();
+				handleResting(r);
 				break;
 
 			case STANDING:
-				timer += Main.TIMESTEP;
-
-				if (r.nextDouble() < 0.001) {
-					state = State.WALKING;
-					frame = 0;
-					timer = 0;
-					target(r.nextDouble(-2, 2) + xHome, r.nextDouble(-2, 2) + yHome);
-				}
-
-				if (timer > 5) {
-					state = State.RESTING;
-					frame = 0;
-					timer = 0;
-				}
-
-				if (timer > 0.5) // Only check for player 0.5 seconds after switching states
-					checkForPlayer();
+				handleStanding(r);
 				break;
 
 			case WALKING:
-				if (pursueTarget(0.15)) {
-					frame = 0;
-					// Friction will apply and slow creature down
-					// xVel = 0;
-					// yVel = 0;
-				}
-
-				if (r.nextDouble() < 0.001) {
-					target(r.nextDouble(-2, 2) + xHome, r.nextDouble(-2, 2) + yHome);
-				}
-
-				if (r.nextDouble() < 0.0005) {
-					timer = 0;
-					target(xHome, yHome);
-					state = State.WALKING_HOME;
-				}
-
-				if (timer > 0.5) // Only check for player 0.5 seconds after switching states
-					checkForPlayer();
+				handleWalking(r);
 				break;
 
 			case WALKING_HOME:
@@ -171,27 +110,7 @@ public class Plorp extends Entity {
 				break;
 
 			case CHASING:
-				if (pursueTarget(0.3)) {
-					if (new Hitbox(x - 0.5, y - 0.5, 1, 1)
-							.intersects(Main.getPlayer().getHitBounds())) { // If close enough player
-						Main.getPlayer().dealEnemyDamage(1.0);
-					} else if (!new Hitbox(x - 4, y - 4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
-						// Ran into a wall or something else stopped it, if can't see player, stop
-						timer = 0;
-						frame = 0;
-						target(Main.getPlayer().getX(), Main.getPlayer().getY());
-						state = State.WALKING;
-					} else { // Hit a wall but sees player still
-					}
-				}
-
-				// End of every eighth a second, recheck if the player is within chasing bounds
-				// Updating the target position if so
-				if ((int) (timer * 8 + Main.TIMESTEP * 8) != (int) (timer * 8)
-						&& new Hitbox(x - 8, y - 8, 16, 16).intersects(Main.getPlayer().getSolidBounds())) {
-					// update target position
-					target(Main.getPlayer().getX(), Main.getPlayer().getY());
-				}
+				handleChasing(r);
 				break;
 
 			case DEAD:
@@ -205,6 +124,107 @@ public class Plorp extends Entity {
 		}
 	}
 
+	// Plorp sits on the ground looking around and blinking
+	private void handleResting(Random r) {
+		timer += Main.TIMESTEP;
+
+		// 5% chance of looking in a new direction
+		if (r.nextDouble() < 0.005)
+			frame = r.nextInt(4);
+
+		// 0.1% chance of standing up
+		if (r.nextDouble() < 0.001) {
+			state = State.STANDING;
+			frame = r.nextInt(2); // Look up or down randomly
+			timer = 0;
+		}
+
+		// fall asleep after 10 seconds
+		if (timer > 10) {
+			state = State.FALLING_ASLEEP;
+			frame = 0;
+			timer = 0;
+		}
+
+		// Only check for player 0.5 seconds after switching states
+		if (timer > 0.5)
+			checkForPlayer();
+	}
+
+	// Plorp stands, with a chance of walking
+	private void handleStanding(Random r) {
+		timer += Main.TIMESTEP;
+
+		// 0.1% chance of getting up and walking
+		if (r.nextDouble() < 0.001) {
+			state = State.WALKING;
+			frame = 0;
+			timer = 0;
+			target(r.nextDouble(-2, 2) + xHome, r.nextDouble(-2, 2) + yHome);
+		}
+
+		// If standing for more than 5 seconds, sit down and rest
+		if (timer > 5) {
+			state = State.RESTING;
+			frame = 0;
+			timer = 0;
+		}
+
+		// Only check for player 0.5 seconds after switching states
+		if (timer > 0.5)
+			checkForPlayer();
+	}
+
+	// Plorp walks around to random points around its home coordinate
+	private void handleWalking(Random r) {
+		// Pursue target, and if reached, stand still
+		if (pursueTarget(0.15))
+			frame = 0;
+
+		// 0.1% chance of targetting a random point
+		if (r.nextDouble() < 0.001)
+			target(r.nextDouble(-2, 2) + xHome, r.nextDouble(-2, 2) + yHome);
+
+		// 0.05% chance of walking back home
+		if (r.nextDouble() < 0.0005) {
+			timer = 0;
+			target(xHome, yHome);
+			state = State.WALKING_HOME;
+		}
+
+		// Only check for player 0.5 seconds after switching states
+		if (timer > 0.5)
+			checkForPlayer();
+	}
+
+	// Chase after target, damaging player if caught
+	private void handleChasing(Random r) {
+		// Chase target and if hit something, check if we hit the player and damage
+		if (pursueTarget(0.3)) {
+			if (new Hitbox(x - 0.5, y - 0.5, 1, 1)
+					.intersects(Main.getPlayer().getHitBounds())) { // If close enough player
+				Main.getPlayer().dealEnemyDamage(1.0);
+			} else if (!new Hitbox(x - 4, y - 4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
+				// Ran into a wall or something else stopped it, if can't see player, stop
+				timer = 0;
+				frame = 0;
+				target(Main.getPlayer().getX(), Main.getPlayer().getY());
+				state = State.WALKING;
+			}
+		}
+
+		// End of every eighth a second, recheck if the player is within chasing bounds
+		// Updating the target position if so
+		if ((int) (timer * 8 + Main.TIMESTEP * 8) != (int) (timer * 8)
+				&& new Hitbox(x - 8, y - 8, 16, 16).intersects(Main.getPlayer().getSolidBounds())) {
+			// update target position
+			target(Main.getPlayer().getX(), Main.getPlayer().getY());
+		}
+	}
+
+	/**
+	 * Look for player in square 4 radius
+	 */
 	private boolean checkForPlayer() {
 		if (new Hitbox(x - 4, y - 4, 8, 8).intersects(Main.getPlayer().getHitBounds())) {
 			timer = 0;
@@ -216,6 +236,7 @@ public class Plorp extends Entity {
 		return false;
 	}
 
+	// Pathfind (if necessary) towards target x and y
 	private void target(double tx, double ty) {
 		xTarget = tx;
 		yTarget = ty;
@@ -300,9 +321,12 @@ public class Plorp extends Entity {
 	@Override
 	public void render(GraphicsContext g1, GraphicsContext gs, GraphicsContext g2) {
 		g1.save();
+
+		// Half transparent if hit recently
 		if (state != State.DEAD && System.currentTimeMillis() - lastHit < 100
 				&& (System.currentTimeMillis() / 50) % 2 == 0)
 			g1.setGlobalAlpha(0.5);
+
 		g1.translate(x, y);
 		g1.scale(horizontalFlip, 1);
 		switch (state) {
@@ -343,25 +367,14 @@ public class Plorp extends Entity {
 				break;
 		}
 		g1.restore();
+
+		// Draw a health bar if applicable
 		if (state != State.DEAD && health < 5) {
 			g2.setFill(Color.RED);
 			g2.fillRect(x - 0.5, y - 1.0, 1.0, 0.25);
 			g2.setFill(Color.GREEN);
 			g2.fillRect(x - 0.5, y - 1.0, health / 5.0, 0.25);
 		}
-
-		// if (!following.empty()) {
-		following.debugRender(g1);
-		// }
-
-		g1.setFill(Color.RED);
-		g1.fillRect(xTarget - 0.1, yTarget - 0.1, 0.2, 0.2);
-
-		g1.setStroke(Color.DIMGREY);
-		g1.setLineWidth(0.1);
-		g1.strokeRect((int) Math.floor(x), (int) Math.floor(y), 1, 1);
-		g1.setFill(Color.BLUE);
-		g1.strokeRect(x - 0.05, y - 0.05, 0.1, 0.1);
 	}
 
 	public Hitbox getRenderBounds() {
@@ -383,6 +396,7 @@ public class Plorp extends Entity {
 	}
 
 	public void dealPlayerDamage(double damage) {
+		// Dont receive damage if dead or surprised
 		if (state == State.DEAD || state == State.SURPRISED)
 			return;
 		lastHit = System.currentTimeMillis();

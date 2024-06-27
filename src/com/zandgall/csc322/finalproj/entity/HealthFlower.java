@@ -1,5 +1,7 @@
 /* CSC322 FINAL PROJECT - PROF. SUSAN FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
+ -- I certify, that this computer program submitted by me is all of my own work.
+
 
  ## Health Flower
  # A simple animated pickup entity that grants the player more health
@@ -24,6 +26,9 @@ public class HealthFlower extends Entity {
 		super(x, y);
 	}
 
+	/**
+	 * Just checks for player intersection and adds health and dies when there is
+	 */
 	public void tick() {
 		if (Main.getPlayer().getHitBounds().intersects(getUpdateBounds())) {
 			Main.getPlayer().addHealth(5.0);

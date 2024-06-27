@@ -1,5 +1,6 @@
 /* CSC322 FINAL PROJECT - PROF. FURTNEY
  > ZANDER GALL - GALLA@CSP.EDU
+ -- I certify, that this computer program submitted by me is all of my own work.
 
  ## Main
  # Initiates as a javafx application
@@ -13,24 +14,18 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.effect.ColorAdjust;
-import javafx.scene.effect.GaussianBlur;
 
 import java.util.HashMap;
-import java.util.Scanner;
 
 import com.zandgall.csc322.finalproj.entity.EntityRegistry;
 import com.zandgall.csc322.finalproj.entity.Player;
-import com.zandgall.csc322.finalproj.entity.Tree;
 import com.zandgall.csc322.finalproj.staging.Cutscene;
 import com.zandgall.csc322.finalproj.level.Level;
-import com.zandgall.csc322.finalproj.level.tile.Tile;
 
 public class Main extends Application {
 
@@ -41,35 +36,31 @@ public class Main extends Application {
 
 	public static HashMap<KeyCode, Boolean> keys;
 
+	// JavaFX Elements
 	public static Scene scene;
 	public static Stage stage;
 	public static Pane root;
-	public static Canvas layer_0, layer_1, shadow_0, layer_2, shadow_1, hudCanvas, throwawayCanvas;
-	public static GraphicsContext c0, c1, s0, c2, s1, throwawayContext, hudContext;
 
+	// Canvas and contexts for several layers.
+	public static Canvas layer_0, layer_1, shadow_0, layer_2, shadow_1, hudCanvas, throwawayCanvas;
+	public static GraphicsContext c0, c1, s0, c2, s1, hudContext, throwawayContext;
+
+	// Instances of elements included in the game
 	protected Player player;
 	protected Camera camera;
 	protected Level level;
 	protected Hud hud;
 	protected Cutscene cutscene = null;
 
-	private static boolean askBooleanOption(String question) {
-		String res = "";
-		do {
-			System.out.println(question);
-			Scanner s = new Scanner(System.in);
-			res = s.nextLine().toLowerCase();
-		} while (!res.equals("y") && !res.equals("n"));
-		return res.equals("y");
-	}
-
 	@Override
 	public void start(Stage stage) {
+		// Set up static elements
 		Main.instance = this;
 		Main.stage = stage;
 
 		EntityRegistry.registerClasses();
 
+		// Set up the scene and stage elements
 		setupScene();
 		stage.setTitle("Final");
 		stage.setScene(scene);
@@ -77,6 +68,7 @@ public class Main extends Application {
 		stage.toFront();
 		stage.requestFocus();
 
+		// Update canvas sizes when stage dimensions are changed
 		stage.widthProperty().addListener((obs, oldVal, newVal) -> {
 			layer_0.setWidth(newVal.doubleValue());
 			layer_1.setWidth(newVal.doubleValue());
@@ -94,6 +86,7 @@ public class Main extends Application {
 			hudCanvas.setHeight(newVal.doubleValue());
 		});
 
+		// Key input map and events
 		keys = new HashMap<KeyCode, Boolean>();
 		for (KeyCode a : KeyCode.values())
 			keys.put(a, false); // Initialize all keys to false
@@ -116,13 +109,16 @@ public class Main extends Application {
 		level = new Level();
 		hud = new Hud();
 		try {
-			level.load("res/level/test.bin");
+			level.load("/level.bin");
 		} catch (Exception e) {
 			e.printStackTrace();
+			return; // Can't play without level!
 		}
 
 		level.addEntity(player);
 
+		// The main loop. As this scene animation plays, the game is updated and
+		// rendered
 		new AnimationTimer() {
 			private long lastTime = System.nanoTime();
 			double delta = 0;
@@ -181,22 +177,24 @@ public class Main extends Application {
 		scene = new Scene(root, 1280, 720);
 	}
 
+	// Backup main function
 	public static void main(String[] args) {
 		Application.launch(args);
 	}
 
+	// Update scene. If there is a cutscene, run cutscene until it's over
 	public void tick() {
 		if (cutscene == null) {
 			level.tick();
 			camera.target(player.getX() + player.getXVel() * 1.5, player.getY() + player.getYVel() * 1.5);
 			camera.tick();
 		} else if (cutscene.run()) {
-			System.out.printf("Turning off cutscene, targetting %.1f %.1f%n", player.getX(), player.getY());
 			cutscene = null;
 		}
 	}
 
 	public void render() {
+		// Clear all canvases
 		c0.clearRect(0, 0, layer_0.getWidth(), layer_0.getHeight());
 		c1.clearRect(0, 0, layer_1.getWidth(), layer_1.getHeight());
 		s0.clearRect(0, 0, shadow_0.getWidth(), shadow_0.getHeight());
@@ -204,6 +202,7 @@ public class Main extends Application {
 		s1.clearRect(0, 0, shadow_1.getWidth(), shadow_1.getHeight());
 		hudContext.clearRect(0, 0, hudCanvas.getWidth(), hudCanvas.getHeight());
 
+		// Save all context states
 		c0.save();
 		c1.save();
 		s0.save();
@@ -211,6 +210,7 @@ public class Main extends Application {
 		s1.save();
 		hudContext.save();
 
+		// Transform all (except hud) with camera
 		camera.transform(c0);
 		camera.transform(c1);
 		camera.transform(s0);
@@ -218,10 +218,11 @@ public class Main extends Application {
 		camera.transform(s1);
 		// Don't transform hudContext
 
+		// Draw!
 		level.render(c0, c1, s0, c2, s1);
-
 		hud.render(hudContext);
 
+		// Restore context states
 		c0.restore();
 		c1.restore();
 		s0.restore();

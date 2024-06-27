@@ -26,13 +26,18 @@ sourceSets {
 		java {
 			srcDir 'src'
 		}
+		resources {
+			srcDir 'res'
+		}
+	}
+}
+
+jar {
+	manifest {
+		attributes 'Main-Class': 'com.zandgall.csc322.finalproj.Main'
 	}
 }
 
 application {
 	mainClass = 'com.zandgall.csc322.finalproj.Main'
-}
-
-run {
-	standardInput = System.in
 }
