@@ -12,8 +12,8 @@
 package com.zandgall.csc322.finalproj.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.awt.Point;
 
 import com.zandgall.csc322.finalproj.Main;
 
@@ -99,8 +99,14 @@ public class Path {
 		if (start.length > 0 && !start[start.length - 1].equals(new Point(startX, startY)))
 			map.get(new Point(startX, startY)).parent = map.get(start[start.length - 1]);
 
-		// Add the starting point as a
+		// Add the starting point as an open node
 		open.add(new Point(startX, startY));
+
+		System.out.printf("Open[%d] -> {", open.size());
+		for (Point p : open) {
+			System.out.printf("(%d, %d), ", p.x, p.y);
+		}
+		System.out.println("}");
 
 		// Have a limit to how many pathfind iterations we take
 		int iter = 0;
@@ -116,6 +122,7 @@ public class Path {
 
 			// Poll first point,
 			Node current = map.get(open.get(0));
+			// System.out.printf("(%d, %d) -> %s%n", open.get(0).x, open.get(0).y, current);
 			open.removeFirst();
 
 			if (current.x == targetX && current.y == targetY)
@@ -130,6 +137,11 @@ public class Path {
 			for (int i = 0; i < 4; i++) {
 				Point p = new Point(nX[i], nY[i]);
 
+				// Tile is in provided prepended list of points
+				if (Arrays.binarySearch(start, p) >= 0) {
+					// System.out.printf("Found (%d, %d) in start stack so skipping.%n", p.x, p.y);
+					continue;
+				}
 				// Tile doesnt exist or is solid, skip
 				if (Main.getLevel().get(p.x, p.y) == null
 						|| Main.getLevel().get(p.x, p.y).solidBounds(p.x, p.y) != null)

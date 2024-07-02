@@ -19,7 +19,6 @@
 
 package com.zandgall.csc322.finalproj.entity;
 
-import java.awt.Point;
 import java.util.ArrayList;
 
 import com.zandgall.csc322.finalproj.Main;
@@ -27,6 +26,7 @@ import com.zandgall.csc322.finalproj.entity.Octoplorp.Tentacle.Segment.Type;
 import com.zandgall.csc322.finalproj.staging.Cutscene;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 import com.zandgall.csc322.finalproj.util.Path;
+import com.zandgall.csc322.finalproj.util.Point;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -130,19 +130,20 @@ public class Octoplorp extends Entity {
 
 	// A class controlling Octoplorp tentacles
 	public static class Tentacle extends Entity {
-		protected static final Image sheet = new Image("file:res/entity/octoplorp/tentacles.png");
+		protected static final Image sheet = new Image("/entity/octoplorp/tentacles.png");
 
 		public static enum State {
-			DEAD, RESTING, GRABBING, RISING, CHASING
+			DEAD, RESTING, GRABBING, RISING, CHASING, RETRACTING, INJURED
 		};
 
 		public State state = State.RESTING;
 
-		public double health = 100.0, timer = 0, speed = 1, homeX, homeY;
+		public double health = 100.0, timer = 0, speed = 1, homeX, homeY, startX, startY;
 
 		private Hitbox hitbox = new Hitbox();
 
 		private ArrayList<Segment> segments = new ArrayList<>();
+		private ArrayList<Point> traveled = new ArrayList<>();
 
 		private int orientation = 0;
 
@@ -153,14 +154,15 @@ public class Octoplorp extends Entity {
 		public Tentacle(double x, double y, double homeX, double homeY) {
 			super(x, y);
 			hitbox.add(x - 2.5, y - 2.5, 5, 5);
+			this.startX = x;
+			this.startY = y;
 			this.homeX = homeX;
 			this.homeY = homeY;
 		}
 
 		public void tick() {
 			switch (state) {
-				case DEAD:
-					return;
+				case DEAD:	
 				case RESTING:
 					return;
 				case RISING:
@@ -170,8 +172,17 @@ public class Octoplorp extends Entity {
 					if (!path.empty()) {
 						speed = Math.max(0.1, Math.sqrt((x - homeX) * (x - homeX) + (y - homeY) * (y - homeY)));
 						followPath();
-						if (path.empty())
+						if (path.empty()) {
 							homeY -= 1;
+							Segment s = segments.getLast();
+							s.type = switch (s.orientation) {
+								case 0 -> Segment.Type.STRAIGHT;
+								case 1 -> Segment.Type.TURN_LEFT;
+								case 2 -> Segment.Type.STRAIGHT;
+								case 3 -> Segment.Type.TURN_RIGHT;
+								default -> Segment.Type.STRAIGHT;
+							};
+						}
 					} else {
 						y = y * 0.99 + homeY * 0.01;
 						orientation = 0;
@@ -184,31 +195,48 @@ public class Octoplorp extends Entity {
 					timer += Main.TIMESTEP;
 					if (timer >= 2) {
 						timer = 0;
-						pathfindTo(Main.getPlayer().tileX(), Main.getPlayer().tileY());
+						pathfindTo(Main.getPlayer().tileX(), Main.getPlayer().tileY(), false);
 					}
 					if (!path.empty())
 						followPath();
 					if (getHitBounds().intersects(Main.getPlayer().getHitBounds())) {
 						state = State.GRABBING;
 						homeY = y - 4;
-						Point a = new Point(tileX(), tileY()), b = nextPosition();
-						int dX = b.x - a.x, dY = b.y - a.y;
-						path = Path.pathfind(tileX() + dX, tileY() + dY, (int) Math.floor(homeX),
-								(int) Math.floor(homeY), a, b);
+						/*
+						 * Point a = new Point(tileX(), tileY()), b = nextPosition();
+						 * int dX = b.x - a.x, dY = b.y - a.y;
+						 * path = Path.pathfind(tileX() + dX, tileY() + dY, (int) Math.floor(homeX),
+						 * (int) Math.floor(homeY), a, b);
+						 */
+						traveled.add(nextPosition());
+						pathfindTo((int) Math.floor(homeX), (int) Math.floor(homeY), true);
 					}
 					break;
+				case INJURED:
+					timer += Main.TIMESTEP;
+					if(timer >= 1)
+						state = State.DEAD;
+					break;
+				case RETRACTING:
+					timer += Main.TIMESTEP;
 			}
 		}
 
-		private void pathfindTo(int x, int y) {
-			if (path.empty()) {
+		private void pathfindTo(int x, int y, boolean watchDirection) {
+			if (path.empty() || watchDirection) {
 				Point a = new Point(tileX(), tileY()), b = nextPosition();
 				int dX = b.x - a.x, dY = b.y - a.y;
-				path = Path.pathfind(tileX() + dX, tileY() + dY, x, y, a, b);
+				traveled.add(a);
+				traveled.add(b);
+				path = Path.pathfind(tileX() + dX, tileY() + dY, x, y, traveled.toArray(new Point[traveled.size()]));
 				segments.add(new Segment(tileX(), tileY(), Type.STRAIGHT, orientation));
+				for (int i = 0; i < traveled.size() - 2; i++)
+					path.progress();
 			} else {
-				path = Path.pathfind(tileX(), tileY(), x, y);
+				path = Path.pathfind(tileX(), tileY(), x, y, traveled.toArray(new Point[traveled.size()]));
 				segments.add(new Segment(tileX(), tileY(), Type.STRAIGHT, orientation));
+				for (int i = 0; i < traveled.size(); i++)
+					path.progress();
 			}
 
 		}
@@ -239,6 +267,7 @@ public class Octoplorp extends Entity {
 			if (hit) {
 				x = path.current().x + 0.5;
 				y = path.current().y + 0.5;
+				traveled.add(new Point(tileX(), tileY()));
 
 				int preOrientation = orientation;
 				nextOrientation();
@@ -287,9 +316,12 @@ public class Octoplorp extends Entity {
 		}
 
 		public void render(GraphicsContext g, GraphicsContext shadow, GraphicsContext g2) {
+			// Draw dirt mound
+			g.drawImage(sheet, 16, 32, 48, 16, startX-1.5, startY-0.5, 3, 1);
+
 			for (Segment s : segments)
 				s.render(g);
-
+	
 			if (health < 100) {
 				g.setLineWidth(0.05);
 				g.setStroke(Color.BLACK);
@@ -299,21 +331,32 @@ public class Octoplorp extends Entity {
 				g.setFill(Color.GREEN);
 				g.fillRect(x - (orientation == 2 ? 1.75 : 0.75), y - (orientation == 0 ? 1.75 : 0.75),
 						health * 0.015, 0.2);
-			}
-
+			}	
+			
 			g.save();
 			g.translate(x, y);
 			g.rotate(90 * orientation);
 			if (state == State.GRABBING)
 				g.drawImage(sheet, 0, 0, 16, 48, -0.5, -2.5, 1, 3);
+			else if (state == State.INJURED)
+				g.drawImage(sheet, 32, 48, 16, 48, -0.5, -2.5, 1, 1);
 			else if (state == State.DEAD)
-				g.drawImage(sheet, 16, 16, 16, 48, -0.5, -2.5, 1, 3);
+				g.drawImage(sheet, 16, 48, 16, 16, -0.5, -0.5, 1, 1);
 			else
 				g.drawImage(sheet, 0, 48, 16, 48, -0.5, -2.5, 1, 3);
 			g.restore();
 
-			// if(!path.empty())
-			// path.debugRender(g);
+			// Draw dirt mound cover
+			g.drawImage(sheet, 32, 32, 16, 16, startX-0.5, startY-0.5, 1, 1);
+
+
+			g.setLineWidth(0.02);
+			g.setFill(Color.BLUEVIOLET);
+			for(Point p : traveled)
+				g.strokeRect(p.x, p.y, 1, 1);
+
+			if(!path.empty())
+				path.debugRender(g);
 		}
 
 		public Hitbox getRenderBounds() {
@@ -340,8 +383,10 @@ public class Octoplorp extends Entity {
 
 		public void dealPlayerDamage(double damage) {
 			health -= damage;
-			if (health <= 0)
-				state = State.DEAD;
+			if (health <= 0) {
+				timer = 0;
+				state = State.INJURED;
+			}
 		}
 
 		public class Segment {
@@ -373,77 +418,6 @@ public class Octoplorp extends Entity {
 				}
 				g.restore();
 			}
-
-			/**
-			 * With type "straight", the next segment's orientation is the same as this
-			 * With turn types, next orientation will be one to the left or the right
-			 *
-			 * @return Orientation of next potential segment
-			 */
-			private int nextOrientation() {
-				return switch (type) {
-					case STRAIGHT -> orientation;
-					case TURN_RIGHT -> (orientation + 1) % 4;
-					case TURN_LEFT -> (orientation + 3) % 4;
-				};
-			}
-
-			/**
-			 * Create a segment pointed upwards from the given point, if possible
-			 */
-			public Segment up() {
-				return switch (nextOrientation()) {
-					case 0 -> new Segment(x, y - 1, Type.STRAIGHT, 0);
-					case 1 -> new Segment(x + 1, y, Type.TURN_LEFT, 0);
-					case 3 -> new Segment(x - 1, y, Type.TURN_RIGHT, 0);
-
-					case 2 -> throw new RuntimeException("Asked to turn 180 degrees!");
-					default -> throw new RuntimeException("Invalid direction!");
-				};
-			}
-
-			/**
-			 * Create a segment pointed right from the given point, if possible
-			 */
-			public Segment right() {
-				return switch (nextOrientation()) {
-					case 0 -> new Segment(x, y - 1, Type.TURN_RIGHT, 1);
-					case 1 -> new Segment(x + 1, y, Type.STRAIGHT, 1);
-					case 2 -> new Segment(x, y + 1, Type.TURN_LEFT, 1);
-
-					case 3 -> throw new RuntimeException("Asked to turn 180 degrees!");
-					default -> throw new RuntimeException("Invalid direction!");
-				};
-			}
-
-			/**
-			 * Create a segment pointed down from the given point, if possible
-			 */
-			public Segment down() {
-				return switch (nextOrientation()) {
-					case 1 -> new Segment(x + 1, y, Type.TURN_RIGHT, 2);
-					case 2 -> new Segment(x, y + 1, Type.STRAIGHT, 2);
-					case 3 -> new Segment(x - 1, y, Type.TURN_LEFT, 2);
-
-					case 0 -> throw new RuntimeException("Asked to turn 180 degrees!");
-					default -> throw new RuntimeException("Invalid direction!");
-				};
-			}
-
-			/**
-			 * Create a segment pointed left from the given point, if possible
-			 */
-			public Segment left() {
-				return switch (nextOrientation()) {
-					case 0 -> new Segment(x, y - 1, Type.TURN_LEFT, 2);
-					case 2 -> new Segment(x, y + 1, Type.TURN_RIGHT, 2);
-					case 3 -> new Segment(x - 1, y, Type.STRAIGHT, 3);
-
-					case 1 -> throw new RuntimeException("Asked to turn 180 degrees!");
-					default -> throw new RuntimeException("Invalid direction!");
-				};
-			}
-
 		}
 
 	}
