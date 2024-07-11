@@ -8,7 +8,7 @@ public class Segment {
 		STRAIGHT, TURN_RIGHT, TURN_LEFT
 	}
 
-	// 0 == up, 1 == right, 2 == down, 3 == left
+	// 0 == right, 1 == down, 2 == left, 3 == up
 	public int orientation;
 	public Type type;
 	public int x, y;
@@ -26,9 +26,9 @@ public class Segment {
 		g.translate(x + 0.5, y + 0.5);
 		g.rotate(90 * orientation);
 		switch (type) {
-			case STRAIGHT -> g.drawImage(sheet, 0, 80, 16, 16, -0.5, -0.5, 1, 1);
-			case TURN_RIGHT -> g.drawImage(sheet, 16, 64, 16, 16, -0.5, -0.5, 1, 1);
-			case TURN_LEFT -> g.drawImage(sheet, 16, 80, 16, 16, -0.5, -0.5, 1, 1);
+			case STRAIGHT -> g.drawImage(sheet, 0, 0, 16, 16, -0.5, -0.5, 1, 1);
+			case TURN_RIGHT -> g.drawImage(sheet, 16, 16, 16, 16, -0.5, -0.5, 1, 1);
+			case TURN_LEFT -> g.drawImage(sheet, 0, 16, 16, 16, -0.5, -0.5, 1, 1);
 		}
 		g.restore();
 	}

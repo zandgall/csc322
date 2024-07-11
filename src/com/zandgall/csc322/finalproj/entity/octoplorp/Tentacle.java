@@ -26,7 +26,7 @@ public class Tentacle extends Entity {
 
 	public double health = 100.0, timer = 0, speed = 1;
 
-	private double corpseRotation = 0, corpseRotationVel = 1;
+	private double corpseRotation = 1.5 * Math.PI, corpseRotationVel = 1;
 	private Vector home, start, throwing, sword, corpse;
 
 	private Hitbox hitbox = new Hitbox();
@@ -36,7 +36,8 @@ public class Tentacle extends Entity {
 
 	public ThrownSword thrownSword = null;
 
-	private int orientation = 0;
+	/* 0 = right, 1 = down, 2 = left, 3 = up */
+	private int orientation = 3;
 
 	private Path path = new Path();
 
@@ -66,16 +67,16 @@ public class Tentacle extends Entity {
 						home.y -= 1;
 						Segment s = segments.getLast();
 						s.type = switch (s.orientation) {
-							case 0 -> Segment.Type.STRAIGHT;
-							case 1 -> Segment.Type.TURN_LEFT;
-							case 2 -> Segment.Type.STRAIGHT;
-							case 3 -> Segment.Type.TURN_RIGHT;
+							case 0 -> Segment.Type.TURN_LEFT;
+							case 1 -> Segment.Type.STRAIGHT;
+							case 2 -> Segment.Type.TURN_RIGHT;
+							case 3 -> Segment.Type.STRAIGHT;
 							default -> Segment.Type.STRAIGHT;
 						};
 					}
 				} else {
 					position.y = position.y * 0.99 + home.y * 0.01;
-					orientation = 0;
+					orientation = 3;
 					state = State.GRABBED;
 				}
 
@@ -129,19 +130,20 @@ public class Tentacle extends Entity {
 			case SWINGING:
 				timer += Main.TIMESTEP * 0.01;
 				corpseRotation += corpseRotationVel * timer * 0.1;
+				Main.getPlayer().getPosition().set(corpse).add(Vector.ofAngle(corpseRotation));
 				if(thrownSword == null && Math.abs(corpseRotation) > 2*Math.PI && Math.abs(Util.signedAngularDistance(
-						corpseRotation + (corpseRotationVel - 1) * 0.5 * Math.PI,
+						corpseRotation + corpseRotationVel * 0.5 * Math.PI,
 						Math.atan2(sword.x - getX(), sword.y-getY()))) < 0.2 * timer) {
 
 					Main.getPlayer().takeAwaySword();
 					thrownSword = new ThrownSword(Main.getPlayer().getX(), Main.getPlayer().getY(), sword, corpseRotationVel);
 					Main.getLevel().addEntity(thrownSword);	
 				} else if(Math.abs(corpseRotation) > 4*Math.PI && Math.abs(Util.signedAngularDistance(
-						corpseRotation + (corpseRotationVel - 1) * 0.5 * Math.PI,
+						corpseRotation + corpseRotationVel * 0.5 * Math.PI,
 						Math.atan2(throwing.x - getX(), throwing.y - getY()))) < 0.2 * timer) {
+					corpse.add(Vector.ofAngle(corpseRotation));
 					state = State.RETRACTING;
-				}
-				Main.getPlayer().getPosition().set(corpse).add(Vector.ofAngle(corpseRotation-0.5*Math.PI).scale(1.5));
+				}	
 				break;
 			case RETRACTING:
 				if (corpse.sqDist(throwing) > 1) {
@@ -149,10 +151,8 @@ public class Tentacle extends Entity {
 					corpse.add(dir);
 					corpseRotation += corpseRotationVel*0.01;
 					corpseRotationVel *= 0.99;
-					Main.getPlayer().setX(corpse.x + Math.sin(corpseRotation) * 1.5);
-					Main.getPlayer().setY(corpse.y - Math.cos(corpseRotation) * 1.5);
-					Main.getPlayer().setXVel(dir.x * 100);
-					Main.getPlayer().setYVel(dir.y * 100);
+					Main.getPlayer().getPosition().set(corpse);
+					Main.getPlayer().getVelocity().set(dir.getScale(100));
 				}
 				retracePath();
 				if(segments.isEmpty()) {
@@ -208,20 +208,20 @@ public class Tentacle extends Entity {
 		boolean hit = false;
 		switch (orientation) {
 			case 0:
-				position.y -= Main.TIMESTEP * speed;
-				hit = position.y - 0.5 <= path.current().y;
-				break;
-			case 1:
 				position.x += Main.TIMESTEP * speed;
 				hit = position.x - 0.5 >= path.current().x;
 				break;
-			case 2:
+			case 1:
 				position.y += Main.TIMESTEP * speed;
 				hit = position.y - 0.5 >= path.current().y;
 				break;
-			case 3:
+			case 2:
 				position.x -= Main.TIMESTEP * speed;
 				hit = position.x - 0.5 <= path.current().x;
+				break;
+			case 3:
+				position.y -= Main.TIMESTEP * speed;
+				hit = position.y - 0.5 <= path.current().y;
 				break;
 		}
 		if (hit) {
@@ -257,21 +257,22 @@ public class Tentacle extends Entity {
 		boolean hit = false;
 		switch(orientation) {
 			case 0:
-				position.y += Main.TIMESTEP * speed;
-				hit = position.y - 0.5 >= segments.getLast().y;
-				break;
-			case 1:
 				position.x -= Main.TIMESTEP * speed;
 				hit = position.x - 0.5 <= segments.getLast().x;
 				break;
-			case 2:
+			case 1:
 				position.y -= Main.TIMESTEP * speed;
 				hit = position.y - 0.5 <= segments.getLast().y;
 				break;
-			case 3:
+			case 2:
 				position.x += Main.TIMESTEP * speed;
 				hit = position.x - 0.5 >= segments.getLast().x;
 				break;
+			case 3:
+				position.y += Main.TIMESTEP * speed;
+				hit = position.y - 0.5 >= segments.getLast().y;
+				break;
+
 		}
 		if(hit) {
 			position.x = segments.getLast().x + 0.5;
@@ -291,14 +292,14 @@ public class Tentacle extends Entity {
 	 */
 	private void nextOrientation() {
 		if (path.next() == null)
-			return;
-		if (path.next().y < path.current().y)
+			return;	
+		if (path.next().x > path.current().x)
 			orientation = 0;
-		else if (path.next().x > path.current().x)
-			orientation = 1;
 		else if (path.next().y > path.current().y)
-			orientation = 2;
+			orientation = 1;
 		else if (path.next().x < path.current().x)
+			orientation = 2;
+		else if (path.next().y < path.current().y)
 			orientation = 3;
 	}
 
@@ -308,29 +309,29 @@ public class Tentacle extends Entity {
 	 */
 	private Point nextPosition() {
 		return switch (orientation) {
-			case 0 -> new Point(tileX(), tileY() - 1);
-			case 1 -> new Point(tileX() + 1, tileY());
-			case 2 -> new Point(tileX(), tileY() + 1);
-			case 3 -> new Point(tileX() - 1, tileY());
+			case 0 -> new Point(tileX() + 1, tileY());
+			case 1 -> new Point(tileX(), tileY() + 1);
+			case 2 -> new Point(tileX() - 1, tileY());
+			case 3 -> new Point(tileX(), tileY() - 1);
 			default -> new Point(tileX(), tileY());
 		};
 	}
 
 	public void render(GraphicsContext g, GraphicsContext shadow, GraphicsContext g2) {
 		// Draw dirt mound
-		g.drawImage(sheet, 16, 32, 48, 16, start.x - 1.5, start.y - 0.5, 3, 1);
+		g.drawImage(sheet, 48, 32, 48, 16, start.x - 1.5, start.y - 0.5, 3, 1);
 
 		for (Segment s : segments)
 			s.render(g, sheet);
-
+	
 		if (health < 100 && (state == State.GRABBING || state == State.GRABBED)) {
 			g.setLineWidth(0.05);
 			g.setStroke(Color.BLACK);
 			g.setFill(Color.RED);
-			g.strokeRect(getX() - (orientation == 2 ? 1.75 : 0.75), getY() - (orientation == 0 ? 1.75 : 0.75), 1.5, 0.2);
-			g.fillRect(getX() - (orientation == 2 ? 1.75 : 0.75), getY() - (orientation == 0 ? 1.75 : 0.75), 1.5, 0.2);
+			g.strokeRect(getX() - (orientation == 1 ? 1.75 : 0.75), getY() - (orientation == 3 ? 1.75 : 0.75), 1.5, 0.2);
+			g.fillRect(getX() - (orientation == 1 ? 1.75 : 0.75), getY() - (orientation == 3 ? 1.75 : 0.75), 1.5, 0.2);
 			g.setFill(Color.GREEN);
-			g.fillRect(getX() - (orientation == 2 ? 1.75 : 0.75), getY() - (orientation == 0 ? 1.75 : 0.75),
+			g.fillRect(getX() - (orientation == 1 ? 1.75 : 0.75), getY() - (orientation == 3 ? 1.75 : 0.75),
 					health * 0.015, 0.2);
 		}
 
@@ -338,25 +339,32 @@ public class Tentacle extends Entity {
 		g.translate(getX(), getY());
 		g.rotate(90 * orientation);
 		if (state == State.GRABBING || state == State.GRABBED)
-			g.drawImage(sheet, 0, 0, 16, 48, -0.5, -2.5, 1, 3);
+			g.drawImage(sheet, 48, 0, 48, 16, -0.5, -0.5, 3, 1);
 		else if (state == State.INJURED)
-			g.drawImage(sheet, 32, 48, 16, 48, -0.5, -2.5, 1, 3);
-		else if (state == State.DEAD || state == State.DYING || state == State.RETRACTING || state == State.SWINGING) {
+			g.drawImage(sheet, 0, 32, 48, 16, -0.5, -0.5, 3, 1);
+		else if (state == State.DEAD || state == State.DYING || state == State.RETRACTING) {
+			g.drawImage(sheet, 32, 16, 16, 16, -0.5, -0.5, 1, 1);
+			g.restore();
+			g.save();
+			g.translate(corpse.x, corpse.y);
+			g.rotate(180 * corpseRotation / Math.PI);
+			g.drawImage(sheet, 64, 16, 32, 16, -0.5, -0.5, 2, 1);
+		} else if (state == State.SWINGING) {
 			g.drawImage(sheet, 16, 48, 16, 16, -0.5, -0.5, 1, 1);
 			g.restore();
 			g.save();
 			g.translate(corpse.x, corpse.y);
 			g.rotate(180 * corpseRotation / Math.PI);
-			g.drawImage(sheet, 16, 0, 16, 32, -0.5, -2, 1, 2);
+			g.drawImage(sheet, 64, 16, 32, 16, -1.5, -0.5, 2, 1);
 		} else
-			g.drawImage(sheet, 0, 48, 16, 48, -0.5, -2.5, 1, 3);
+			g.drawImage(sheet, 0, 0, 48, 16, -0.5, -0.5, 3, 1);
 		g.restore();
 
 		// Draw dirt mound cover
 		if(state == State.DEAD || state == State.DYING)
-			g.drawImage(sheet, 32, 16, 16, 16, start.x - 0.5, start.y - 0.5, 1, 1);
+			g.drawImage(sheet, 48, 16, 16, 16, start.x - 0.5, start.y - 0.5, 1, 1);
 		else
-			g.drawImage(sheet, 32, 32, 16, 16, start.x - 0.5, start.y - 0.5, 1, 1);
+			g.drawImage(sheet, 64, 32, 16, 16, start.x - 0.5, start.y - 0.5, 1, 1);
 
 		g.setLineWidth(0.02);
 		g.setFill(Color.BLUEVIOLET);
@@ -383,10 +391,10 @@ public class Tentacle extends Entity {
 
 	public Hitbox getHitBounds() {
 		return switch (orientation) {
-			case 0 -> new Hitbox(getX() - 0.5, getY() - 1.5, 1, 2);
-			case 1 -> new Hitbox(getX() - 0.5, getY() - 0.5, 2, 1);
-			case 2 -> new Hitbox(getX() - 0.5, getY() - 0.5, 1, 2);
-			case 3 -> new Hitbox(getX() - 1.5, getY() - 0.5, 2, 1);
+			case 0 -> new Hitbox(getX() - 0.5, getY() - 0.5, 2, 1);
+			case 1 -> new Hitbox(getX() - 0.5, getY() - 0.5, 1, 2);
+			case 2 -> new Hitbox(getX() - 1.5, getY() - 0.5, 2, 1);
+			case 3 -> new Hitbox(getX() - 0.5, getY() - 1.5, 1, 2);
 			default -> new Hitbox(getX() - 0.5, getY() - 0.5, 1, 1);
 		};
 	}
