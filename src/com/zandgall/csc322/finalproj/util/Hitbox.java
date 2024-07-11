@@ -13,7 +13,6 @@ package com.zandgall.csc322.finalproj.util;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.io.File;
 
 public class Hitbox {
 	protected ArrayList<Rectangle2D> boxes = new ArrayList<>();
@@ -89,6 +88,10 @@ public class Hitbox {
 			out.add(new Rectangle2D.Double(box.getX() + x, box.getY() + y, box.getWidth(), box.getHeight()));
 		}
 		return out;
+	}
+
+	public Hitbox translate(Vector vector) {
+		return translate(vector.x, vector.y);
 	}
 
 	public Rectangle2D getBounds() {

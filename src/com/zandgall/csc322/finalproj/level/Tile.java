@@ -167,7 +167,9 @@ public abstract class Tile {
 
 		public void render(GraphicsContext g) {
 			g.setFill(color);
-			g.fillRect(0.0, 0.0, 1.0, 1.0);
+			double dx = 1 / g.getTransform().getMxx();
+			double dy = 1 / g.getTransform().getMyy();
+			g.fillRect(-dx, -dy, 1.0 + dx*2, 1.0 + dy*2);
 		}
 	}
 

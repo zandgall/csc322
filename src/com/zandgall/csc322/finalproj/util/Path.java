@@ -102,12 +102,6 @@ public class Path {
 		// Add the starting point as an open node
 		open.add(new Point(startX, startY));
 
-		System.out.printf("Open[%d] -> {", open.size());
-		for (Point p : open) {
-			System.out.printf("(%d, %d), ", p.x, p.y);
-		}
-		System.out.println("}");
-
 		// Have a limit to how many pathfind iterations we take
 		int iter = 0;
 		while (!open.isEmpty() && iter < 100) {

@@ -18,20 +18,14 @@
 package com.zandgall.csc322.finalproj.staging;
 
 import com.zandgall.csc322.finalproj.Main;
+import com.zandgall.csc322.finalproj.util.Vector;
 
 public abstract class Cutscene {
-	private double timer, duration, targetX, targetY, targetZoom;
+	private double timer, duration;
 
-	public Cutscene(double duration, double targetX, double targetY, double targetZoom) {
+	public Cutscene(double duration) {
 		this.timer = 0;
 		this.duration = duration;
-		this.targetX = targetX;
-		this.targetY = targetY;
-		this.targetZoom = targetZoom;
-	}
-
-	public Cutscene(double duration, double targetX, double targetY) {
-		this(duration, targetX, targetY, 64);
 	}
 
 	/**
@@ -41,23 +35,40 @@ public abstract class Cutscene {
 	public boolean run() {
 		timer += Main.TIMESTEP;
 		tick();
-		Main.getCamera().target(targetX, targetY, targetZoom);
+		Vector target = getTarget();
+		Main.getCamera().target(target.x, target.y, getTargetZoom());
 		Main.getCamera().tick();
-		if (timer >= duration)
+		boolean done = done();
+		if (done)
 			onEnd();
-		return timer >= duration;
+		return done;
 	}
 
 	/**
 	 * Run every tick rather than the base game tick
 	 */
-	public void tick() {
+	protected void tick() {
 		Main.getLevel().tick();
+	}
+
+	protected boolean done() {
+		return timer >= duration;
 	}
 
 	/**
 	 * Ran at the end of the cutscene
 	 */
-	public abstract void onEnd();
+	protected abstract void onEnd();
 
+	/**
+	 * Get the place that the camera should point at
+	 */
+	protected abstract Vector getTarget();
+
+	/**
+	 * Get the zoom amount that the camera should target
+	 */
+	protected double getTargetZoom() {
+		return 64;
+	}
 }

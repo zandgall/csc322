@@ -33,9 +33,12 @@ public class Camera {
 
 	// Update targetX Y and zoom
 	public void target(double x, double y, double zoom) {
-		targetX = x;
-		targetY = y;
-		targetZoom = zoom;
+		if(Double.isFinite(x))
+			targetX = x;
+		if(Double.isFinite(y))
+			targetY = y;
+		if(Double.isFinite(zoom))
+			targetZoom = zoom;
 	}
 
 	// Update just target x and y

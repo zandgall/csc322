@@ -19,6 +19,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Util;
+import com.zandgall.csc322.finalproj.util.Vector;
 
 public class Player extends Entity {
 
@@ -28,7 +30,7 @@ public class Player extends Entity {
 			stab = new Image("/entity/sword_stab.png"), charged = new Image("/entity/sword_charged.png"),
 			indicator = new Image("/entity/special_indicator.png");
 
-	static enum Special {
+	public static enum Special {
 		NONE, SLASH, STAB, CHARGE
 	}
 
@@ -65,21 +67,19 @@ public class Player extends Entity {
 		// Arrow keys to move
 		if (specialMove == Special.NONE) {
 			if (Main.keys.get(KeyCode.RIGHT))
-				xVel += MOVE_SPEED;
+				velocity.x += MOVE_SPEED;
 			if (Main.keys.get(KeyCode.LEFT))
-				xVel -= MOVE_SPEED;
+				velocity.x -= MOVE_SPEED;
 			if (Main.keys.get(KeyCode.DOWN))
-				yVel += MOVE_SPEED;
+				velocity.y += MOVE_SPEED;
 			if (Main.keys.get(KeyCode.UP))
-				yVel -= MOVE_SPEED;
-			swordTargetDirection = Math.atan2(yVel, xVel);
+				velocity.y -= MOVE_SPEED;
+			swordTargetDirection = Math.atan2(velocity.y, velocity.x);
 
 			// If player presses Z and ready to dash, dash in direction we're moving
 			if (Main.keys.get(KeyCode.Z) && dashTimer <= 0) {
-				double vel = Math.sqrt(xVel * xVel + yVel * yVel);
-
-				xVel *= DASH_SPEED / vel;
-				yVel *= DASH_SPEED / vel;
+				velocity = velocity.unit();
+				velocity.scale(DASH_SPEED);
 
 				// Next dash in 0.5 seconds
 				dashTimer = DASH_TIMER;
@@ -92,23 +92,6 @@ public class Player extends Entity {
 
 		move();
 
-	}
-
-	/**
-	 * Calculate the minimum distance from angle A to B, and whether it's to the
-	 * left or right
-	 * 
-	 * @param a Angle 1 in radians
-	 * @param b Angle 2 in radians
-	 * @return Signed distance from a to b
-	 */
-	private double signedAngularDistance(double a, double b) {
-		double phi = (a - b) % Math.TAU;
-		if (phi < -Math.PI)
-			return phi + Math.TAU;
-		else if (phi > Math.PI)
-			return phi - Math.TAU;
-		return phi;
 	}
 
 	private void handleSword() {
@@ -126,7 +109,7 @@ public class Player extends Entity {
 
 			// Find out how far (and in which direction) the swordDirection is from the
 			// swordTargetDirection, and swing towards the target
-			double diff = signedAngularDistance(swordDirection, swordTargetDirection);
+			double diff = Util.signedAngularDistance(swordDirection, swordTargetDirection);
 
 			swordRotationalVelocity += (diff > 0) ? -0.075 : 0.075;
 			// If the sword is pointed close to the opposite direction, apply a little bit
@@ -156,8 +139,8 @@ public class Player extends Entity {
 					specialTimer = 0.2;
 
 					// Dash with x1.5 speed and no friction in direction of sword
-					xVel = 1.5 * DASH_SPEED * Math.cos(swordDirection);
-					yVel = 1.5 * DASH_SPEED * Math.sin(swordDirection);
+					velocity = Vector.ofAngle(swordDirection);
+					velocity.scale(1.5 * DASH_SPEED);
 
 					// Next dash in 0.5 seconds
 					dashTimer = DASH_TIMER;
@@ -169,10 +152,8 @@ public class Player extends Entity {
 					specialTimer = 0.2;
 
 					// Override dash with 1.25x speed, and no friction
-					double vel = Math.sqrt(xVel * xVel + yVel * yVel);
-
-					xVel *= 1.25 * DASH_SPEED / vel;
-					yVel *= 1.25 * DASH_SPEED / vel;
+					velocity = velocity.unit();
+					velocity.scale(1.25 * DASH_SPEED);
 
 					// Next dash in 0.5 seconds
 					dashTimer = DASH_TIMER;
@@ -199,16 +180,15 @@ public class Player extends Entity {
 			swordDirection += Math.TAU;
 
 		// Update sword hitbox
-		swordBox = new Hitbox(x + Math.cos(swordDirection) * 0.5 - 0.5, y + Math.sin(swordDirection) * 0.5 - 0.5, 1.0,
-				1.0);
-		swordBox.add(x + Math.cos(swordDirection) * 1.5 - 0.5, y + Math.sin(swordDirection) * 1.5 - 0.5, 1.0, 1.0);
+		swordBox = new Hitbox(-0.5, -0.5, 1.0, 1.0).translate(position).translate(Vector.ofAngle(swordDirection).scale(0.5));	
+		swordBox.add(new Hitbox(-0.5, -0.5, 1.0, 1.0).translate(position).translate(Vector.ofAngle(swordDirection).scale(1.5)));
 	}
 
 	private void doCharge() {
 		// Every 5 frames, summon a SwordBeam
 		if ((int) (specialTimer * 100) % 5 == 0)
 			Main.getLevel().addEntity(
-					new SwordBeam(x + Math.cos(swordDirection), y + Math.sin(swordDirection), swordDirection));
+					new SwordBeam(getX() + Math.cos(swordDirection), getY() + Math.sin(swordDirection), swordDirection));
 
 		// when the special runs out, update variables
 		if (specialTimer <= 0) {
@@ -220,13 +200,11 @@ public class Player extends Entity {
 
 	private void doSlash() {
 		// Counteract (most) friction
-		xVel /= 0.91;
-		yVel /= 0.91;
+		velocity.scale(1.0/0.91);
 
 		// Check for and damage intersecting entities
 		for (Entity e : Main.getLevel().getEntities())
-			if (e.getHitBounds().intersects(
-					new Hitbox(x + Math.cos(swordDirection) - 1, y + Math.sin(swordDirection) - 1, 2, 2)))
+			if (e.getHitBounds().intersects(new Hitbox(-1, -1, 2, 2).translate(position).translate(Vector.ofAngle(swordDirection))))
 				e.dealPlayerDamage(2);
 
 		// When special runs out, update variables and boost swing speed
@@ -235,7 +213,7 @@ public class Player extends Entity {
 			specialMove = Special.NONE;
 
 			// Boost swinging in the proper direction
-			double diff = signedAngularDistance(swordDirection, swordTargetDirection);
+			double diff = Util.signedAngularDistance(swordDirection, swordTargetDirection);
 
 			swordRotationalVelocity = 20;
 			if (diff > 0)
@@ -247,13 +225,11 @@ public class Player extends Entity {
 
 	private void doStab() {
 		// Counteract (most) friction
-		xVel /= 0.91;
-		yVel /= 0.91;
+		velocity.scale(1.0 / 0.91);
 
 		// Check for and damage intersecting entities
 		for (Entity e : Main.getLevel().getEntities())
-			if (e.getHitBounds().intersects(
-					new Hitbox(x + Math.cos(swordDirection) - 1, y + Math.sin(swordDirection) - 1, 2, 2)))
+			if (e.getHitBounds().intersects(new Hitbox(-1, -1, 2, 2).translate(position).translate(Vector.ofAngle(swordDirection))))
 				e.dealPlayerDamage(2);
 
 		// When special runs out, update variables
@@ -268,7 +244,7 @@ public class Player extends Entity {
 	public void render(GraphicsContext g, GraphicsContext ignore_shadow, GraphicsContext ignore_2) {
 		g.save();
 		g.setFill(Color.RED);
-		g.fillRect(x - 0.5, y - 0.5, 1.0, 1.0);
+		g.fillRect(getX() - 0.5, getY() - 0.5, 1.0, 1.0);
 
 		// If player was hit recently, or a special move was used recently, draw
 		// transparent
@@ -280,7 +256,7 @@ public class Player extends Entity {
 
 		// Sword drawing
 		if (hasSword) {
-			g.translate(x, y);
+			g.translate(getX(), getY());
 
 			// Draw sword special indicator
 			g.save();
@@ -308,7 +284,7 @@ public class Player extends Entity {
 			if (specialMove == Special.STAB)
 				g.drawImage(stab, 0, -0.5, 2.25, 1);
 			else if (specialMove == Special.SLASH) {
-				if (signedAngularDistance(swordDirection, swordTargetDirection) > 0)
+				if (Util.signedAngularDistance(swordDirection, swordTargetDirection) > 0)
 					g.drawImage(slash, 0, -0.5, 2, 2);
 				else
 					g.drawImage(slash, 0, 0.5, 2, -2);
@@ -329,19 +305,19 @@ public class Player extends Entity {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(x - 0.5, y - 0.5, 1, 1);
+		return new Hitbox(getX() - 0.5, getY() - 0.5, 1, 1);
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(x - 0.5, y - 0.5, 1, 1);
+		return new Hitbox(getX() - 0.5, getY() - 0.5, 1, 1);
 	}
 
 	public Hitbox getSolidBounds() {
-		return new Hitbox(x - 0.4, y - 0.4, 0.8, 0.8);
+		return new Hitbox(getX() - 0.4, getY() - 0.4, 0.8, 0.8);
 	}
 
 	public Hitbox getHitBounds() {
-		return new Hitbox(x - 0.4, y - 0.4, 0.8, 0.8);
+		return new Hitbox(getX() - 0.4, getY() - 0.4, 0.8, 0.8);
 	}
 
 	// When recieving damage, only take damage if player wasn't hit in last second,
@@ -372,22 +348,31 @@ public class Player extends Entity {
 		hasSword = true;
 	}
 
+	public void takeAwaySword() {
+		hasSword = false;
+	}
+
+	public void cutsceneSword(double rotation, double specialTimer, Special special) {
+		this.swordDirection = rotation;
+		this.specialTimer = specialTimer;
+		this.specialMove = special;
+	}
+
 	private static class SwordBeam extends Entity {
 
 		private static final Image texture = new Image("file:res/entity/sword_beam.png");
 
-		private double direction, timer;
+		private double timer, direction;
 
 		public SwordBeam(double x, double y, double direction) {
 			super(x, y);
 			this.direction = direction;
-			timer = 1;
+			this.timer = 1;
 		}
 
 		public void tick() {
 			// Move in given direction, slower over time
-			x += Math.cos(direction) * 0.1 * timer;
-			y += Math.sin(direction) * 0.1 * timer;
+			position.add(Vector.ofAngle(direction).scale(0.1*timer));
 
 			// If intersecting enemies, deal 1 damage
 			for (Entity e : Main.getLevel().getEntities())
@@ -402,14 +387,14 @@ public class Player extends Entity {
 
 		public void render(GraphicsContext g, GraphicsContext ignore, GraphicsContext ignore2) {
 			g.save();
-			g.translate(x, y);
+			g.translate(getX(), getY());
 			g.rotate(180 * direction / Math.PI);
 			g.drawImage(texture, -0.375, -0.75, 0.75, 1.5);
 			g.restore();
 		}
 
 		public Hitbox getRenderBounds() {
-			return new Hitbox(x - 0.75, y - 0.75, 1.5, 1.5);
+			return new Hitbox(getX() - 0.75, getY() - 0.75, 1.5, 1.5);
 		}
 
 		public Hitbox getUpdateBounds() {

@@ -18,6 +18,7 @@ import java.util.Random;
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 import com.zandgall.csc322.finalproj.util.Path;
+import com.zandgall.csc322.finalproj.util.Vector;
 
 public class Plorp extends Entity {
 	private static Image sheet = new Image("/entity/little_guy.png");
@@ -33,10 +34,9 @@ public class Plorp extends Entity {
 	private double timer = 0;
 	private int frame = 0, horizontalFlip = 1;
 
-	// Pathfinding elements
-	private double xHome = Double.NaN, yHome = Double.NaN;
-	private Path following = new Path();
-	private double xTarget = Double.NaN, yTarget = Double.NaN;
+	// Pathfinding elements	
+	private Vector home, target;
+	private Path following = new Path();	
 
 	private boolean hitWall = false;
 
@@ -49,18 +49,12 @@ public class Plorp extends Entity {
 
 	public Plorp(double x, double y) {
 		super(x, y);
-		xHome = x;
-		yHome = y;
+		home = position.clone();
+		target = position.clone();
 	}
 
 	@Override
 	public void tick() {
-		// If home position varaibles are unset, set them
-		if (Double.isNaN(xHome) || Double.isNaN(yHome)) {
-			xHome = x;
-			yHome = y;
-		}
-
 		Random r = new Random();
 		switch (state) {
 			case SLEEPING:
@@ -116,11 +110,10 @@ public class Plorp extends Entity {
 			case DEAD:
 			default:
 		}
-		if (Math.abs(xVel) > 0.001 || Math.abs(yVel) > 0.001) {
+		if (Math.abs(velocity.x) > 0.001 || Math.abs(velocity.y) > 0.001) {
 			hitWall |= move();
 		} else {
-			xVel = 0;
-			yVel = 0;
+			velocity.set(0, 0);
 		}
 	}
 
@@ -160,7 +153,7 @@ public class Plorp extends Entity {
 			state = State.WALKING;
 			frame = 0;
 			timer = 0;
-			target(r.nextDouble(-2, 2) + xHome, r.nextDouble(-2, 2) + yHome);
+			target(r.nextDouble(-2, 2) + home.x, r.nextDouble(-2, 2) + home.y);
 		}
 
 		// If standing for more than 5 seconds, sit down and rest
@@ -183,12 +176,12 @@ public class Plorp extends Entity {
 
 		// 0.1% chance of targetting a random point
 		if (r.nextDouble() < 0.001)
-			target(r.nextDouble(-2, 2) + xHome, r.nextDouble(-2, 2) + yHome);
+			target(r.nextDouble(-2, 2) + home.x, r.nextDouble(-2, 2) + home.y);
 
 		// 0.05% chance of walking back home
 		if (r.nextDouble() < 0.0005) {
 			timer = 0;
-			target(xHome, yHome);
+			target(home.x, home.y);
 			state = State.WALKING_HOME;
 		}
 
@@ -201,10 +194,10 @@ public class Plorp extends Entity {
 	private void handleChasing(Random r) {
 		// Chase target and if hit something, check if we hit the player and damage
 		if (pursueTarget(0.3)) {
-			if (new Hitbox(x - 0.5, y - 0.5, 1, 1)
+			if (new Hitbox(getX() - 0.5, getY() - 0.5, 1, 1)
 					.intersects(Main.getPlayer().getHitBounds())) { // If close enough player
 				Main.getPlayer().dealEnemyDamage(1.0);
-			} else if (!new Hitbox(x - 4, y - 4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
+			} else if (!new Hitbox(getX() - 4, getY() - 4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
 				// Ran into a wall or something else stopped it, if can't see player, stop
 				timer = 0;
 				frame = 0;
@@ -216,7 +209,7 @@ public class Plorp extends Entity {
 		// End of every eighth a second, recheck if the player is within chasing bounds
 		// Updating the target position if so
 		if ((int) (timer * 8 + Main.TIMESTEP * 8) != (int) (timer * 8)
-				&& new Hitbox(x - 8, y - 8, 16, 16).intersects(Main.getPlayer().getSolidBounds())) {
+				&& new Hitbox(getX() - 8, getY() - 8, 16, 16).intersects(Main.getPlayer().getSolidBounds())) {
 			// update target position
 			target(Main.getPlayer().getX(), Main.getPlayer().getY());
 		}
@@ -226,7 +219,7 @@ public class Plorp extends Entity {
 	 * Look for player in square 4 radius
 	 */
 	private boolean checkForPlayer() {
-		if (new Hitbox(x - 4, y - 4, 8, 8).intersects(Main.getPlayer().getHitBounds())) {
+		if (new Hitbox(getX() - 4, getY() - 4, 8, 8).intersects(Main.getPlayer().getHitBounds())) {
 			timer = 0;
 			frame = 0;
 			target(Main.getPlayer().getX(), Main.getPlayer().getY());
@@ -238,21 +231,19 @@ public class Plorp extends Entity {
 
 	// Pathfind (if necessary) towards target x and y
 	private void target(double tx, double ty) {
-		xTarget = tx;
-		yTarget = ty;
+		target.set(tx, ty);
 
 		// Check if there is a wall between here and the target. If there is,
 		// pathfinding is necessary
 		boolean wall = false;
 		// As long as we're within 'checkbox', we're between (x, y) and (tx, ty)
-		Hitbox checkbox = new Hitbox(Math.min(tx, x), Math.min(ty, y), Math.abs(tx - x), Math.abs(ty - y));
+		Hitbox checkbox = new Hitbox(Math.min(tx, getX()), Math.min(ty, getY()), Math.abs(tx - getX()), Math.abs(ty - getY()));
 		// Unit direction from (x, y) -> (tx, ty)
-		double dir = Math.sqrt((x - tx) * (x - tx) + (y - ty) * (y - ty));
-		double dirX = (tx - x) / dir, dirY = (ty - y) / dir;
+		Vector dir = position.unitDir(target);
 
 		// Create a box from solid bounds. While it intersects 'checkbox', and a wall
 		// hasn't been found, move it in the unit direction and check for a solid tile
-		for (Hitbox box = getSolidBounds(); checkbox.intersects(box) && !wall; box = box.translate(dirX, dirY)) {
+		for (Hitbox box = getSolidBounds(); checkbox.intersects(box) && !wall; box = box.translate(dir)) {
 			int tileX = (int) Math.floor(box.getBounds().getCenterX());
 			int tileY = (int) Math.floor(box.getBounds().getCenterY());
 			// if the tile at the center of the box has a hitbox, we'll need to pathfind
@@ -262,8 +253,7 @@ public class Plorp extends Entity {
 
 		// Pathfind if there are obstacles,
 		if (wall) {
-			following = Path.pathfind((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(tx),
-					(int) Math.floor(ty));
+			following = Path.pathfind(tileX(), tileY(), (int) Math.floor(tx), (int) Math.floor(ty));
 			if (!following.empty())
 				following.progress();
 		} else
@@ -280,21 +270,20 @@ public class Plorp extends Entity {
 		timer += Main.TIMESTEP;
 
 		// Create a target, if there's a following path, follow that
-		// otherwise, follow x/yTarget
-		double tX, tY;
+		// otherwise, follow x/yTarget	
+		Vector current = new Vector();
 		if (!following.empty()) {
-			tX = following.current().x + 0.5;
-			tY = following.current().y + 0.5;
+			current.x = following.current().x + 0.5;
+			current.y = following.current().y + 0.5;
 		} else {
-			tX = xTarget;
-			tY = yTarget;
+			current.set(target);
 		}
 
 		// If we're close enough to the target, progress path or update x/yTarget
-		double distance = Math.sqrt((tX - x) * (tX - x) + (tY - y) * (tY - y));
+		double distance = position.dist(current);
 		if (distance < 0.1 || hitWall) {
 			// Hitwall is flagged when the Plorp hits something, which might be the player
-			if (following.empty() || hitWall || Math.pow(xTarget - x, 2) + Math.pow(yTarget - y, 2) < 0.2) {
+			if (following.empty() || hitWall || position.dist(target) < 0.2) {
 				// xTarget = x;
 				// yTarget = y;
 				hitWall = false;
@@ -307,12 +296,12 @@ public class Plorp extends Entity {
 		}
 
 		// Update graphics flags
-		horizontalFlip = (tX < x) ? 1 : -1;
+		horizontalFlip = (current.x < getX()) ? 1 : -1;
 		frame = (int) (timer * 3) % 4;
 
 		// Accelerate 0.3 units/sec^2 towards (tX, tY)
-		xVel += 0.3 * (tX - x) / distance;
-		yVel += 0.3 * (tY - y) / distance;
+		velocity.x += 0.3 * (current.x - getX()) / distance;
+		velocity.y += 0.3 * (current.y - getY()) / distance;
 
 		// Did not hit target
 		return false;
@@ -327,7 +316,7 @@ public class Plorp extends Entity {
 				&& (System.currentTimeMillis() / 50) % 2 == 0)
 			g1.setGlobalAlpha(0.5);
 
-		g1.translate(x, y);
+		g1.translate(getX(), getY());
 		g1.scale(horizontalFlip, 1);
 		switch (state) {
 			case SLEEPING:
@@ -354,7 +343,7 @@ public class Plorp extends Entity {
 			case WALKING:
 			case WALKING_HOME:
 			case CHASING:
-				int up = (yTarget < y) ? 16 : 0;
+				int up = (target.y < getY()) ? 16 : 0;
 				g1.drawImage(sheet, 32 + up, frame * 16, 16, 16, -0.5, -0.5, 1, 1);
 				break;
 			case SURPRISED:
@@ -371,28 +360,28 @@ public class Plorp extends Entity {
 		// Draw a health bar if applicable
 		if (state != State.DEAD && health < 5) {
 			g2.setFill(Color.RED);
-			g2.fillRect(x - 0.5, y - 1.0, 1.0, 0.25);
+			g2.fillRect(getX() - 0.5, getY() - 1.0, 1.0, 0.25);
 			g2.setFill(Color.GREEN);
-			g2.fillRect(x - 0.5, y - 1.0, health / 5.0, 0.25);
+			g2.fillRect(getX() - 0.5, getY() - 1.0, health / 5.0, 0.25);
 		}
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(x - 0.5, y - 0.5, 1, 1);
+		return new Hitbox(getX() - 0.5, getY() - 0.5, 1, 1);
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(x - 5, y - 5, 10, 10);
+		return new Hitbox(getX() - 5, getY() - 5, 10, 10);
 	}
 
 	public Hitbox getSolidBounds() {
 		if (state == State.DEAD)
 			return new Hitbox();
-		return new Hitbox(x - 0.05, y - 0.05, 0.1, 0.1);
+		return new Hitbox(getX() - 0.05, getY() - 0.05, 0.1, 0.1);
 	}
 
 	public Hitbox getHitBounds() {
-		return new Hitbox(x - 0.4, y - 0.2, 0.8, 0.5);
+		return new Hitbox(getX() - 0.4, getY() - 0.2, 0.8, 0.5);
 	}
 
 	public void dealPlayerDamage(double damage) {

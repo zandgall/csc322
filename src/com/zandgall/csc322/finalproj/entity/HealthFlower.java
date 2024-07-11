@@ -39,15 +39,15 @@ public class HealthFlower extends Entity {
 
 	public void render(GraphicsContext g, GraphicsContext shadow, GraphicsContext g2) {
 		int frame = (int) Math.max((timer * 8) % 8 - 4, 0);
-		g.drawImage(texture, 0, frame * 16, 16, 16, x - 0.5, y - 0.5, 1, 1);
+		g.drawImage(texture, 0, frame * 16, 16, 16, position.x - 0.5, position.y - 0.5, 1, 1);
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(x - 0.5, y - 0.5, 1, 1);
+		return new Hitbox(position.x - 0.5, position.y - 0.5, 1, 1);
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(x - 0.5, y - 0.5, 1, 1);
+		return new Hitbox(position.x - 0.5, position.y - 0.5, 1, 1);
 	}
 
 	public Hitbox getSolidBounds() {

@@ -33,7 +33,7 @@ public class PlantedSword extends Entity {
 	@Override
 	public void tick() {
 		if (swordbox == null)
-			swordbox = new Hitbox(x - 0.5, y - 0.2, 1.0, 0.4);
+			swordbox = new Hitbox(position.x - 0.5, position.y - 0.2, 1.0, 0.4);
 		// Check if intersects with player, if so, give the player a sword
 		if (Main.getPlayer().getSolidBounds().intersects(swordbox)) {
 			Main.getPlayer().giveSword();
@@ -43,15 +43,15 @@ public class PlantedSword extends Entity {
 
 	@Override
 	public void render(GraphicsContext g1, GraphicsContext gs, GraphicsContext g2) {
-		g1.drawImage(texture, x - 1, y - 1.8, 2, 2);
+		g1.drawImage(texture, position.x - 1, position.y - 1.8, 2, 2);
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(x - 1, y - 1.8, 2, 2);
+		return new Hitbox(position.x - 1, position.y - 1.8, 2, 2);
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(x - 1, y - 1.8, 2, 2);
+		return new Hitbox(position.x - 1, position.y - 1.8, 2, 2);
 	}
 
 	public Hitbox getSolidBounds() {

@@ -37,7 +37,7 @@ public class Tree extends Entity {
 
 	@Override
 	public void render(GraphicsContext g1, GraphicsContext gs, GraphicsContext g2) {
-		Hitbox treebox = new Hitbox(x - 1.0, y - 2.5, 2, 1.6);
+		Hitbox treebox = new Hitbox(getX() - 1.0, getY() - 2.5, 2, 1.6);
 		// if the player is behind the leaves, slowly shift "peekTransparency" to 0.75
 		// opacity, otherwise shift it to full opacity
 		if (treebox.intersects(Main.getPlayer().getRenderBounds()))
@@ -46,21 +46,21 @@ public class Tree extends Entity {
 			peekTransparency = peekTransparency * 0.95 + 1.0 * 0.05;
 
 		// Tree texture is 3 x 4 tiles in dimensions. offset by -1.5, -3.5
-		g1.drawImage(trunk, x - 1.5, y - 3.5, 3, 4);
+		g1.drawImage(trunk, getX() - 1.5, getY() - 3.5, 3, 4);
 		// Shadow is 1 tile lower
-		shadow.render(gs, x - 1.5, y - 2.5, 3, 4);
+		shadow.render(gs, getX() - 1.5, getY() - 2.5, 3, 4);
 
 		if (peekTransparency != 1.0) {
 			g2.save();
 			g2.setGlobalAlpha(peekTransparency);
-			g2.drawImage(leaves, x - 1.5, y - 3.5, 3, 4);
+			g2.drawImage(leaves, getX() - 1.5, getY() - 3.5, 3, 4);
 			g2.restore();
 		} else
-			g2.drawImage(leaves, x - 1.5, y - 3.5, 3, 4);
+			g2.drawImage(leaves, getX() - 1.5, getY() - 3.5, 3, 4);
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(x - 1.5, y - 3.5, 3.0, 5.0);
+		return new Hitbox(getX() - 1.5, getY() - 3.5, 3.0, 5.0);
 	}
 
 	// Tree doesn't update, so empty hitbox
@@ -70,7 +70,7 @@ public class Tree extends Entity {
 
 	// Only the tile at the trunk is solid
 	public Hitbox getSolidBounds() {
-		return new Hitbox(x - 0.3, y - 0.3, 0.6, 0.6);
+		return new Hitbox(getX() - 0.3, getY() - 0.3, 0.6, 0.6);
 	}
 
 	public Hitbox getHitBounds() {
@@ -78,7 +78,7 @@ public class Tree extends Entity {
 	}
 
 	public double getRenderLayer() {
-		return Math.floor(y) + 0.7;
+		return getY() + 0.7;
 	}
 
 }

@@ -13,24 +13,19 @@ import javafx.scene.canvas.GraphicsContext;
 
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Vector;
 import com.zandgall.csc322.finalproj.level.Tile;
 
 public abstract class Entity {
-	protected double x, y;
-	protected double xVel, yVel;
+	protected Vector position, velocity;
 
 	public Entity() {
-		x = 0;
-		y = 0;
-		xVel = 0;
-		yVel = 0;
+		this(0, 0);
 	}
 
 	public Entity(double x, double y) {
-		this.x = x;
-		this.y = y;
-		xVel = 0;
-		xVel = 0;
+		position = new Vector(x, y);
+		velocity = new Vector(0, 0);
 	}
 
 	public abstract void tick();
@@ -48,35 +43,51 @@ public abstract class Entity {
 	public abstract void render(GraphicsContext context_1, GraphicsContext context_shadow, GraphicsContext context_2);
 
 	public double getX() {
-		return x;
+		return position.x;
 	}
 
 	public double getY() {
-		return y;
+		return position.y;
+	}
+
+	public Vector getPosition() {
+		return position;
 	}
 
 	public double getXVel() {
-		return xVel;
+		return velocity.x;
 	}
 
 	public double getYVel() {
-		return yVel;
+		return velocity.y;
+	}
+
+	public Vector getVelocity() {
+		return velocity;
 	}
 
 	public int tileX() {
-		return (int) Math.floor(x);
+		return (int) Math.floor(getX());
 	}
 
 	public int tileY() {
-		return (int) Math.floor(y);
+		return (int) Math.floor(getY());
 	}
 
 	public void setX(double x) {
-		this.x = x;
+		position.x = x;
 	}
 
 	public void setY(double y) {
-		this.y = y;
+		position.y = y;
+	}
+
+	public void setXVel(double xVel) {
+		velocity.x = xVel;
+	}
+
+	public void setYVel(double yVel) {
+		velocity.y = yVel;
 	}
 
 	public abstract Hitbox getRenderBounds();
@@ -101,21 +112,21 @@ public abstract class Entity {
 	 */
 	protected boolean move() {
 		// If not moving, no need to move
-		if (xVel == 0 && yVel == 0)
+		if (velocity.x == 0 && velocity.y == 0)
 			return false;
 
 		boolean hitWall = false;
-
-		double nextX = x, nextY = y;
+	
+		Vector next = position.clone();
 
 		// Check it against all solid entities
-		Hitbox box = getSolidBounds().translate(xVel * Main.TIMESTEP, yVel * Main.TIMESTEP);
+		Hitbox box = getSolidBounds().translate(velocity.x * Main.TIMESTEP, velocity.y * Main.TIMESTEP);
 		for (Entity e : Main.getLevel().getEntities()) {
 			if (e == this)
 				continue; // don't collide with self
 			Hitbox solid = e.getSolidBounds();
 			if (solid.intersects(box)) {
-				handleCollision(solid, nextX, nextY);
+				handleCollision(solid, next);
 				hitWall = true;
 			}
 		}
@@ -132,7 +143,7 @@ public abstract class Entity {
 			for (int j = minY; j <= maxY; j++) {
 				Tile t = Main.getLevel().get(i, j);
 				if (t != null && t.solidBounds(i, j) != null && t.solidBounds(i, j).intersects(box)) {
-					handleCollision(t.solidBounds(i, j), nextX, nextY);
+					handleCollision(t.solidBounds(i, j), next);
 					hitWall = true;
 				}
 			}
@@ -141,12 +152,11 @@ public abstract class Entity {
 		// Move to the next position
 		// If there was a collision, nextX, nextY, xVel, yVel will have been modified
 		// and we will be pressed up against a solid wall
-		x = nextX + xVel * Main.TIMESTEP;
-		y = nextY + yVel * Main.TIMESTEP;
+		// TODO: So 'next' doesn't actually work, so we don't apply it
+		position.add(velocity.getScale(Main.TIMESTEP));
 
 		// Handle friction
-		xVel *= 0.9;
-		yVel *= 0.9;
+		velocity.scale(0.9);
 
 		return hitWall;
 	}
@@ -156,37 +166,33 @@ public abstract class Entity {
 	 * next position accordingly.
 	 * 
 	 * @param solid The hitbox of the object colided with
-	 * @param nextX An input/output variable for the x position of this entity where
-	 *              the collision occurs.
-	 * @param nextY An input/output variable for the y position of this entity where
+	 * @param next An input/output variable for the position of this entity where
 	 *              the collision occurs.
 	 */
-	private void handleCollision(Hitbox solid, double nextX, double nextY) {
+	private void handleCollision(Hitbox solid, Vector next) {
+		if(velocity.x == 0 && velocity.y == 0)
+			return;
 		// We increment by 1/100th of a tile until we find the exact moment we intersect
 		// with something solid
-		double stepLength = Math.sqrt(xVel * xVel + yVel * yVel) * 100;
-		double xStep = xVel / stepLength, yStep = yVel / stepLength;
+		Vector step = velocity.unit().scale(1.0/100.0);
 
-		// System.out.printf("Intersection: going %.2f %.2f, step %.2f %.2f%n", xVel,
-		// yVel, xStep, yStep);
+		// System.out.printf("Intersection: going %.2f %.2f, step %.2f %.2f%n", velocity.x, velocity.y, step.x, step.y);
 
-		Hitbox box = getSolidBounds().translate(nextX - x, nextY - y);
+		Hitbox box = getSolidBounds().translate(next.getSub(position));
 
 		if (box.intersects(solid)) {
 			// Standing still, the player is intersecting something
 			// But the player is also trying to move, we will give them 10 steps to see if
 			// they make it out of the intersection
-			double preX = nextX, preY = nextY;
+			Vector pre = next.clone();
 			for (int i = 0; i < 10 && box.intersects(solid); i++) {
-				nextX += xStep;
-				nextY += yStep;
-				box = box.translate(xStep, yStep);
+				next.add(step);
+				box = box.translate(step);
 			}
 			// If they didn't make it out (i.e. walking against a wall instead of away)
 			// Reset their position so they don't move
 			if (box.intersects(solid)) {
-				nextX = preX;
-				nextY = preY;
+				next.set(pre);
 			}
 		} else {
 			// The player is not intersecting something right now, but is entering a hitbox
@@ -194,28 +200,27 @@ public abstract class Entity {
 			// at the edge of the hitbox
 			// We will also cap the number of attempts to 100 (or one full tile crossed),
 			// just to avoid infinite loops
-			for (int i = 0; i < 100 && !box.translate(xStep, yStep).intersects(solid); i++) {
-				nextX += xStep;
-				nextY += yStep;
-				box = box.translate(xStep, yStep);
+			for (int i = 0; i < 100 && !box.translate(step).intersects(solid); i++) {
+				next.add(step);
+				box = box.translate(step);
 			}
 		}
 
 		// We are now within 1/100th of a tile within a solid box
 
 		// If we step in the x direction and intersect, we must stop all x velocity
-		if (box.translate(xStep, 0).intersects(solid))
-			xVel = 0;
+		if (box.translate(step.x, 0).intersects(solid))
+			velocity.x = 0;
 		// if we step in the y direction and intersect, we must stop all y velocity
-		if (box.translate(0, yStep).intersects(solid))
-			yVel = 0;
+		if (box.translate(0, step.y).intersects(solid))
+			velocity.y = 0;
 	}
 
 	// An overridable function used to determine which entities get drawn over other
 	// entities. By default, entities that are lower on screen are drawn in front of
 	// entities that are higher
 	public double getRenderLayer() {
-		return y;
+		return getY();
 	}
 
 }

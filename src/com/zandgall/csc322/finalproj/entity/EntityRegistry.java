@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.lang.reflect.Constructor;
 
+import com.zandgall.csc322.finalproj.entity.octoplorp.Octoplorp;
+
 public class EntityRegistry {
 	public static final ArrayList<Class<?>> classes = new ArrayList<>();
 	public static final HashMap<String, Class<?>> nameMap = new HashMap<String, Class<?>>();
