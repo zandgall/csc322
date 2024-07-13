@@ -29,6 +29,8 @@ import com.zandgall.csc322.finalproj.level.Level;
 
 public class Main extends Application {
 
+	public static long iteration = 0;
+
 	// How long each timestep is that tick updates
 	public static final double TIMESTEP = 0.01;
 
@@ -130,6 +132,7 @@ public class Main extends Application {
 				// We tick in 1/100 second increments in order to ensure game
 				// physics/interaction consistency
 				while (delta >= TIMESTEP) {
+					iteration++;
 					tick();
 					delta -= TIMESTEP;
 				}

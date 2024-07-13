@@ -25,6 +25,7 @@ import com.zandgall.csc322.finalproj.entity.Player;
 import com.zandgall.csc322.finalproj.entity.Player.Special;
 import com.zandgall.csc322.finalproj.staging.Cutscene;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Point;
 import com.zandgall.csc322.finalproj.util.Vector;
 
 import javafx.scene.canvas.GraphicsContext;
@@ -38,13 +39,15 @@ public class Octoplorp extends Entity{
 			eye = new Image("/entity/octoplorp/eye.png");
 
 	static enum State {
-		SLEEPING, WAKING, GRABBING, VULNERABLE
+		SLEEPING, WAKING, GRABBING, RECOVERING, VULNERABLE
 	}
 
 	private State state = State.SLEEPING;
 
-	private double eyeX = 0, eyeY = 1;
-	private int eyeFrameX = 3, eyeFrameY = 0;
+	private Vector eyePos, eyeTarget = new Vector(0, 0);
+	private Point eyeFrame = new Point(3, 0);
+
+	private double timer = 0;
 
 	private Tentacle tutorialTentacle, firstTentacle, secondTentacle, finalTentacle;
 
@@ -72,24 +75,24 @@ public class Octoplorp extends Entity{
 	public void tick() {
 		switch (state) {
 			case SLEEPING:
+				// TODO: Expand starting hitbox
 				if (new Hitbox(getX() - 10, getY() - 10, 20, 20).intersects(Main.getPlayer().getRenderBounds())) {
 					state = State.WAKING;
+					// Wake up cutscene, open eyes and target the boss
 					Main.playCutscene(new Cutscene(5) {
 						float t = 0;
 
 						@Override
 						protected void tick() {
 							t += Main.TIMESTEP;
-							eyeY *= 0.99;
+							eyePos.y *= 0.99;
 							if (t > 4.5)
-								eyeFrameY = 1;
+								eyeFrame.x = 1;
 							else if (t > 4.3)
-								eyeFrameX = 0;
+								eyeFrame.x = 0;
 						}
 
-						protected void onEnd() {
-							Main.getLevel().addEntity(tutorialTentacle);
-						}
+						protected void onEnd() {}
 
 						protected Vector getTarget() {
 							return position;
@@ -105,6 +108,7 @@ public class Octoplorp extends Entity{
 				state = State.GRABBING;
 				tutorialTentacle.state = Tentacle.State.CHASING;
 				tutorialTentacle.speed = 5;
+				// Play cutscene where tutorial tentacle grabs player while they can't move
 				Main.playCutscene(new Cutscene(5) {
 					@Override
 					protected void tick() {
@@ -131,6 +135,40 @@ public class Octoplorp extends Entity{
 				});
 				break;
 			case GRABBING:
+				if(currentTentacle != null) {
+					if(currentTentacle == firstTentacle)
+						eyeFrame.y = 1;
+					else
+						eyeFrame.y = 0;
+
+					switch(currentTentacle.state) {
+					case CHASING:
+					case GRABBING:
+					case GRABBED:
+					case RETRACTING:
+					case REPOSITION:
+					case RESTING:
+						if(Main.getPlayer().getX() < getX() - 4)
+							eyeFrame.x = 2;
+						else if(Main.getPlayer().getX() > getX() + 4)
+							eyeFrame.x = 1;
+						else
+							eyeFrame.x = 0;
+						eyeTarget = Main.getPlayer().getPosition().getSub(position.getAdd(0, -4)).getScale(0.01);
+						if(eyeTarget.length() > 1)
+							eyeTarget = eyeTarget.unit();
+						break;
+					case DEAD:
+					case DYING:
+					case INJURED:
+						eyeFrame = new Point(3, 1);
+						eyeTarget.set(0, 0);
+						break;
+					case SWINGING:
+						eyeFrame = new Point(0, 0);
+						break;
+					}
+				}
 				if(currentTentacle != null && currentTentacle.state == Tentacle.State.DEAD) {
 					if(currentTentacle == tutorialTentacle)
 						currentTentacle = firstTentacle;
@@ -141,12 +179,22 @@ public class Octoplorp extends Entity{
 					else if(currentTentacle == finalTentacle)
 						currentTentacle = null;
 
-					if(currentTentacle != null)
-						currentTentacle.state = Tentacle.State.CHASING;
-					else
+					timer = 0;
+					state = State.RECOVERING;
+
+					if(currentTentacle == null)
 						state = State.VULNERABLE;
 				}
 				break;
+
+			case RECOVERING:
+				timer += Main.TIMESTEP;
+				if(timer > 2) {
+					currentTentacle.state = Tentacle.State.CHASING;
+					state = State.GRABBING;
+				}
+				break;
+
 			case VULNERABLE:
 				break;
 
@@ -155,10 +203,10 @@ public class Octoplorp extends Entity{
 
 	public void render(GraphicsContext g, GraphicsContext shadow, GraphicsContext g2) {
 		g.drawImage(body, getX() - 3, getY() - 3, 6, 6);
-		if(eyeFrameX == -1)
-			g.drawImage(eye, 256, 32, 64, 64, getX() - 2 + eyeX, getY() - 4 + eyeY, 4, 4);
+		if(eyeFrame.x == -1)
+			g.drawImage(eye, 256, 32, 64, 64, getX() - 2 + eyePos.x, getY() - 4 + eyePos.y, 4, 4);
 		else
-			g.drawImage(eye, eyeFrameX * 64, eyeFrameY * 32, 64, 32, getX() - 2 + eyeX, getY() - 2 + eyeY, 4, 2);
+			g.drawImage(eye, eyeFrame.x * 64, eyeFrame.y * 32, 64, 32, getX() - 2 + eyePos.x, getY() - 2 + eyePos.y, 4, 2);
 	}
 
 	public Hitbox getRenderBounds() {	
@@ -196,16 +244,16 @@ public class Octoplorp extends Entity{
 				t += Main.TIMESTEP;
 				if(t < 1) {
 					if(t < 0.2) {
-						eyeFrameX = 3;
-						eyeFrameY = 0;
+						eyeFrame.x = 3;
+						eyeFrame.y = 0;
 					} else if(t < 0.4) {
-						eyeFrameX = 0;
-						eyeFrameY = 2;
+						eyeFrame.x = 0;
+						eyeFrame.y = 2;
 					}
 					else if(t < 0.6)
-						eyeFrameX = 1;
+						eyeFrame.x = 1;
 					else
-						eyeFrameX = 2;
+						eyeFrame.x = 2;
 					y = y * 0.95 + upY * 0.05;
 					Main.getPlayer().setX(position.x);
 					Main.getPlayer().setY(y);
@@ -221,7 +269,7 @@ public class Octoplorp extends Entity{
 						y += 0.2;
 					} else {
 						y = stabY;
-						eyeFrameX = -1;
+						eyeFrame.x = -1;
 						Main.getPlayer().takeAwaySword();
 					}
 					Main.getPlayer().setY(y);

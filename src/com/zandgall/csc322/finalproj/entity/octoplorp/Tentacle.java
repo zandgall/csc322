@@ -124,23 +124,23 @@ public class Tentacle extends Entity {
 					timer = 0;
 					state = State.SWINGING;
 				}
-				Main.getPlayer().setX(getX() + (nextPosition().x - tileX()) * 1.5);
-				Main.getPlayer().setY(getY() + (nextPosition().y - tileY()) * 1.5);
+				Main.getPlayer().getPosition().set(position).add(Vector.ofAngle(orientation*0.5*Math.PI).scale(1.5));
+				Main.getPlayer().getVelocity().set(0, 0);
 				break;
 			case SWINGING:
-				timer += Main.TIMESTEP * 0.01;
+				timer += Main.TIMESTEP * 0.5;
 				corpseRotation += corpseRotationVel * timer * 0.1;
 				Main.getPlayer().getPosition().set(corpse).add(Vector.ofAngle(corpseRotation));
-				if(thrownSword == null && Math.abs(corpseRotation) > 2*Math.PI && Math.abs(Util.signedAngularDistance(
+				if(thrownSword == null && Math.abs(corpseRotation) > 4*Math.PI && Math.abs(Util.signedAngularDistance(
 						corpseRotation + corpseRotationVel * 0.5 * Math.PI,
-						Math.atan2(sword.x - getX(), sword.y-getY()))) < 0.2 * timer) {
+						Math.atan2(sword.y-getY(), sword.x - getX()))) < 0.2 * timer) {
 
 					Main.getPlayer().takeAwaySword();
 					thrownSword = new ThrownSword(Main.getPlayer().getX(), Main.getPlayer().getY(), sword, corpseRotationVel);
 					Main.getLevel().addEntity(thrownSword);	
-				} else if(Math.abs(corpseRotation) > 4*Math.PI && Math.abs(Util.signedAngularDistance(
+				} else if(Math.abs(corpseRotation) > 8*Math.PI && Math.abs(Util.signedAngularDistance(
 						corpseRotation + corpseRotationVel * 0.5 * Math.PI,
-						Math.atan2(throwing.x - getX(), throwing.y - getY()))) < 0.2 * timer) {
+						Math.atan2(throwing.y - getY(), throwing.x - getX()))) < 0.2 * timer) {
 					corpse.add(Vector.ofAngle(corpseRotation));
 					state = State.RETRACTING;
 				}	
@@ -149,7 +149,7 @@ public class Tentacle extends Entity {
 				if (corpse.sqDist(throwing) > 1) {
 					Vector dir = corpse.unitDir(throwing).scale(0.1);
 					corpse.add(dir);
-					corpseRotation += corpseRotationVel*0.01;
+					corpseRotation += corpseRotationVel * timer * 0.1;
 					corpseRotationVel *= 0.99;
 					Main.getPlayer().getPosition().set(corpse);
 					Main.getPlayer().getVelocity().set(dir.getScale(100));
@@ -348,14 +348,14 @@ public class Tentacle extends Entity {
 			g.save();
 			g.translate(corpse.x, corpse.y);
 			g.rotate(180 * corpseRotation / Math.PI);
-			g.drawImage(sheet, 64, 16, 32, 16, -0.5, -0.5, 2, 1);
+			g.drawImage(sheet, 64, 16, 32, 16, -1.6, -0.5, 2, 1);
 		} else if (state == State.SWINGING) {
-			g.drawImage(sheet, 16, 48, 16, 16, -0.5, -0.5, 1, 1);
+			g.drawImage(sheet, 32, 16, 16, 16, -0.5, -0.5, 1, 1);
 			g.restore();
 			g.save();
 			g.translate(corpse.x, corpse.y);
 			g.rotate(180 * corpseRotation / Math.PI);
-			g.drawImage(sheet, 64, 16, 32, 16, -1.5, -0.5, 2, 1);
+			g.drawImage(sheet, 64, 16, 32, 16, -0.1, -0.5, 2, 1);
 		} else
 			g.drawImage(sheet, 0, 0, 48, 16, -0.5, -0.5, 3, 1);
 		g.restore();

@@ -8,7 +8,7 @@ public class Segment {
 		STRAIGHT, TURN_RIGHT, TURN_LEFT
 	}
 
-	// 0 == right, 1 == down, 2 == left, 3 == up
+	// 0 == right, 1 == up, 2 == left, 3 == down
 	public int orientation;
 	public Type type;
 	public int x, y;
