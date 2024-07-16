@@ -44,7 +44,7 @@ public class Octoplorp extends Entity{
 
 	private State state = State.SLEEPING;
 
-	private Vector eyePos, eyeTarget = new Vector(0, 0);
+	private Vector eyePos = new Vector(0, 1), eyeTarget = new Vector(0, 0);
 	private Point eyeFrame = new Point(3, 0);
 
 	private double timer = 0;
@@ -136,7 +136,7 @@ public class Octoplorp extends Entity{
 				break;
 			case GRABBING:
 				if(currentTentacle != null) {
-					if(currentTentacle == firstTentacle)
+					if(currentTentacle == firstTentacle || currentTentacle == tutorialTentacle)
 						eyeFrame.y = 1;
 					else
 						eyeFrame.y = 0;
@@ -148,6 +148,9 @@ public class Octoplorp extends Entity{
 					case RETRACTING:
 					case REPOSITION:
 					case RESTING:
+					case DEAD:
+					case DYING:
+					case WINDUP:
 						if(Main.getPlayer().getX() < getX() - 4)
 							eyeFrame.x = 2;
 						else if(Main.getPlayer().getX() > getX() + 4)
@@ -157,9 +160,11 @@ public class Octoplorp extends Entity{
 						eyeTarget = Main.getPlayer().getPosition().getSub(position.getAdd(0, -4)).getScale(0.01);
 						if(eyeTarget.length() > 1)
 							eyeTarget = eyeTarget.unit();
+						if((System.currentTimeMillis()/100) % 50 == 0)
+							eyeFrame.y = 0;
+						else if((System.currentTimeMillis()/100) % 50 == 1)
+							eyeFrame = new Point(3, 0);
 						break;
-					case DEAD:
-					case DYING:
 					case INJURED:
 						eyeFrame = new Point(3, 1);
 						eyeTarget.set(0, 0);
@@ -168,6 +173,7 @@ public class Octoplorp extends Entity{
 						eyeFrame = new Point(0, 0);
 						break;
 					}
+					eyePos.scale(0.99).add(eyeTarget.getScale(0.01));
 				}
 				if(currentTentacle != null && currentTentacle.state == Tentacle.State.DEAD) {
 					if(currentTentacle == tutorialTentacle)
@@ -189,8 +195,8 @@ public class Octoplorp extends Entity{
 
 			case RECOVERING:
 				timer += Main.TIMESTEP;
-				if(timer > 2) {
-					currentTentacle.state = Tentacle.State.CHASING;
+				if(timer > 5) {
+					currentTentacle.state = Tentacle.State.WINDUP;
 					state = State.GRABBING;
 				}
 				break;

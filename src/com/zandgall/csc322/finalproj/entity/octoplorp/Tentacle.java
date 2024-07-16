@@ -19,7 +19,7 @@ public class Tentacle extends Entity {
 	protected static final Image sheet = new Image("/entity/octoplorp/tentacles.png");
 
 	public static enum State {
-		DEAD, DYING, RESTING, GRABBING, GRABBED, CHASING, REPOSITION, RETRACTING, INJURED, SWINGING
+		DEAD, DYING, RESTING, GRABBING, GRABBED, WINDUP, CHASING, REPOSITION, RETRACTING, INJURED, SWINGING
 	};
 
 	public State state = State.RESTING;
@@ -57,6 +57,11 @@ public class Tentacle extends Entity {
 			case DYING:
 			case DEAD:
 			case RESTING:
+				return;
+			case WINDUP:
+				timer+=Main.TIMESTEP;
+				if(timer >= 2)
+					state = State.CHASING;
 				return;
 			case GRABBED:
 			case GRABBING:
@@ -337,6 +342,8 @@ public class Tentacle extends Entity {
 
 		g.save();
 		g.translate(getX(), getY());
+		if(state == State.WINDUP)
+			g.translate((Math.random()-0.5)*timer*0.1, (Math.random()-0.5)*timer*0.1);
 		g.rotate(90 * orientation);
 		if (state == State.GRABBING || state == State.GRABBED)
 			g.drawImage(sheet, 48, 0, 48, 16, -0.5, -0.5, 3, 1);
@@ -356,8 +363,23 @@ public class Tentacle extends Entity {
 			g.translate(corpse.x, corpse.y);
 			g.rotate(180 * corpseRotation / Math.PI);
 			g.drawImage(sheet, 64, 16, 32, 16, -0.1, -0.5, 2, 1);
-		} else
+		} else {
+			double gX = getX() - 0.5, tX = Math.floor(gX);
+			double gY = getY() - 0.5, tY = Math.floor(gY);
+			double clipset = -0.5 + switch(orientation) {
+			case 0 -> 1 + tX - gX;
+			case 1 -> 1 + tY - gY;
+			case 2 -> gX - tX;
+			case 3 -> gY - tY;
+			default -> 0;
+			};
+			g.save();
+			g.beginPath();
+			g.rect(clipset, -0.5, 3, 1);
+			g.clip();
 			g.drawImage(sheet, 0, 0, 48, 16, -0.5, -0.5, 3, 1);
+			g.restore();
+		}
 		g.restore();
 
 		// Draw dirt mound cover
