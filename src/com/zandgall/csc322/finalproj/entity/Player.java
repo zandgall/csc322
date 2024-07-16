@@ -50,6 +50,7 @@ public class Player extends Entity {
 
 	public Player() {
 		super();
+		position.set(0, -93);
 		health = 20;
 	}
 

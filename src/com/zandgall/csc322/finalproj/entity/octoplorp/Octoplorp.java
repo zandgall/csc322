@@ -57,9 +57,9 @@ public class Octoplorp extends Entity{
 		super(Math.round(x), Math.round(y));
 		tutorialTentacle = new Tentacle(position.getAdd(5.5, 6.5), position.getAdd(0, 6.5), position.getAdd(0, 12), position.getAdd(-12, -1));
 		tutorialTentacle.tutorial = true;
-		firstTentacle = new Tentacle(position.getAdd(-5.5, 6.5), position.getAdd(-14,1), position.getAdd(0, 12), position.getAdd(12, -1));
-		secondTentacle = new Tentacle(position.getAdd(5.5, 12.5), position.getAdd(14, 0), position.getAdd(0, 12), position.getAdd(-12, 14));
-		finalTentacle = new Tentacle(position.getAdd(-5.5, 12.5), position.getAdd(-14, 12), position.getAdd(0, 12), position.getAdd(0, 6));
+		firstTentacle = new Tentacle(position.getAdd(-5.5, 6.5), position.getAdd(0,-10), position.getAdd(0, 12), position.getAdd(12, -1));
+		secondTentacle = new Tentacle(position.getAdd(5.5, 12.5), position.getAdd(0, -10), position.getAdd(0, 12), position.getAdd(-12, 16));
+		finalTentacle = new Tentacle(position.getAdd(-5.5, 12.5), position.getAdd(0, -10), position.getAdd(0, 12), position.getAdd(0, 6));
 		Main.getLevel().addEntity(tutorialTentacle);
 		Main.getLevel().addEntity(firstTentacle);
 		Main.getLevel().addEntity(secondTentacle);
@@ -75,8 +75,7 @@ public class Octoplorp extends Entity{
 	public void tick() {
 		switch (state) {
 			case SLEEPING:
-				// TODO: Expand starting hitbox
-				if (new Hitbox(getX() - 10, getY() - 10, 20, 20).intersects(Main.getPlayer().getRenderBounds())) {
+				if (new Hitbox(getX() - 15, getY() - 15, 30, 30).intersects(Main.getPlayer().getRenderBounds())) {
 					state = State.WAKING;
 					// Wake up cutscene, open eyes and target the boss
 					Main.playCutscene(new Cutscene(5) {
@@ -195,7 +194,7 @@ public class Octoplorp extends Entity{
 
 			case RECOVERING:
 				timer += Main.TIMESTEP;
-				if(timer > 5) {
+				if(timer > 0) {
 					currentTentacle.state = Tentacle.State.WINDUP;
 					state = State.GRABBING;
 				}

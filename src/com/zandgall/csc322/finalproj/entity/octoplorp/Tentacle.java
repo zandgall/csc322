@@ -60,17 +60,23 @@ public class Tentacle extends Entity {
 				return;
 			case WINDUP:
 				timer+=Main.TIMESTEP;
-				if(timer >= 2)
+				if(timer >= 1)
 					state = State.CHASING;
 				return;
 			case GRABBED:
 			case GRABBING:
 				if (!path.empty()) {
-					speed = Math.max(0.1, home.dist(position));
+					speed = Math.max(1, home.dist(position));
 					followPath();
 					if (path.empty()) {
-						home.y -= 1;
 						Segment s = segments.getLast();
+						if(s.orientation == 1) {
+							home.y += 1;
+							orientation = 1;
+						} else {
+							home.y -= 1;
+							orientation = 3;
+						}
 						s.type = switch (s.orientation) {
 							case 0 -> Segment.Type.TURN_LEFT;
 							case 1 -> Segment.Type.STRAIGHT;
@@ -81,7 +87,6 @@ public class Tentacle extends Entity {
 					}
 				} else {
 					position.y = position.y * 0.99 + home.y * 0.01;
-					orientation = 3;
 					state = State.GRABBED;
 				}
 
@@ -100,15 +105,16 @@ public class Tentacle extends Entity {
 					followPath();
 				if (getHitBounds().intersects(Main.getPlayer().getHitBounds())) {
 					state = State.GRABBING;
-					home.y = position.y - 4;
 					speed = 5;
-					/*
-					 * Point a = new Point(tileX(), tileY()), b = nextPosition();
-					 * int dX = b.x - a.x, dY = b.y - a.y;
-					 * path = Path.pathfind(tileX() + dX, tileY() + dY, (int) Math.floor(homeX),
-					 * (int) Math.floor(homeY), a, b);
-					 */
 					pathfindTo((int) Math.floor(home.x), (int) Math.floor(home.y), true);
+					if(path.empty()) {
+						Point next = nextPosition();
+						Vector dir = new Vector(next.x-tileX(), next.y-tileY());
+						home.set(tileX()+0.5, tileY()+0.5).add(dir.getScale(2));
+						pathfindTo((int) Math.floor(home.x), (int) Math.floor(home.y), true);
+						if(path.empty())
+							home = home.getSub(dir);
+					}
 				}
 				break;
 			case REPOSITION:
@@ -124,7 +130,8 @@ public class Tentacle extends Entity {
 			case INJURED:
 				timer += Main.TIMESTEP;
 				if (timer >= 1) {
-					corpse = new Vector(position.x, position.y-0.5);
+					corpseRotation = orientation * 0.5 * Math.PI;
+					corpse = new Vector(position.x, position.y).add(Vector.ofAngle(corpseRotation).scale(0.5));
 					speed = 10;
 					timer = 0;
 					state = State.SWINGING;
