@@ -105,7 +105,7 @@ public class Path implements Serializable {
 
 		// Have a limit to how many pathfind iterations we take
 		int iter = 0;
-		while (!open.isEmpty() && iter < 100) {
+		while (!open.isEmpty() && iter < 1000) {
 			iter++;
 
 			// Sort by lowest 'fScore'
@@ -139,7 +139,8 @@ public class Path implements Serializable {
 				}
 				// Tile doesnt exist or is solid, skip
 				if (Main.getLevel().get(p.x, p.y) == null
-						|| Main.getLevel().get(p.x, p.y).solidBounds(p.x, p.y) != null)
+						|| (Main.getLevel().get(p.x, p.y).solidBounds(p.x, p.y) != null)
+						&& Main.getLevel().get(p.x, p.y).solidBounds(p.x, p.y).intersects(p.x + 0.4, p.y + 0.4, 0.2, 0.2))
 					continue;
 
 				// A node has a default gScore of infinity

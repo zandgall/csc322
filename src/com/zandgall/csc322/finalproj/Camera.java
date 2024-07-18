@@ -12,23 +12,28 @@ package com.zandgall.csc322.finalproj;
 import javafx.scene.canvas.GraphicsContext;
 
 public class Camera {
-	public static final double SMOOTHING = 0.01, DEFAULT_ZOOM = 64;
+	public static final double DEFAULT_SMOOTHING = 0.01, DEFAULT_ZOOM = 64;
 	private double x, y;
 	private double zoom; // The size a single pixel will be after transform
 
-	private double targetX, targetY, targetZoom;
+	private double targetX, targetY, targetZoom, smoothing;
 
 	public Camera() {
 		this.x = 0;
 		this.y = 0;
 		this.zoom = DEFAULT_ZOOM;
+		this.smoothing = DEFAULT_SMOOTHING;
 	}
 
 	public void tick() {
 		// Smooth x, y, and zoom to their target values
-		this.x = x * (1 - SMOOTHING) + targetX * SMOOTHING;
-		this.y = y * (1 - SMOOTHING) + targetY * SMOOTHING;
-		this.zoom = zoom * (1 - SMOOTHING) + targetZoom * SMOOTHING;
+		this.x = x * (1 - smoothing) + targetX * smoothing;
+		this.y = y * (1 - smoothing) + targetY * smoothing;
+		this.zoom = zoom * (1 - smoothing) + targetZoom * smoothing;
+	}
+
+	public void setSmoothing(double smoothing) {
+		this.smoothing = smoothing;
 	}
 
 	// Update targetX Y and zoom
@@ -44,6 +49,12 @@ public class Camera {
 	// Update just target x and y
 	public void target(double x, double y) {
 		target(x, y, DEFAULT_ZOOM);
+	}
+
+	public void snapTo(double x, double y, double zoom) {
+		this.x = x;
+		this.y = y;
+		this.zoom = zoom;
 	}
 
 	// Create the transformation with the given x, y and zoom

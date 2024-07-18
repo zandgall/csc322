@@ -1,7 +1,9 @@
 package com.zandgall.csc322.finalproj.entity.octoplorp;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
+import com.zandgall.csc322.finalproj.Camera;
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.entity.Entity;
 import com.zandgall.csc322.finalproj.staging.Cutscene;
@@ -22,17 +24,23 @@ public class Tentacle extends Entity {
 		DEAD, DYING, RESTING, GRABBING, GRABBED, WINDUP, CHASING, REPOSITION, RETRACTING, INJURED, SWINGING
 	};
 
+	public static enum SegType {
+		STRAIGHT, TURN_RIGHT, TURN_LEFT
+	};
+
 	public State state = State.RESTING;
 
-	public double health = 100.0, timer = 0, speed = 1, damage = 1;
+	public double health = 100.0, timer = 0, speed = 1, damage = 5;
 
 	private double corpseRotation = 1.5 * Math.PI, corpseRotationVel = 1;
 	private Vector home, start, throwing, sword, corpse;
 
 	private Hitbox hitbox = new Hitbox();
 
-	private ArrayList<Segment> segments = new ArrayList<>();
+	// private ArrayList<Segment> segments = new ArrayList<>();
 	private ArrayList<Point> traveled = new ArrayList<>();
+	private HashMap<Point, Integer> segments = new HashMap<>();
+	private HashMap<Point, SegType> segtypes = new HashMap<>();
 
 	public ThrownSword thrownSword = null;
 
@@ -70,21 +78,21 @@ public class Tentacle extends Entity {
 					speed = Math.max(1, home.dist(position));
 					followPath();
 					if (path.empty()) {
-						Segment s = segments.getLast();
-						if(s.orientation == 1) {
+						Point p = traveled.getLast();
+						if(segments.get(p) == 1) {
 							home.y += 1;
 							orientation = 1;
 						} else {
 							home.y -= 1;
 							orientation = 3;
 						}
-						s.type = switch (s.orientation) {
-							case 0 -> Segment.Type.TURN_LEFT;
-							case 1 -> Segment.Type.STRAIGHT;
-							case 2 -> Segment.Type.TURN_RIGHT;
-							case 3 -> Segment.Type.STRAIGHT;
-							default -> Segment.Type.STRAIGHT;
-						};
+						segtypes.put(p, switch (segments.get(p)) {
+							case 0 -> SegType.TURN_LEFT;
+							case 1 -> SegType.STRAIGHT;
+							case 2 -> SegType.TURN_RIGHT;
+							case 3 -> SegType.STRAIGHT;
+							default -> SegType.STRAIGHT;
+						});
 					}
 				} else {
 					position.y = position.y * 0.99 + home.y * 0.01;
@@ -133,7 +141,7 @@ public class Tentacle extends Entity {
 				if (timer >= 1) {
 					corpseRotation = orientation * 0.5 * Math.PI;
 					corpse = new Vector(position.x, position.y).add(Vector.ofAngle(corpseRotation).scale(0.5));
-					speed = 10;
+					speed = 20;
 					timer = 0;
 					state = State.SWINGING;
 				}
@@ -168,9 +176,9 @@ public class Tentacle extends Entity {
 					Main.getPlayer().getVelocity().set(dir.getScale(100));
 				}
 				retracePath();
-				if(segments.isEmpty()) {
+				if(traveled.isEmpty()) {
 					state = State.DYING;
-					Main.playCutscene(new Cutscene(3) {
+					Main.playCutscene(new Cutscene(1) {
 						@Override
 						protected Vector getTarget() {
 							return thrownSword.getPosition();
@@ -190,6 +198,11 @@ public class Tentacle extends Entity {
 						protected double getTargetZoom() {
 							return 48;
 						}
+
+						@Override
+						protected double getSmoothing() {
+							return Camera.DEFAULT_SMOOTHING * 5;
+						}
 					});
 				}
 				break;
@@ -202,6 +215,16 @@ public class Tentacle extends Entity {
 			int dX = b.x - a.x, dY = b.y - a.y;
 			traveled.add(a);
 			traveled.add(b);
+			if(!segments.containsKey(a)) {
+				// TODO: Mark unsure of
+				segments.put(a, orientation);
+				segtypes.put(a, SegType.STRAIGHT);
+			}
+			if(!segments.containsKey(b)) {
+				// TODO: Mark unsure of
+				segments.put(b, orientation);
+				segtypes.put(b, SegType.STRAIGHT);
+			}
 			hitbox.add(a.x, a.y, 1, 1);
 			hitbox.add(b.x, b.y, 1, 1);
 			path = Path.pathfind(tileX() + dX, tileY() + dY, x, y, traveled.toArray(new Point[traveled.size()]));
@@ -240,21 +263,26 @@ public class Tentacle extends Entity {
 		if (hit) {
 			position.x = path.current().x + 0.5;
 			position.y = path.current().y + 0.5;
-			traveled.add(new Point(tileX(), tileY()));
+
+			Point p = new Point(tileX(), tileY());
+			traveled.add(p);
 			hitbox.add(tileX(), tileY(), 1, 1);
 
 			int preOrientation = orientation;
 			nextOrientation();
 
-			if ((preOrientation + orientation) % 2 == 0)
-				segments.add(new Segment(tileX(), tileY(), Segment.Type.STRAIGHT, preOrientation));
-			else if ((orientation > preOrientation && (orientation != 3 || preOrientation != 0))
+			if ((preOrientation + orientation) % 2 == 0) {
+				segments.put(p, preOrientation);
+				segtypes.put(p, SegType.STRAIGHT);
+			} else if ((orientation > preOrientation && (orientation != 3 || preOrientation != 0))
 					|| (orientation == 0 && preOrientation == 3)) {
-				segments.add(new Segment(tileX(), tileY(), Segment.Type.TURN_RIGHT, preOrientation));
 				corpseRotationVel = 1;
+				segments.put(p, preOrientation);
+				segtypes.put(p, SegType.TURN_RIGHT);
 			} else {
-				segments.add(new Segment(tileX(), tileY(), Segment.Type.TURN_LEFT, preOrientation));
 				corpseRotationVel = -1;
+				segments.put(p, preOrientation);
+				segtypes.put(p, SegType.TURN_LEFT);
 			}
 
 			path.progress();
@@ -265,34 +293,33 @@ public class Tentacle extends Entity {
 	 * Retrace the path back to start
 	 */
 	private void retracePath() {
-		if(segments.isEmpty())
+		if(traveled.isEmpty())
 			return;
 		boolean hit = false;
 		switch(orientation) {
 			case 0:
 				position.x -= Main.TIMESTEP * speed;
-				hit = position.x - 0.5 <= segments.getLast().x;
+				hit = position.x - 0.5 <= traveled.getLast().x;
 				break;
 			case 1:
 				position.y -= Main.TIMESTEP * speed;
-				hit = position.y - 0.5 <= segments.getLast().y;
+				hit = position.y - 0.5 <= traveled.getLast().y;
 				break;
 			case 2:
 				position.x += Main.TIMESTEP * speed;
-				hit = position.x - 0.5 >= segments.getLast().x;
+				hit = position.x - 0.5 >= traveled.getLast().x;
 				break;
 			case 3:
 				position.y += Main.TIMESTEP * speed;
-				hit = position.y - 0.5 >= segments.getLast().y;
+				hit = position.y - 0.5 >= traveled.getLast().y;
 				break;
 
 		}
 		if(hit) {
-			position.x = segments.getLast().x + 0.5;
-			position.y = segments.getLast().y + 0.5;
-			orientation = segments.removeLast().orientation;
-			while(tileX() != traveled.getLast().x || tileY() != traveled.getLast().y)
-				traveled.removeLast();
+			position.x = traveled.getLast().x + 0.5;
+			position.y = traveled.getLast().y + 0.5;
+			orientation = segments.get(traveled.getLast());
+			traveled.removeLast();
 
 			hitbox = new Hitbox();
 			for(Point p : traveled)
@@ -334,8 +361,17 @@ public class Tentacle extends Entity {
 		// Draw dirt mound
 		g.drawImage(sheet, 48, 32, 48, 16, start.x - 1.5, start.y - 0.5, 3, 1);
 
-		for (Segment s : segments)
-			s.render(g, sheet);
+		for (Point p : traveled) {
+			g.save();
+			g.translate(p.x + 0.5, p.y + 0.5);
+			g.rotate(segments.get(p) * 90);
+			switch (segtypes.get(p)) {
+				case STRAIGHT -> g.drawImage(sheet, 0, 0, 16, 16, -0.5, -0.5, 1, 1);
+				case TURN_RIGHT -> g.drawImage(sheet, 16, 16, 16, 16, -0.5, -0.5, 1, 1);
+				case TURN_LEFT -> g.drawImage(sheet, 0, 16, 16, 16, -0.5, -0.5, 1, 1);
+			}
+			g.restore();
+		}
 	
 		if (health < 100 && (state == State.GRABBING || state == State.GRABBED)) {
 			g.setLineWidth(0.05);

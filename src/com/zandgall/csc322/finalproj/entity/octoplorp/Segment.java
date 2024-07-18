@@ -1,9 +1,11 @@
 package com.zandgall.csc322.finalproj.entity.octoplorp;
 
+import java.io.Serializable;
+
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
-public class Segment {
+public class Segment implements Serializable {
 	public static enum Type {
 		STRAIGHT, TURN_RIGHT, TURN_LEFT
 	}

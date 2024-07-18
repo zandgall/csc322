@@ -17,6 +17,7 @@
 
 package com.zandgall.csc322.finalproj.staging;
 
+import com.zandgall.csc322.finalproj.Camera;
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.util.Vector;
 
@@ -36,11 +37,14 @@ public abstract class Cutscene {
 		timer += Main.TIMESTEP;
 		tick();
 		Vector target = getTarget();
+		Main.getCamera().setSmoothing(getSmoothing());
 		Main.getCamera().target(target.x, target.y, getTargetZoom());
 		Main.getCamera().tick();
 		boolean done = done();
-		if (done)
+		if (done) {
 			onEnd();
+			Main.getCamera().setSmoothing(Camera.DEFAULT_SMOOTHING);
+		}
 		return done;
 	}
 
@@ -70,5 +74,12 @@ public abstract class Cutscene {
 	 */
 	protected double getTargetZoom() {
 		return 64;
+	}
+
+	/**
+	 * Get the smoothing amount for this cutscene
+	 */
+	protected double getSmoothing() {
+		return Camera.DEFAULT_SMOOTHING;
 	}
 }

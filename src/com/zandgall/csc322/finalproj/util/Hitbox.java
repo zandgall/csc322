@@ -127,4 +127,8 @@ public class Hitbox implements Serializable {
 		return new Hitbox(0, 0, 1, 1);
 	}
 
+	public boolean coversUnit() {
+		return bounds.contains(0, 0, 1, 1);
+	}
+
 }

@@ -24,7 +24,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
@@ -307,11 +306,13 @@ public class Main extends Application {
 		int num = i.readInt();
 		try {
 			instance.player = (Player)i.readObject();
+			instance.camera.snapTo(instance.player.getX(), instance.player.getY(), Camera.DEFAULT_ZOOM);
 		} catch(ClassNotFoundException e) {
 			System.err.println("FATAL!! COULD NOT LOAD PLAYER CLASS");
 			i.close();
 			return;
 		}
+
 		for(int n = 0; n < num; n++) {
 			try {
 				l.addEntity((Entity)i.readObject());

@@ -112,7 +112,7 @@ public class Player extends Entity {
 			// swordTargetDirection, and swing towards the target
 			double diff = Util.signedAngularDistance(swordDirection, swordTargetDirection);
 
-			swordRotationalVelocity += (diff > 0) ? -0.075 : 0.075;
+			swordRotationalVelocity += (diff > 0) ? -0.1 : 0.1;
 			// If the sword is pointed close to the opposite direction, apply a little bit
 			// of friction to reduce
 			// Just holding one directional key and swinging forever
@@ -310,7 +310,7 @@ public class Player extends Entity {
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(getX() - 0.5, getY() - 0.5, 1, 1);
+		return new Hitbox(Main.getLevel().bounds);
 	}
 
 	public Hitbox getSolidBounds() {
