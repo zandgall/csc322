@@ -20,8 +20,16 @@ import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 
+import com.zandgall.csc322.finalproj.entity.Entity;
 import com.zandgall.csc322.finalproj.entity.EntityRegistry;
 import com.zandgall.csc322.finalproj.entity.Player;
 import com.zandgall.csc322.finalproj.staging.Cutscene;
@@ -37,6 +45,7 @@ public class Main extends Application {
 	public static Main instance = null;
 
 	public static HashMap<KeyCode, Boolean> keys;
+	public static KeyCode lastKey = KeyCode.A;
 
 	// JavaFX Elements
 	public static Scene scene;
@@ -97,12 +106,13 @@ public class Main extends Application {
 			@Override
 			public void handle(KeyEvent event) {
 				Main.keys.put(event.getCode(), true);
+				lastKey = event.getCode();
 			}
 		});
 		scene.setOnKeyReleased(new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(KeyEvent event) {
-				Main.keys.put(event.getCode(), false);
+				Main.keys.put(event.getCode(), false);	
 			}
 		});
 
@@ -112,12 +122,15 @@ public class Main extends Application {
 		hud = new Hud();
 		try {
 			level.load("/level.bin");
+			level.addEntity(player);
+			// 'addEntity' operates on a queue, flush it to put all entities in the main list
+			level.flushEntityQueues();
+			// Make default quicksave
+			quicksave();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return; // Can't play without level!
 		}
-
-		level.addEntity(player);
 
 		// The main loop. As this scene animation plays, the game is updated and
 		// rendered
@@ -194,6 +207,7 @@ public class Main extends Application {
 		} else if (cutscene.run()) {
 			cutscene = null;
 		}
+		hud.tick();
 	}
 
 	public void render() {
@@ -249,6 +263,65 @@ public class Main extends Application {
 
 	public static void playCutscene(Cutscene cutscene) {
 		instance.cutscene = cutscene;
+	}
+
+	public static void quicksave() throws IOException {
+		save("quick.sav");
+	}
+
+	public static void quickload() throws IOException {
+		load("quick.sav");
+	}
+
+	public static void save(String filepath) throws IOException {
+		ObjectOutputStream o;
+		try {
+			o = new ObjectOutputStream(new FileOutputStream(filepath));
+		} catch(FileNotFoundException e) {
+			System.err.println("Could not save \"" + filepath + "\"!");
+			e.printStackTrace();
+			return;
+		}
+
+		Level l = getLevel();
+		o.writeInt(l.getEntities().size() - 1);
+		o.writeObject(getPlayer());
+		for(Entity e : l.getEntities())
+			if(e != getPlayer())
+				o.writeObject(e);
+		o.close();
+	}
+
+	public static void load(String filepath) throws IOException {
+		ObjectInputStream i;
+		try {
+			i = new ObjectInputStream(new FileInputStream(filepath));
+		} catch(FileNotFoundException e) {
+			System.err.println("Could not load \"" + filepath + "\"!");
+			e.printStackTrace();
+			return;
+		}
+
+		Level l = getLevel();
+		l.getEntities().clear();
+		int num = i.readInt();
+		try {
+			instance.player = (Player)i.readObject();
+		} catch(ClassNotFoundException e) {
+			System.err.println("FATAL!! COULD NOT LOAD PLAYER CLASS");
+			i.close();
+			return;
+		}
+		for(int n = 0; n < num; n++) {
+			try {
+				l.addEntity((Entity)i.readObject());
+			} catch(ClassNotFoundException e) {
+				System.err.println("Could not load entity #" + n);
+				e.printStackTrace();
+			}
+		}
+		l.addEntity(instance.player);
+		i.close();
 	}
 
 }

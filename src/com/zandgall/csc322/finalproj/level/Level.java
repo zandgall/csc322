@@ -110,6 +110,18 @@ public class Level {
 				c.getY() - 0.5 * Main.layer_0.getHeight() / c.getZoom(), Main.layer_0.getWidth() / c.getZoom(),
 				Main.layer_0.getHeight() / c.getZoom());
 
+		flushEntityQueues();
+
+		for (Cloud cloud : clouds)
+			cloud.tick();
+	}
+
+	public void flushEntityQueues() {
+		Camera c = Main.getCamera();
+		Hitbox screen = new Hitbox(c.getX() - 0.5 * Main.layer_0.getWidth() / c.getZoom(),
+			c.getY() - 0.5 * Main.layer_0.getHeight() / c.getZoom(), Main.layer_0.getWidth() / c.getZoom(),
+			Main.layer_0.getHeight() / c.getZoom());
+
 		for (Entity e : addQueue)
 			if (!entities.add(e))
 				System.err.println("Could not add entity!");
@@ -123,9 +135,6 @@ public class Level {
 			if (!entities.remove(e))
 				System.err.println("Asked to remove entity that does not exist...");
 		removeQueue.clear();
-
-		for (Cloud cloud : clouds)
-			cloud.tick();
 	}
 
 	/**

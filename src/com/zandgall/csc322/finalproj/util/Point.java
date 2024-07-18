@@ -1,8 +1,9 @@
 package com.zandgall.csc322.finalproj.util;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Point implements Comparable<Point> {
+public class Point implements Comparable<Point>, Serializable {
 
 	private int hash;
 

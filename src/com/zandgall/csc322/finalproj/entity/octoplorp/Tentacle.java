@@ -24,7 +24,7 @@ public class Tentacle extends Entity {
 
 	public State state = State.RESTING;
 
-	public double health = 100.0, timer = 0, speed = 1;
+	public double health = 100.0, timer = 0, speed = 1, damage = 1;
 
 	private double corpseRotation = 1.5 * Math.PI, corpseRotationVel = 1;
 	private Vector home, start, throwing, sword, corpse;
@@ -64,6 +64,7 @@ public class Tentacle extends Entity {
 					state = State.CHASING;
 				return;
 			case GRABBED:
+				Main.getPlayer().dealEnemyDamage(damage);
 			case GRABBING:
 				if (!path.empty()) {
 					speed = Math.max(1, home.dist(position));

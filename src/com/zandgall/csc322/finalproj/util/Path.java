@@ -11,6 +11,7 @@
 
 package com.zandgall.csc322.finalproj.util;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,7 +21,7 @@ import com.zandgall.csc322.finalproj.Main;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-public class Path {
+public class Path implements Serializable {
 	private ArrayList<Point> path = new ArrayList<>();
 
 	public Path() {

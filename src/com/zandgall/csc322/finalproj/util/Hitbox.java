@@ -11,10 +11,11 @@
 package com.zandgall.csc322.finalproj.util;
 
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class Hitbox {
+public class Hitbox implements Serializable {
 	protected ArrayList<Rectangle2D> boxes = new ArrayList<>();
 
 	protected Rectangle2D bounds;

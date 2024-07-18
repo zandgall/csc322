@@ -11,12 +11,14 @@ package com.zandgall.csc322.finalproj.entity;
 
 import javafx.scene.canvas.GraphicsContext;
 
+import java.io.Serializable;
+
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 import com.zandgall.csc322.finalproj.util.Vector;
 import com.zandgall.csc322.finalproj.level.Tile;
 
-public abstract class Entity {
+public abstract class Entity implements Serializable{
 	protected Vector position, velocity;
 
 	public Entity() {

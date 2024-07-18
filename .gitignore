@@ -13,4 +13,5 @@ gradlew.bat
 .settings
 gradle
 
-
+# save files
+*.sav

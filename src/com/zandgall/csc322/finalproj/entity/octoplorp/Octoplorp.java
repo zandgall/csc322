@@ -19,6 +19,8 @@
 
 package com.zandgall.csc322.finalproj.entity.octoplorp;
 
+import java.io.IOException;
+
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.entity.Entity;
 import com.zandgall.csc322.finalproj.entity.Player;
@@ -65,6 +67,7 @@ public class Octoplorp extends Entity{
 		Main.getLevel().addEntity(secondTentacle);
 		Main.getLevel().addEntity(finalTentacle);
 
+		tutorialTentacle.damage = 0;
 		firstTentacle.speed = 4;
 		secondTentacle.speed = 5;
 		finalTentacle.speed = 6;
@@ -115,7 +118,12 @@ public class Octoplorp extends Entity{
 					}
 
 					protected void onEnd() {
-
+						try {
+							Main.quicksave();
+						} catch (IOException e) {
+							System.err.println("Could not save");
+							e.printStackTrace();
+						}
 					}
 
 					protected boolean done() {
