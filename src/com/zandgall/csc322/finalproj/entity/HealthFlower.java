@@ -18,7 +18,7 @@ import javafx.scene.image.Image;
 
 public class HealthFlower extends Entity {
 
-	private static final Image texture = new Image("file:res/entity/health_flower.png");
+	private static final Image texture = new Image("/entity/health_flower.png");
 
 	private double timer;
 
