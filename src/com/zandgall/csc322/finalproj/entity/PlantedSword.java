@@ -13,6 +13,7 @@ import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
 
 import com.zandgall.csc322.finalproj.Main;
+import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 
 public class PlantedSword extends Entity {
@@ -34,6 +35,8 @@ public class PlantedSword extends Entity {
 	public void tick() {
 		if (swordbox == null)
 			swordbox = new Hitbox(position.x - 0.5, position.y - 0.2, 1.0, 0.4);
+		if(Main.getPlayer().getPosition().sqDist(position) < 400)
+			Sound.EPiano.setMinVolume(1.f - (float)Main.getPlayer().getPosition().dist(position) / 20.f);
 		// Check if intersects with player, if so, give the player a sword
 		if (Main.getPlayer().getSolidBounds().intersects(swordbox)) {
 			Main.getPlayer().giveSword();
@@ -51,7 +54,7 @@ public class PlantedSword extends Entity {
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(position.x - 1, position.y - 1.8, 2, 2);
+		return new Hitbox(position.x - 20, position.y - 20, 40, 40);
 	}
 
 	public Hitbox getSolidBounds() {

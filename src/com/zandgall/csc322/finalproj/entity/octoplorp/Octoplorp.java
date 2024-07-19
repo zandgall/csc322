@@ -22,6 +22,7 @@ package com.zandgall.csc322.finalproj.entity.octoplorp;
 import java.io.IOException;
 
 import com.zandgall.csc322.finalproj.Main;
+import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.entity.Entity;
 import com.zandgall.csc322.finalproj.entity.Player;
 import com.zandgall.csc322.finalproj.entity.Player.Special;
@@ -94,7 +95,9 @@ public class Octoplorp extends Entity{
 								eyeFrame.x = 0;
 						}
 
-						protected void onEnd() {}
+						protected void onEnd() {
+							Sound.BossBass.fadeTo(1.f);
+						}
 
 						protected Vector getTarget() {
 							return position;
@@ -183,11 +186,13 @@ public class Octoplorp extends Entity{
 					eyePos.scale(0.99).add(eyeTarget.getScale(0.01));
 				}
 				if(currentTentacle != null && currentTentacle.state == Tentacle.State.DEAD) {
-					if(currentTentacle == tutorialTentacle)
+					if(currentTentacle == tutorialTentacle) {
 						currentTentacle = firstTentacle;
-					else if(currentTentacle == firstTentacle)
+						Sound.BossGuitar.fadeTo(1.f);
+					} else if(currentTentacle == firstTentacle) {
 						currentTentacle = secondTentacle;
-					else if(currentTentacle == secondTentacle)
+						Sound.BossCymbals.fadeTo(1.f);
+					} else if(currentTentacle == secondTentacle)
 						currentTentacle = finalTentacle;
 					else if(currentTentacle == finalTentacle)
 						currentTentacle = null;
@@ -286,8 +291,9 @@ public class Octoplorp extends Entity{
 						Main.getPlayer().takeAwaySword();
 					}
 					Main.getPlayer().setY(y);
-				} else {	
+				} else {
 					Main.getPlayer().getPosition().add(0, 0.04);
+					Main.getHud().closeOut();
 				}
 			}
 

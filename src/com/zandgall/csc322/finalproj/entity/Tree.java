@@ -13,6 +13,7 @@ import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
 
 import com.zandgall.csc322.finalproj.Main;
+import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 import com.zandgall.csc322.finalproj.util.ShadowImage;
 
@@ -32,7 +33,10 @@ public class Tree extends Entity {
 
 	@Override
 	public void tick() {
-		// Tree does nothing
+		// Tree does sound
+		if(Main.getPlayer().getPosition().sqDist(position) < 16) {
+			Sound.Wind.setMinVolume(1.f - (float)Main.getPlayer().getPosition().dist(position) / 4.f);
+		}
 	}
 
 	@Override
@@ -65,7 +69,7 @@ public class Tree extends Entity {
 
 	// Tree doesn't update, so empty hitbox
 	public Hitbox getUpdateBounds() {
-		return new Hitbox();
+		return new Hitbox(getX() - 1.5, getY() - 3.5, 3.0, 5.0);
 	}
 
 	// Only the tile at the trunk is solid

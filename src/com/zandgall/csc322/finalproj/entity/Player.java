@@ -18,6 +18,7 @@ import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import com.zandgall.csc322.finalproj.Main;
+import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 import com.zandgall.csc322.finalproj.util.Util;
 import com.zandgall.csc322.finalproj.util.Vector;
@@ -50,7 +51,7 @@ public class Player extends Entity {
 
 	public Player() {
 		super();
-		position.set(0, -93);
+		// position.set(0, -93);
 		health = 20;
 	}
 
@@ -93,6 +94,14 @@ public class Player extends Entity {
 
 		move();
 
+		if(getY() < -90) {
+			Sound.BossDrums.fadeTo(1.f);
+			if(hasSword)
+				Sound.BossEPiano.fadeTo(1.f);
+		} else {
+			Sound.BossDrums.fadeTo(0.f);
+			Sound.BossEPiano.fadeTo(0.f);
+		}
 	}
 
 	private void handleSword() {
@@ -347,10 +356,14 @@ public class Player extends Entity {
 
 	public void giveSword() {
 		hasSword = true;
+		Sound.EPiano.fadeTo(1.f);
+		Sound.Drums.fadeTo(1.f);
 	}
 
 	public void takeAwaySword() {
 		hasSword = false;
+		Sound.EPiano.fadeTo(0.f);
+		Sound.BossEPiano.fadeTo(0.f);
 	}
 
 	public void cutsceneSword(double rotation, double specialTimer, Special special) {

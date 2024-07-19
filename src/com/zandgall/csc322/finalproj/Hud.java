@@ -14,8 +14,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public class Hud {
-	private double healthOpacity, deathOpacity, respawnOpacity = 0;
-	private boolean respawning = false;
+	private double healthOpacity, deathOpacity, respawnOpacity = 0, closeOpacity = 0;
+	private boolean respawning = false, closing = false;
 
 	public Hud() {
 		healthOpacity = 1;
@@ -52,6 +52,9 @@ public class Hud {
 			}
 			respawning = false;
 		}
+
+		if(closing)
+			closeOpacity = closeOpacity * 0.995 + 0.005;
 	}
 
 	public void render(GraphicsContext g) {
@@ -71,5 +74,13 @@ public class Hud {
 		g.setGlobalAlpha(respawnOpacity);
 		g.setFill(Color.WHITE);
 		g.fillRect(0, 0, Main.stage.getWidth(), Main.stage.getHeight());
+
+		g.setGlobalAlpha(closeOpacity);
+		g.setFill(Color.WHITE);
+		g.fillRect(0, 0, Main.stage.getWidth(), Main.stage.getHeight());
+	}
+
+	public void closeOut() {
+		closing = true;
 	}
 }

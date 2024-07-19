@@ -12,7 +12,7 @@ import javafx.util.Duration;
 
 public class Sound {
 
-	public static final float SMOOTHING = (1.0f / 16.0f) / (130.0f / 60.f);
+	public static final float DEFAULT_SMOOTHING = (1.0f / 16.0f) / (130.0f / 60.f);
 
 	private static AL al;
 
@@ -42,6 +42,7 @@ public class Sound {
 	protected int source;
 
 	protected float volume = 0.0f, targetVolume = 0.0f;
+	protected float smoothing = DEFAULT_SMOOTHING;
 
 	public Sound(String resource) {
 		int[] buffer = new int[1];
@@ -61,18 +62,32 @@ public class Sound {
 		al.alSourcei(source[0], AL.AL_LOOPING, 1);
 		al.alSourcef(source[0], AL.AL_GAIN, 0.0f);
 		this.source = source[0];
-		al.alSourcePlay(this.source);
+		// al.alSourcePlay(this.source);
 	}
 
 	public static void init() {
 		Noise.fadeTo(1.0f);
 		Noise.setVolume(1.0f);
 		Piano.fadeTo(1.f);
+		Wind.setSmoothing(DEFAULT_SMOOTHING * 16);
+		Plorp.setSmoothing(DEFAULT_SMOOTHING * 16);
+
+		al.alSourcePlay(Noise.source);
+		al.alSourcePlay(Wind.source);
+		al.alSourcePlay(Piano.source);
+		al.alSourcePlay(EPiano.source);
+		al.alSourcePlay(Drums.source);
+		al.alSourcePlay(Plorp.source);
+		al.alSourcePlay(BossDrums.source);
+		al.alSourcePlay(BossEPiano.source);
+		al.alSourcePlay(BossBass.source);
+		al.alSourcePlay(BossGuitar.source);
+		al.alSourcePlay(BossCymbals.source);
 	}
 
 	private void tick() {
-		if(Math.abs(volume - targetVolume) > SMOOTHING * Main.TIMESTEP)
-			volume += SMOOTHING * Main.TIMESTEP * Math.signum(targetVolume - volume);
+		if(Math.abs(volume - targetVolume) > smoothing * Main.TIMESTEP)
+			volume +=smoothing * Main.TIMESTEP * Math.signum(targetVolume - volume);
 		al.alSourcef(source, AL.AL_GAIN, volume);
 	}
 
@@ -85,9 +100,17 @@ public class Sound {
 		al.alSourcef(source, AL.AL_GAIN, volume);
 	}
 
+	public float getVolume() {
+		return volume;
+	}
+
 	public void setMinVolume(float minVolume) {
 		if(volume < minVolume)
 			setVolume(minVolume);
+	}
+
+	public void setSmoothing(float smoothing) {
+		this.smoothing = smoothing;
 	}
 
 	public static void update() {

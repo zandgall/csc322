@@ -263,6 +263,10 @@ public class Main extends Application {
 		return instance.player;
 	}
 
+	public static Hud getHud() {
+		return instance.hud;
+	}
+
 	public static void playCutscene(Cutscene cutscene) {
 		instance.cutscene = cutscene;
 	}

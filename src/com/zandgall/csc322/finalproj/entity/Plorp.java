@@ -16,6 +16,7 @@ import javafx.scene.paint.Color;
 import java.util.Random;
 
 import com.zandgall.csc322.finalproj.Main;
+import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 import com.zandgall.csc322.finalproj.util.Path;
 import com.zandgall.csc322.finalproj.util.Vector;
@@ -114,6 +115,10 @@ public class Plorp extends Entity {
 			hitWall |= move();
 		} else {
 			velocity.set(0, 0);
+		}
+
+		if(state != State.DEAD && Main.getPlayer().getPosition().sqDist(position) < 100) {
+			Sound.Plorp.setMinVolume(1.f - (float)Main.getPlayer().getPosition().dist(position) / 10.f);
 		}
 	}
 
@@ -371,7 +376,7 @@ public class Plorp extends Entity {
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(getX() - 5, getY() - 5, 10, 10);
+		return new Hitbox(getX() - 10, getY() - 10, 20, 20);
 	}
 
 	public Hitbox getSolidBounds() {
