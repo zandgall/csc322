@@ -131,6 +131,8 @@ public class Main extends Application {
 			return; // Can't play without level!
 		}
 
+		Sound.init();
+
 		// The main loop. As this scene animation plays, the game is updated and
 		// rendered
 		new AnimationTimer() {
@@ -207,6 +209,7 @@ public class Main extends Application {
 			cutscene = null;
 		}
 		hud.tick();
+		Sound.update();
 	}
 
 	public void render() {

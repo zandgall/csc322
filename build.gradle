@@ -7,6 +7,7 @@ repositories {
 	mavenCentral()
 	maven {
 		url "https://plugins.gradle.org/m2/"
+		url "https://jogamp.org/deployment/maven"
 	}
 }
 
@@ -19,6 +20,11 @@ java {
 javafx {
 	version = '22.0.1'
 	modules = [ 'javafx.controls' ]
+}
+
+dependencies {
+	implementation 'org.jogamp.gluegen:gluegen-rt-main:2.5.0'
+	implementation 'org.jogamp.joal:joal-main:2.5.0'
 }
 
 sourceSets {
