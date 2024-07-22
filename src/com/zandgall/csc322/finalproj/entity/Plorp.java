@@ -401,6 +401,7 @@ public class Plorp extends Entity {
 			timer = 0;
 			frame = new Random().nextInt(2); // pick between 2 random dead sprites
 			state = State.DEAD;
+			Sound.EffectBonk.charge();
 		}
 	}
 }

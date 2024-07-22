@@ -295,6 +295,7 @@ public class Main extends Application {
 		for(Entity e : l.getEntities())
 			if(e != getPlayer())
 				o.writeObject(e);
+		Sound.save(o);
 		o.close();
 	}
 
@@ -329,7 +330,12 @@ public class Main extends Application {
 			}
 		}
 		l.addEntity(instance.player);
+		Sound.load(i);
 		i.close();
+	}
+
+	public static void close() {
+		stage.close();
 	}
 
 }

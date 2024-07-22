@@ -11,6 +11,7 @@
 package com.zandgall.csc322.finalproj.entity;
 
 import com.zandgall.csc322.finalproj.Main;
+import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.util.Hitbox;
 
 import javafx.scene.canvas.GraphicsContext;
@@ -33,6 +34,7 @@ public class HealthFlower extends Entity {
 		if (Main.getPlayer().getHitBounds().intersects(getUpdateBounds())) {
 			Main.getPlayer().addHealth(5.0);
 			Main.getLevel().removeEntity(this);
+			Sound.EffectPluck.charge();
 		}
 		timer += Main.TIMESTEP;
 	}
