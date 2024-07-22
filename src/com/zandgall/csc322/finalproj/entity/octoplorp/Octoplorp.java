@@ -200,8 +200,33 @@ public class Octoplorp extends Entity{
 					timer = 0;
 					state = State.RECOVERING;
 
-					if(currentTentacle == null)
+					if(currentTentacle == null) {
 						state = State.VULNERABLE;
+						Sound.EndIt.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						Sound.EndIt.fadeTo(1.f);
+						Sound.Noise.fadeTo(0.f);
+						Sound.Wind.fadeTo(0.f);
+						Sound.Piano.fadeTo(0.f);
+						Sound.EPiano.fadeTo(0.f);
+						Sound.Drums.fadeTo(0.f);
+						Sound.Plorp.fadeTo(0.f);
+						Sound.BossDrums.fadeTo(0.f);
+						Sound.BossEPiano.fadeTo(0.f);
+						Sound.BossBass.fadeTo(0.f);
+						Sound.BossGuitar.fadeTo(0.f);
+						Sound.BossCymbals.fadeTo(0.f);
+						Sound.Noise.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						Sound.Wind.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						Sound.Piano.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						Sound.EPiano.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						Sound.Drums.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						Sound.Plorp.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						Sound.BossDrums.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						Sound.BossEPiano.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						Sound.BossBass.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						Sound.BossGuitar.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						Sound.BossCymbals.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+					}
 				}
 				break;
 
@@ -254,11 +279,18 @@ public class Octoplorp extends Entity{
 
 	@Override
 	public void dealPlayerDamage(double damage) {
+		Sound.Heaven.fadeTo(0.8f);
+		Sound.Heaven.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+
 		Main.playCutscene(new Cutscene(Double.POSITIVE_INFINITY) {
 			boolean stabbing = false;
 			double t = 0, y = position.y, upY = y - 6, stabY = y - 4;
 
 			protected void tick() {
+				Sound.BossDrums.setVolume(0.f);
+				Sound.Drums.setVolume(0.f);
+				Sound.BossEPiano.setVolume(0.f);
+				Sound.EPiano.setVolume(0.f);
 				t += Main.TIMESTEP;
 				if(t < 1) {
 					if(t < 0.2) {
@@ -281,6 +313,8 @@ public class Octoplorp extends Entity{
 						Main.getPlayer().cutsceneSword(0.5 * Math.PI, 0, Player.Special.STAB);
 						stabbing = true;
 						t = 1;
+						Sound.TheKill.play();
+
 					}
 				} else if(t < 3) {
 					if(y < stabY) {
@@ -292,8 +326,11 @@ public class Octoplorp extends Entity{
 					}
 					Main.getPlayer().setY(y);
 				} else {
+					Sound.EndIt.fadeTo(0.f);
 					Main.getPlayer().getPosition().add(0, 0.04);
 					Main.getHud().closeOut();
+					if(Sound.EndIt.getVolume() < 0.01)
+						Main.close();
 				}
 			}
 
