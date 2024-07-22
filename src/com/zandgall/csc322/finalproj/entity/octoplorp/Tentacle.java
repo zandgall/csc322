@@ -141,7 +141,7 @@ public class Tentacle extends Entity {
 				if (timer >= 1) {
 					corpseRotation = orientation * 0.5 * Math.PI;
 					corpse = new Vector(position.x, position.y).add(Vector.ofAngle(corpseRotation).scale(0.5));
-					speed = 20;
+					speed = 40;
 					timer = 0;
 					state = State.SWINGING;
 				}
