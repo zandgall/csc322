@@ -54,6 +54,7 @@ public class LevelEditor extends Main {
 
 	private ArrayList<Entity> entityInstances = new ArrayList<Entity>();
 
+	private double zoom = 1.0;
 	private int tileX, tileY;
 	private boolean selecting = false;
 	private int selectX, selectY;
@@ -105,6 +106,10 @@ public class LevelEditor extends Main {
 					selecting = true;
 				} else
 					selecting = false;
+				if (event.getCode() == KeyCode.MINUS)
+					zoom = 0.25;
+				if (event.getCode() == KeyCode.EQUALS)
+					zoom = 1.0;
 				if (event.getCode() == KeyCode.RIGHT)
 					tileX++;
 				if (event.getCode() == KeyCode.LEFT)
@@ -217,9 +222,9 @@ public class LevelEditor extends Main {
 		ObjectOutputStream s = new ObjectOutputStream(fos);
 
 		// Version header
-		// Currently: 1.1
+		// Currently: 1.2
 		s.writeByte(1);
-		s.writeByte(1);
+		s.writeByte(2);
 
 		// Write the y range of the tiles in this level
 		s.writeInt(level.bounds.y);
@@ -229,7 +234,7 @@ public class LevelEditor extends Main {
 		for (int y = level.bounds.y; y <= level.bounds.y + level.bounds.height; y++) {
 			boolean writing = false, wroteLineEnd = false;
 			for (int x = level.bounds.x; x <= level.bounds.x + level.bounds.width && !wroteLineEnd; x++) {
-				if (level.get(x, y) == null) {
+				if (level.get(x, y) == null || level.get(x,y).getID() == 0) {
 					if (!writing)
 						continue; // until we hit tiles
 
@@ -239,10 +244,10 @@ public class LevelEditor extends Main {
 					s.writeInt(0); // write empty tile
 					System.out.println("Writing empty tile");
 					for (int i = x; i < level.bounds.getWidth(); i++) {
-						if (level.get(i, y) != null) {
+						if (level.get(i, y) != null && level.get(i, y).getID() != 0) {
 							endOfLine = false;
-							s.writeInt(i - x); // write number of empty tiles in this line
-							System.out.printf("Length %d%n", i - x);
+							s.writeInt((i - x) + 1); // write number of empty tiles in this line
+							System.out.printf("Length %d%n", (i - x) + 1);
 							x = i;
 							break;
 						}
@@ -275,6 +280,8 @@ public class LevelEditor extends Main {
 				System.out.println("Writing escape line feed");
 			}
 		}
+
+		level.writeImage();
 
 		// Write number of entities followed by that many entities
 		s.writeInt(entities.size());
@@ -322,8 +329,11 @@ public class LevelEditor extends Main {
 					if (spacing == 0) {
 						reading = false;
 						System.out.printf(" to %d%n", x);
-					} else
+					} else {
 						x += spacing;
+						if(major == 1 && minor == 1)
+							x++;
+					}
 				} else {
 					level.put(x, y, Tile.get(tile));
 					x++;
@@ -420,7 +430,7 @@ public class LevelEditor extends Main {
 	@Override
 	public void tick() {
 		if (mode.getText().equals("Tile mode"))
-			camera.target(tileX + 0.5, tileY + 0.5);
+			camera.target(tileX + 0.5, tileY + 0.5, zoom*Camera.DEFAULT_ZOOM);
 		else {
 			if (keys.get(KeyCode.RIGHT))
 				entityX += 0.1;
@@ -434,7 +444,7 @@ public class LevelEditor extends Main {
 				selectedEntity.x = entityX;
 				selectedEntity.y = entityY;
 			}
-			camera.target(entityX, entityY);
+			camera.target(entityX, entityY, zoom*Camera.DEFAULT_ZOOM);
 		}
 		// Tick camera 10 times to speed up targetting
 		for (int i = 0; i < 10; i++)

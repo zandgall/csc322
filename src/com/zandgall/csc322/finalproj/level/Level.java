@@ -17,14 +17,22 @@ import com.zandgall.csc322.finalproj.Camera;
 import com.zandgall.csc322.finalproj.Main;
 
 import javafx.scene.transform.Affine;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.ImageView;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.Random;
+
+import javax.imageio.ImageIO;
+import javafx.embed.swing.SwingFXUtils;
+
 import java.awt.geom.Rectangle2D;
 import java.awt.Rectangle;
 import java.io.ObjectInputStream;
+import java.io.File;
 import java.io.IOException;
 
 public class Level {
@@ -51,7 +59,7 @@ public class Level {
 		byte major = s.readByte();
 		byte minor = s.readByte();
 
-		if (major != 1 || minor != 1) {
+		if (major != 1 || (minor != 1 && minor != 2)) {
 			System.err.println("Unknown level version!!");
 			return;
 		}
@@ -74,8 +82,11 @@ public class Level {
 						reading = false;
 					// If it's not 0, jump forward 'next' number of tiles
 					// Functionally the same as adding 'next' number of empty tiles
-					else
+					else {
 						x += next;
+						if(major == 1 && minor == 1)
+							x ++; // 1.1 has off by one error
+					}
 				} else {
 					// Place the tile
 					put(x, y, Tile.get(tile));
@@ -181,6 +192,22 @@ public class Level {
 		for (Cloud c : clouds) {
 			if (c.getRenderBounds().intersects(screenBounds))
 				c.render(shadow_1);
+		}
+	}
+
+	public void writeImage() {
+		Canvas c = new Canvas(bounds.getWidth() * 16, bounds.getHeight()*16);
+		GraphicsContext g = c.getGraphicsContext2D();
+		for(Map.Entry<Integer, HashMap<Integer, Tile>> xT : level.entrySet())
+			for(Map.Entry<Integer, Tile> yT : xT.getValue().entrySet()) {
+				g.setTransform(16, 0, 0, 16, xT.getKey()*16-bounds.getMinX()*16, yT.getKey()*16-bounds.getMinY()*16);
+				yT.getValue().render(g);
+			}
+		try {
+			ImageIO.write(SwingFXUtils.fromFXImage(c.snapshot(null, null), null), "png", new File("res/level.png"));
+		} catch (IOException io) {
+			System.err.println("Couldn't write level image");
+			io.printStackTrace();
 		}
 	}
 
