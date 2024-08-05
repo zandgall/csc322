@@ -17,9 +17,12 @@ import com.zandgall.csc322.finalproj.Camera;
 import com.zandgall.csc322.finalproj.Main;
 
 import javafx.scene.transform.Affine;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.ImageView;
+import javafx.scene.paint.Color;
+import javafx.scene.image.Image;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +41,14 @@ import java.io.IOException;
 public class Level {
 	public Rectangle bounds = new Rectangle(0, 0, 0, 0);
 	private HashMap<Integer, HashMap<Integer, Tile>> level = new HashMap<>();
+
+	private static final int CHUNK_SIZE = 128;
+	private static final boolean USE_TILES = false;
+
+	private HashMap<Integer, HashMap<Integer, Image>> images_0 = new HashMap<>();
+	private HashMap<Integer, HashMap<Integer, Image>> images_1 = new HashMap<>();
+	private HashMap<Integer, HashMap<Integer, Image>> shadow_0 = new HashMap<>();
+	private HashMap<Integer, HashMap<Integer, Image>> shadow_1 = new HashMap<>();
 
 	private ArrayList<Entity> entities = new ArrayList<>(), removeQueue = new ArrayList<>(),
 			addQueue = new ArrayList<>();
@@ -112,6 +123,43 @@ public class Level {
 					r.nextDouble(bounds.y, bounds.y + bounds.height)));
 
 		s.close();
+
+		// Load level graphics
+		if(!USE_TILES)
+			loadGraphics();
+	}
+
+	public void loadGraphics() {
+		Canvas cropper = new Canvas(CHUNK_SIZE, CHUNK_SIZE);
+		SnapshotParameters p = new SnapshotParameters();
+		p.setFill(Color.TRANSPARENT);
+		GraphicsContext g = cropper.getGraphicsContext2D();
+		Image l0 = new Image("/level_0.png");
+		Image l1 = new Image("/level_1.png");
+		Image s0 = new Image("/shadow_0.png");
+		Image s1 = new Image("/shadow_1.png");
+		for(int i = 0; i < l0.getWidth() / CHUNK_SIZE; i++) {
+			images_0.put(i, new HashMap<>());
+			images_1.put(i, new HashMap<>());
+			shadow_0.put(i, new HashMap<>());
+			shadow_1.put(i, new HashMap<>());
+			for(int j = 0; j < l0.getHeight() / CHUNK_SIZE; j++) {
+				g.clearRect(0, 0, CHUNK_SIZE, CHUNK_SIZE);
+				g.drawImage(l0, -i*CHUNK_SIZE, -j*CHUNK_SIZE);
+				images_0.get(i).put(j, cropper.snapshot(p, null));
+				g.clearRect(0, 0, CHUNK_SIZE, CHUNK_SIZE);
+				g.drawImage(l1, -i*CHUNK_SIZE, -j*CHUNK_SIZE);
+				images_1.get(i).put(j, cropper.snapshot(p, null));
+				g.clearRect(0, 0, CHUNK_SIZE, CHUNK_SIZE);
+				g.drawImage(s0, -i*CHUNK_SIZE, -j*CHUNK_SIZE);
+				shadow_0.get(i).put(j, cropper.snapshot(p, null));
+				g.clearRect(0, 0, CHUNK_SIZE, CHUNK_SIZE);
+				g.drawImage(s1, -i*CHUNK_SIZE, -j*CHUNK_SIZE);
+				shadow_1.get(i).put(j, cropper.snapshot(p, null));
+
+			}
+		}
+
 	}
 
 	public void tick() {
@@ -169,15 +217,32 @@ public class Level {
 		int yMax = (int) (-af.getTy() / af.getMyy() + (1 / af.getMyy()) * Main.layer_0.getHeight());
 		// System.out.printf("(%d, %d) to (%d, %d) - (%.2f, %.2f, %.2f, %.2f)%n", xMin,
 		// yMin, xMax, yMax, af.getMxx(), af.getMyy(), af.getTx(), af.getTy());
-		for (int x = xMin; x <= xMax; x++)
-			for (int y = yMin; y <= yMax; y++) {
-				if (level.get(x) == null || level.get(x).get(y) == null)
-					continue;
-				context_0.save();
-				context_0.translate(x, y);
-				level.get(x).get(y).render(context_0);
-				context_0.restore();
+		if(USE_TILES)
+			for (int x = xMin; x <= xMax; x++)
+				for (int y = yMin; y <= yMax; y++) {
+					if (level.get(x) == null || level.get(x).get(y) == null)
+						continue;
+					context_0.save();
+					context_0.translate(x, y);
+					level.get(x).get(y).render(context_0);
+					context_0.restore();
+				}
+		else {
+			xMin = (xMin - bounds.x) / (CHUNK_SIZE / 16);
+			yMin = (yMin - bounds.y) / (CHUNK_SIZE / 16);
+			xMax = (xMax - bounds.x) / (CHUNK_SIZE / 16);
+			yMax = (yMax - bounds.y) / (CHUNK_SIZE / 16);
+			for (int x = xMin; x <= xMax; x++) {
+				for (int y = yMin; y <= yMax; y++) {
+					if(images_0.get(x) == null || images_0.get(x).get(y) == null)
+						continue;
+					context_0.drawImage(images_0.get(x).get(y), x*CHUNK_SIZE / 16 + bounds.x, y * CHUNK_SIZE / 16 + bounds.y, CHUNK_SIZE/16, CHUNK_SIZE / 16);
+					context_2.drawImage(images_1.get(x).get(y), x*CHUNK_SIZE / 16 + bounds.x, y * CHUNK_SIZE / 16 + bounds.y, CHUNK_SIZE/16, CHUNK_SIZE / 16);
+					shadow_0.drawImage(this.shadow_0.get(x).get(y), x*CHUNK_SIZE / 16 + bounds.x, y * CHUNK_SIZE / 16 + bounds.y, CHUNK_SIZE/16, CHUNK_SIZE / 16);
+					shadow_1.drawImage(this.shadow_1.get(x).get(y), x*CHUNK_SIZE / 16 + bounds.x, y * CHUNK_SIZE / 16 + bounds.y, CHUNK_SIZE/16, CHUNK_SIZE / 16);
+				}
 			}
+		}
 
 		// Sort and draw all entities and then clouds if they intersect the screen
 		Rectangle2D.Double screenBounds = new Rectangle2D.Double(-af.getTx() / af.getMxx(), -af.getTy() / af.getMyy(),
