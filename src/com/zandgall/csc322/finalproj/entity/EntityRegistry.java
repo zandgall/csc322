@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.lang.reflect.Constructor;
 
+import com.zandgall.csc322.finalproj.entity.collectables.*;
 import com.zandgall.csc322.finalproj.entity.octoplorp.Octoplorp;
 
 public class EntityRegistry {
@@ -35,6 +36,11 @@ public class EntityRegistry {
 		register("Plorp", Plorp.class);
 		register("HealthFlower", HealthFlower.class);
 		register("Octoplorp", Octoplorp.class);
+		register("Hoop", Hoop.class);
+		register("Doll", Doll.class);
+		register("Cape", Cape.class);
+		register("Ball", Ball.class);
+		register("Flower", Flower.class);
 	}
 
 	/**

@@ -10,16 +10,26 @@ package com.zandgall.csc322.finalproj;
 
 import java.io.IOException;
 
+import com.zandgall.csc322.finalproj.entity.collectables.Collectable;
+
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 
 public class Hud {
-	private double healthOpacity, deathOpacity, respawnOpacity = 0, closeOpacity = 0;
+	private static final Image popup = new Image("/popup.png");
+
+	private double healthOpacity = 0, deathOpacity = 0, respawnOpacity = 0, closeOpacity = 0;
 	private boolean respawning = false, closing = false;
 
-	public Hud() {
-		healthOpacity = 1;
-	}
+	// Collectable flags
+	private int numCollected = 0;
+	private Collectable collected = null;
+	private double collectableTimer = 0.0, collectablesOpacity = 0;
+
+	public Hud() {}
 
 	public void tick() {
 		if (Main.getPlayer().getHealth() == 20)
@@ -55,6 +65,17 @@ public class Hud {
 
 		if(closing)
 			closeOpacity = closeOpacity * 0.995 + 0.005;
+
+		if(collected != null) {
+			collectableTimer += Main.TIMESTEP;
+			collectablesOpacity = collectablesOpacity * 0.95 + 0.05;
+		} else
+			collectablesOpacity = collectablesOpacity * 0.95;
+
+		if(collectableTimer > 5) {
+			collectableTimer = 0;
+			collected = null;
+		}
 	}
 
 	public void render(GraphicsContext g) {
@@ -78,9 +99,35 @@ public class Hud {
 		g.setGlobalAlpha(closeOpacity);
 		g.setFill(Color.WHITE);
 		g.fillRect(0, 0, Main.stage.getWidth(), Main.stage.getHeight());
+
+		g.setGlobalAlpha(collectablesOpacity);
+		g.setFill(Color.WHITE);
+		g.setFont(Font.font(32));
+		g.setTextAlign(TextAlignment.RIGHT);
+		g.fillText(numCollected + " / 5", Main.scene.getWidth() - 8, 32);
+
+		if(collected != null) {
+			g.setGlobalAlpha(1.0);
+			g.setTextAlign(TextAlignment.LEFT);
+			g.drawImage(popup, 0, 0, 16, 48, 0, Main.scene.getHeight() - 96, 32, 96);
+			g.drawImage(popup, 16, 0, 16, 48, 32, Main.scene.getHeight() - 96, Main.scene.getWidth() - 64, 96);
+			g.drawImage(popup, 32, 0, 16, 48, Main.scene.getWidth() - 32, Main.scene.getHeight() - 96, 32, 96);
+			g.drawImage(collected.getTexture(), 16, Main.scene.getHeight()-80, 64, 64);
+			g.setFont(Font.font(32));
+			g.setFill(new Color(0.05, 0.05, 0.1, 1));
+			g.fillText(collected.getTitle(), 96, Main.scene.getHeight() - 48, Main.scene.getWidth() - 192);
+			g.setFont(Font.font(16));
+			g.fillText(collected.getDescription(), 96, Main.scene.getHeight() - 16, Main.scene.getWidth() - 192);
+		}
 	}
 
 	public void closeOut() {
 		closing = true;
+	}
+
+	public void collect(Collectable c) {
+		collected = c;
+		collectableTimer = 0;
+		numCollected++;
 	}
 }
