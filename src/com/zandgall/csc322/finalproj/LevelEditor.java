@@ -359,6 +359,8 @@ public class LevelEditor extends Main {
 
 		s.close();
 		frame.dispose();
+
+		level.loadGraphics();
 	}
 
 	@Override
@@ -497,7 +499,7 @@ public class LevelEditor extends Main {
 		entityRoot.getChildren().add(currentEntityView);
 		entityOptionContainer = new HBox();
 		entityOptions = new ArrayList<Canvas>();
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 28; i++) {
 			entityOptions.add(new Canvas(66, 66));
 			entityOptionContainer.getChildren().add(entityOptions.get(i));
 			final int offset = i;
