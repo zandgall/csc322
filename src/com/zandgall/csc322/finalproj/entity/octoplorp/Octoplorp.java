@@ -58,11 +58,11 @@ public class Octoplorp extends Entity{
 
 	public Octoplorp(double x, double y) {
 		super(Math.round(x), Math.round(y));
-		tutorialTentacle = new Tentacle(position.getAdd(5.5, 6.5), position.getAdd(0, 6.5), position.getAdd(0, 12), position.getAdd(-12, -1));
+		tutorialTentacle = new Tentacle(position.getAdd(5.5, 12.5), position.getAdd(0, 6.5), position.getAdd(0, 12), position.getAdd(-28, -9));
 		tutorialTentacle.tutorial = true;
-		firstTentacle = new Tentacle(position.getAdd(-5.5, 6.5), position.getAdd(0,-6), position.getAdd(-8, 3), position.getAdd(10, -1));
-		secondTentacle = new Tentacle(position.getAdd(5.5, 12.5), position.getAdd(0, -6), position.getAdd(16, -1), position.getAdd(-12, 16));
-		finalTentacle = new Tentacle(position.getAdd(-5.5, 12.5), position.getAdd(0, -6), position.getAdd(0, 16), position.getAdd(0, 6));
+		firstTentacle = new Tentacle(position.getAdd(-5.5, 6.5), position.getAdd(0,-6), position.getAdd(-27.5, -2), position.getAdd(26, -8));
+		secondTentacle = new Tentacle(position.getAdd(5.5, 6.5), position.getAdd(0, -6), position.getAdd(28, -10), position.getAdd(-16.5, 19.5));
+		finalTentacle = new Tentacle(position.getAdd(-5.5, 12.5), position.getAdd(0, -6), position.getAdd(0, 18), position.getAdd(0, 6));
 		Main.getLevel().addEntity(tutorialTentacle);
 		Main.getLevel().addEntity(firstTentacle);
 		Main.getLevel().addEntity(secondTentacle);
