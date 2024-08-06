@@ -145,6 +145,8 @@ public class Player extends Entity {
 				} else if (Math.abs(diff) < 0.25 * Math.PI) {
 					specialMove = Special.STAB;
 
+					Main.getLevel().addEntity(new StabBeam(getX(), getY(), swordDirection));
+
 					swordRotationalVelocity = 0;
 					specialTimer = 0.2;
 
@@ -372,9 +374,61 @@ public class Player extends Entity {
 		this.specialMove = special;
 	}
 
+	private static class StabBeam extends Entity {
+		private static final Image texture = new Image("/entity/stabbeam.png");
+
+		private double timer, direction;
+		
+		public StabBeam(double x, double y, double direction) {
+			super(x, y);
+			position.add(Vector.ofAngle(direction).scale(2.5));
+			this.direction = direction;
+			this.timer = 1;
+		}
+
+		public void tick() {
+			position.add(Vector.ofAngle(direction).scale(1.5*DASH_SPEED*Main.TIMESTEP));
+
+			for(Entity e : Main.getLevel().getEntities())
+				if(e.getHitBounds().intersects(getRenderBounds()))
+					e.dealPlayerDamage(1.0);
+
+			timer -= Main.TIMESTEP;
+			if(timer < 0)
+				Main.getLevel().removeEntity(this);
+		}
+
+		public void render(GraphicsContext g, GraphicsContext ignore, GraphicsContext ignore2) {
+			g.save();
+			if(timer < 0.5)
+				g.setGlobalAlpha(timer*2);
+			g.translate(getX(), getY());
+			g.rotate(180 * direction / Math.PI);
+			g.drawImage(texture, -1, -1.5, 1.625, 3);
+			g.restore();
+		}
+
+		public Hitbox getRenderBounds() {
+			return new Hitbox(getX() - 1, getY() - 1.5, 1.625, 3);
+		}
+
+		public Hitbox getUpdateBounds() {
+			return new Hitbox(Main.getLevel().bounds);
+		}
+
+		public Hitbox getSolidBounds() {
+			return new Hitbox();
+		}
+
+		public Hitbox getHitBounds() {
+			return new Hitbox();
+		}
+
+	}
+
 	private static class SwordBeam extends Entity {
 
-		private static final Image texture = new Image("file:res/entity/sword_beam.png");
+		private static final Image texture = new Image("/entity/sword_beam.png");
 
 		private double timer, direction;
 
