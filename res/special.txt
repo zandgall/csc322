@@ -1,0 +1,3 @@
+0 /chasm_low.png 15 -40 0.1
+0 /chasm_mid.png 15 -40 0.05
+0 /chasm_top.png 15 -40 0.0

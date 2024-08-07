@@ -359,8 +359,6 @@ public class LevelEditor extends Main {
 
 		s.close();
 		frame.dispose();
-
-		level.loadGraphics();
 	}
 
 	@Override

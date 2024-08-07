@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 import javafx.embed.swing.SwingFXUtils;
@@ -50,11 +51,26 @@ public class Level {
 	private HashMap<Integer, HashMap<Integer, Image>> shadow_0 = new HashMap<>();
 	private HashMap<Integer, HashMap<Integer, Image>> shadow_1 = new HashMap<>();
 
+	private ArrayList<ArrayList<SpecialImage>> specialImages = new ArrayList<>();
+
 	private ArrayList<Entity> entities = new ArrayList<>(), removeQueue = new ArrayList<>(),
 			addQueue = new ArrayList<>();
 	private ArrayList<Cloud> clouds = new ArrayList<>();
 
 	public Level() {
+		Scanner s = new Scanner(Level.class.getResourceAsStream("/special.txt"));
+		specialImages.add(new ArrayList<>());
+		while(s.hasNextLine()) {
+			String line = s.nextLine();
+			Scanner p = new Scanner(line);
+			specialImages.get(p.nextInt()).add(new SpecialImage(p.next(), p.nextDouble(), p.nextDouble(), p.nextDouble()));
+			p.close();
+		}
+		s.close();
+
+		// Load level graphics
+		if(!USE_TILES)
+			loadGraphics();
 	}
 
 	public void load(String path) throws IOException {
@@ -124,9 +140,6 @@ public class Level {
 
 		s.close();
 
-		// Load level graphics
-		if(!USE_TILES)
-			loadGraphics();
 	}
 
 	public void loadGraphics() {
@@ -215,8 +228,14 @@ public class Level {
 		int xMax = (int) (-af.getTx() / af.getMxx() + (1 / af.getMxx()) * Main.layer_0.getWidth());
 		int yMin = (int) Math.floor(-af.getTy() / af.getMyy());
 		int yMax = (int) (-af.getTy() / af.getMyy() + (1 / af.getMyy()) * Main.layer_0.getHeight());
-		// System.out.printf("(%d, %d) to (%d, %d) - (%.2f, %.2f, %.2f, %.2f)%n", xMin,
-		// yMin, xMax, yMax, af.getMxx(), af.getMyy(), af.getTx(), af.getTy());
+	
+		Rectangle2D.Double screenBounds = new Rectangle2D.Double(-af.getTx() / af.getMxx(), -af.getTy() / af.getMyy(),
+				Main.layer_0.getWidth() / af.getMxx(), Main.layer_0.getHeight() / af.getMyy());
+
+		for(SpecialImage i : specialImages.get(0))
+			if(screenBounds.intersects(i.getRenderBox()))
+				i.render(context_0);
+
 		if(USE_TILES)
 			for (int x = xMin; x <= xMax; x++)
 				for (int y = yMin; y <= yMax; y++) {
@@ -245,8 +264,6 @@ public class Level {
 		}
 
 		// Sort and draw all entities and then clouds if they intersect the screen
-		Rectangle2D.Double screenBounds = new Rectangle2D.Double(-af.getTx() / af.getMxx(), -af.getTy() / af.getMyy(),
-				Main.layer_0.getWidth() / af.getMxx(), Main.layer_0.getHeight() / af.getMyy());
 		entities.sort((a, b) -> {
 			return (int) Math.signum(a.getRenderLayer() - b.getRenderLayer());
 		});
