@@ -21,7 +21,6 @@ public class SpecialImage {
 
 	public void render(GraphicsContext g) {
 		Rectangle2D rb = getRenderBox();
-		System.out.printf("Drawing image %s at (%.1f, %.1f)%n", path, rb.getMinX(), rb.getMinY());
 		// Reminder that each unit is a 16x16 tile
 		// So scale image down by 1/16 to match
 		g.drawImage(image, rb.getMinX(), rb.getMinY(), rb.getWidth(), rb.getHeight());
