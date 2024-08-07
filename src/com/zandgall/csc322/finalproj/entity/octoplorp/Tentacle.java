@@ -75,15 +75,18 @@ public class Tentacle extends Entity {
 				Main.getPlayer().dealEnemyDamage(damage);
 			case GRABBING:
 				if (!path.empty()) {
-					speed = Math.max(1, home.dist(position));
+					if(home != null)
+						speed = Math.max(1, home.dist(position));
 					followPath();
 					if (path.empty()) {
 						Point p = traveled.getLast();
 						if(segments.get(p) == 1) {
-							home.y += 1;
+							if(home != null)
+								home.y += 1;
 							orientation = 1;
 						} else {
-							home.y -= 1;
+							if(home != null)
+								home.y -= 1;
 							orientation = 3;
 						}
 						segtypes.put(p, switch (segments.get(p)) {
@@ -95,7 +98,8 @@ public class Tentacle extends Entity {
 						});
 					}
 				} else {
-					position.y = position.y * 0.99 + home.y * 0.01;
+					if(home != null)
+						position.y = position.y * 0.99 + home.y * 0.01;
 					state = State.GRABBED;
 				}
 
@@ -115,11 +119,13 @@ public class Tentacle extends Entity {
 				if (getHitBounds().intersects(Main.getPlayer().getHitBounds())) {
 					state = State.GRABBING;
 					speed = 5;
-					pathfindTo((int) Math.floor(home.x), (int) Math.floor(home.y), true);
-					if(path.empty()) {
+					if(home != null)
+						pathfindTo((int) Math.floor(home.x), (int) Math.floor(home.y), true);
+					if(path.empty() || home == null) {
 						Point next = nextPosition();
 						Vector dir = new Vector(next.x-tileX(), next.y-tileY());
-						home.set(tileX()+0.5, tileY()+0.5).add(dir.getScale(2));
+						home = new Vector(tileX()+0.5, tileY()+0.5);
+						home.add(dir.getScale(2));
 						pathfindTo((int) Math.floor(home.x), (int) Math.floor(home.y), true);
 						if(path.empty())
 							home = home.getSub(dir);
