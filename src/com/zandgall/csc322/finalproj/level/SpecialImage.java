@@ -9,10 +9,12 @@ import javafx.scene.image.Image;
 public class SpecialImage {
 	private Image image;
 	private String path;
-	private double x, y, damping;
-	public SpecialImage(String path, double x, double y, double damping) {
+	private double x, y, xOff, yOff, damping;
+	public SpecialImage(String path, double xOff, double yOff, double x, double y, double damping) {
 		image = new Image(path);
 		this.path = path;
+		this.xOff = xOff;
+		this.yOff = yOff;
 		this.x = x;
 		this.y = y;
 		this.damping = damping;
@@ -20,17 +22,22 @@ public class SpecialImage {
 	}
 
 	public void render(GraphicsContext g) {
-		Rectangle2D rb = getRenderBox();
+		double w = image.getWidth() / 16;
+		double h = image.getHeight() / 16;
+		double x = (this.x - xOff) * (1 - damping) + Main.getCamera().getX() * damping - (w/2) + xOff;
+		double y = (this.y - yOff) * (1 - damping) + Main.getCamera().getY() * damping - (h/2) + yOff;
+
+		System.out.printf("Drawing %s%n", path);
 		// Reminder that each unit is a 16x16 tile
 		// So scale image down by 1/16 to match
-		g.drawImage(image, rb.getMinX(), rb.getMinY(), rb.getWidth(), rb.getHeight());
+		g.drawImage(image, x, y, w, h);
 	}
 
 	public Rectangle2D getRenderBox() {
 		double w = image.getWidth() / 16;
 		double h = image.getHeight() / 16;
-		double x = (this.x - w / 2) * (1 - damping) + Main.getCamera().getX() * damping;
-		double y = (this.y - h / 2) * (1 - damping) + Main.getCamera().getY() * damping;
+		double x = this.x - (w / 2);
+		double y = this.y - (h / 2);
 		return new Rectangle2D.Double(x, y, w, h);
 	}
 }

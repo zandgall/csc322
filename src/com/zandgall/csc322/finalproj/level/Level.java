@@ -63,7 +63,7 @@ public class Level {
 		while(s.hasNextLine()) {
 			String line = s.nextLine();
 			Scanner p = new Scanner(line);
-			specialImages.get(p.nextInt()).add(new SpecialImage(p.next(), p.nextDouble(), p.nextDouble(), p.nextDouble()));
+			specialImages.get(p.nextInt()).add(new SpecialImage(p.next(), p.nextDouble(), p.nextDouble(), p.nextDouble(), p.nextDouble(), p.nextDouble()));
 			p.close();
 		}
 		s.close();
