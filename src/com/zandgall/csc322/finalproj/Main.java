@@ -14,6 +14,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.event.EventHandler;
@@ -164,6 +165,7 @@ public class Main extends Application {
 	// Pulled to it's own function so that it can be overridden in LevelEditor
 	public void setupScene() {
 		root = new Pane();
+		root.setStyle("-fx-background-color: #8fc9fc;");
 		layer_0 = new Canvas(1280, 720);
 		c0 = layer_0.getGraphicsContext2D();
 		c0.setImageSmoothing(false);
