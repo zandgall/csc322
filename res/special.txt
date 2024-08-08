@@ -8,3 +8,4 @@
 0 /chasm_low.png 30.35 25 15 -40 0.1
 0 /chasm_mid.png 30.35 25 15 -40 0.05
 0 /chasm_top.png 30.35 25 15 -40 0.0
+0 /mountain.png 22.3 0 -34 -226 0.5
