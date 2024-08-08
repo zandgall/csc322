@@ -117,6 +117,9 @@ public abstract class Entity implements Serializable{
 		if (velocity.x == 0 && velocity.y == 0)
 			return false;
 
+		Vector safetyNetP = position.clone(), safetyNetV = velocity.clone();
+		String debug = "Movement Error:\n";
+
 		boolean hitWall = false;
 	
 		Vector next = position.clone();
@@ -128,7 +131,10 @@ public abstract class Entity implements Serializable{
 				continue; // don't collide with self
 			Hitbox solid = e.getSolidBounds();
 			if (solid.intersects(box)) {
+				debug += "Hit entity at: " + solid.getBounds().getCenterX() + ", " + solid.getBounds().getCenterY() + " (" + velocity.x + ", " + velocity.y + ") : " + next.x + ", " + next.y + " -> ";
 				handleCollision(solid, next);
+				debug += next.x + ", " + next.y + "\n";
+
 				hitWall = true;
 			}
 		}
@@ -145,7 +151,9 @@ public abstract class Entity implements Serializable{
 			for (int j = minY; j <= maxY; j++) {
 				Tile t = Main.getLevel().get(i, j);
 				if (t != null && t.solidBounds(i, j) != null && t.solidBounds(i, j).intersects(box)) {
-					handleCollision(t.solidBounds(i, j), next);
+					debug += "Hit wall at: " + i + ", " + j + " (" + velocity.x + ", " + velocity.y + ") : " + next.x + ", " + next.y + " -> ";
+					handleCollision(t.solidBounds(i, j), next);	
+					debug += next.x + ", " + next.y + "\n";
 					hitWall = true;
 				}
 			}
@@ -156,6 +164,13 @@ public abstract class Entity implements Serializable{
 		// and we will be pressed up against a solid wall
 		// TODO: So 'next' doesn't actually work, so we don't apply it
 		position.add(velocity.getScale(Main.TIMESTEP));
+
+		if(!Double.isFinite(velocity.x) || !Double.isFinite(velocity.y) || !Double.isFinite(position.x) || !Double.isFinite(position.y)) {
+			position = safetyNetP.clone();
+			velocity = safetyNetV.clone();
+			System.err.println(debug);
+			new RuntimeException().printStackTrace();
+		}
 
 		// Handle friction
 		velocity.scale(0.9);
