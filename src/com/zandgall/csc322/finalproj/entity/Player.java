@@ -17,6 +17,8 @@ import javafx.scene.shape.ArcType;
 import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
+
+import com.zandgall.csc322.finalproj.Camera;
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.util.Hitbox;
@@ -24,6 +26,8 @@ import com.zandgall.csc322.finalproj.util.Util;
 import com.zandgall.csc322.finalproj.util.Vector;
 
 public class Player extends Entity {
+
+	public static final boolean GOD_MODE = false;
 
 	public static final double DASH_SPEED = 20, DASH_TIMER = 0.5, MOVE_SPEED = 0.2;
 
@@ -91,8 +95,14 @@ public class Player extends Entity {
 			if (dashTimer > 0)
 				dashTimer -= Main.TIMESTEP;
 		}
-
-		move();
+		
+		if(GOD_MODE) {
+			Main.getCamera().setSmoothing(Camera.DEFAULT_SMOOTHING*4);
+			health = 20;
+			position.add(velocity);
+			velocity.set(0, 0);
+		} else
+			move();
 
 		if(getY() < -90) {
 			Sound.BossDrums.fadeTo(1.f);
