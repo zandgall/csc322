@@ -123,13 +123,13 @@ public class Tentacle extends Entity {
 					state = State.GRABBING;
 					speed = 5;
 					if(home != null)
-						pathfindTo((int) Math.floor(home.x), (int) Math.floor(home.y), true);
+						pathfindTo((int) Math.floor(home.x), (int) Math.floor(home.y), false);
 					if(path.empty() || home == null) {
 						Point next = nextPosition();
 						Vector dir = new Vector(next.x-tileX(), next.y-tileY());
 						home = new Vector(tileX()+0.5, tileY()+0.5);
 						home.add(dir.getScale(2));
-						pathfindTo((int) Math.floor(home.x), (int) Math.floor(home.y), true);
+						pathfindTo((int) Math.floor(home.x), (int) Math.floor(home.y), false);
 						if(path.empty())
 							home = home.getSub(dir);
 					}
