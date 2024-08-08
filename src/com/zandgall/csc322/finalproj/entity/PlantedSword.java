@@ -35,8 +35,10 @@ public class PlantedSword extends Entity {
 	public void tick() {
 		if (swordbox == null)
 			swordbox = new Hitbox(position.x - 0.5, position.y - 0.2, 1.0, 0.4);
-		if(Main.getPlayer().getPosition().sqDist(position) < 400)
-			Sound.EPiano.setMinVolume(1.f - (float)Main.getPlayer().getPosition().dist(position) / 20.f);
+		if(Main.getPlayer().getPosition().sqDist(position) < 45*45) {
+			float f = 1.f - ((float)Main.getPlayer().getPosition().dist(position) / 45.f);
+			Sound.EPiano.setMinVolume(f*f);
+		}
 		// Check if intersects with player, if so, give the player a sword
 		if (Main.getPlayer().getSolidBounds().intersects(swordbox)) {
 			Main.getPlayer().giveSword();
@@ -54,7 +56,7 @@ public class PlantedSword extends Entity {
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(position.x - 20, position.y - 20, 40, 40);
+		return new Hitbox(position.x - 45, position.y - 45, 90, 90);
 	}
 
 	public Hitbox getSolidBounds() {
