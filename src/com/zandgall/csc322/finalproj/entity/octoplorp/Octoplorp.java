@@ -61,7 +61,7 @@ public class Octoplorp extends Entity{
 		tutorialTentacle = new Tentacle(position.getAdd(5.5, 12.5), position.getAdd(0, 6.5), position.getAdd(0, 12), position.getAdd(-28, -9));
 		tutorialTentacle.tutorial = true;
 		firstTentacle = new Tentacle(position.getAdd(-5.5, 6.5), null, position.getAdd(-27.5, -2), position.getAdd(26, -8));
-		secondTentacle = new Tentacle(position.getAdd(-5.5, 12.5), null, position.getAdd(28, -10), position.getAdd(-16.5, 19.5));
+		secondTentacle = new Tentacle(position.getAdd(-5.5, 12.5), null, position.getAdd(28, -7), position.getAdd(-16.5, 19.5));
 		finalTentacle = new Tentacle(position.getAdd(5.5, 6.5), null, position.getAdd(0, 18), position.getAdd(0, 6));
 		Main.getLevel().addEntity(tutorialTentacle);
 		Main.getLevel().addEntity(firstTentacle);

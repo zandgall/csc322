@@ -222,8 +222,11 @@ public class Tentacle extends Entity {
 		if (path.empty() || path.size() <= 1 || watchDirection) {
 			Point a = new Point(tileX(), tileY()), b = nextPosition();
 			int dX = b.x - a.x, dY = b.y - a.y;
-			traveled.add(a);
-			traveled.add(b);
+			ArrayList<Point> prep = new ArrayList<Point>(traveled);
+			if(!prep.contains(a))
+				prep.add(a);
+			if(!prep.contains(b))
+				prep.add(b);
 			if(!segments.containsKey(a)) {
 				// TODO: Mark unsure of
 				segments.put(a, orientation);
@@ -236,19 +239,19 @@ public class Tentacle extends Entity {
 			}
 			hitbox.add(a.x, a.y, 1, 1);
 			hitbox.add(b.x, b.y, 1, 1);
-			path = Path.pathfind(tileX() + dX, tileY() + dY, x, y, traveled.toArray(new Point[traveled.size()]));
+			path = Path.pathfind(tileX() + dX, tileY() + dY, x, y, prep.toArray(new Point[prep.size()]));
 			// Remove segments added before pathfinding
-			traveled.removeLast();
-			traveled.removeLast();
 			for (int i = 0; i < traveled.size() && !path.empty(); i++)
 				path.progress();
 		} else {
 			// Grant two tiles of previous path to lead into the next path
-			traveled.add(path.progress());
-			traveled.add(path.progress());
-			path = Path.pathfind(traveled.getLast().x, traveled.getLast().y, x, y, traveled.toArray(new Point[traveled.size()]));
-			traveled.removeLast();
-			traveled.removeLast();
+			Point a = path.progress(), b = path.progress();
+			ArrayList<Point> prep = new ArrayList<Point>(traveled);
+			if(!prep.contains(a))
+				prep.add(a);
+			if(!prep.contains(b))
+				prep.add(b);
+			path = Path.pathfind(b.x, b.y, x, y, prep.toArray(new Point[prep.size()]));
 			for (int i = 0; i < traveled.size() && !path.empty(); i++)
 				path.progress();
 		}
