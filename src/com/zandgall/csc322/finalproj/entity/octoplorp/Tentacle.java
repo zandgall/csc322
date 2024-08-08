@@ -15,10 +15,13 @@ import com.zandgall.csc322.finalproj.util.Vector;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 
 public class Tentacle extends Entity {
 	protected static final Image sheet = new Image("/entity/octoplorp/tentacles.png");
+
+	public static final boolean TENTACLE_DEBUG = false;
 
 	public static enum State {
 		DEAD, DYING, RESTING, GRABBING, GRABBED, WINDUP, CHASING, REPOSITION, RETRACTING, INJURED, SWINGING
@@ -38,6 +41,7 @@ public class Tentacle extends Entity {
 	private Hitbox hitbox = new Hitbox();
 
 	// private ArrayList<Segment> segments = new ArrayList<>();
+	private Path path = new Path(); // queue: points to travel
 	private ArrayList<Point> traveled = new ArrayList<>();
 	private HashMap<Point, Integer> segments = new HashMap<>();
 	private HashMap<Point, SegType> segtypes = new HashMap<>();
@@ -47,7 +51,6 @@ public class Tentacle extends Entity {
 	/* 0 = right, 1 = down, 2 = left, 3 = up */
 	private int orientation = 3;
 
-	private Path path = new Path();
 
 	public boolean tutorial = false;
 
@@ -108,13 +111,13 @@ public class Tentacle extends Entity {
 				break;
 			case CHASING:
 				timer += Main.TIMESTEP;
-				if (timer >= 2 || path.empty()) {
+				if ((timer >= 2 || path.size() == 1) && (!TENTACLE_DEBUG || (Main.keys.get(KeyCode.COMMA)&&!Main.pKeys.get(KeyCode.COMMA)))) {
 					timer = 0;
 					pathfindTo(Main.getPlayer().tileX(), Main.getPlayer().tileY(), false);
 					if(path.empty())
 						state = State.REPOSITION;
 				}
-				if (!path.empty())
+				if (path.size() > 1)
 					followPath();
 				if (getHitBounds().intersects(Main.getPlayer().getHitBounds())) {
 					state = State.GRABBING;
@@ -216,7 +219,7 @@ public class Tentacle extends Entity {
 	}
 
 	private void pathfindTo(int x, int y, boolean watchDirection) {
-		if (path.empty() || watchDirection) {
+		if (path.empty() || path.size() <= 1 || watchDirection) {
 			Point a = new Point(tileX(), tileY()), b = nextPosition();
 			int dX = b.x - a.x, dY = b.y - a.y;
 			traveled.add(a);
@@ -234,10 +237,18 @@ public class Tentacle extends Entity {
 			hitbox.add(a.x, a.y, 1, 1);
 			hitbox.add(b.x, b.y, 1, 1);
 			path = Path.pathfind(tileX() + dX, tileY() + dY, x, y, traveled.toArray(new Point[traveled.size()]));
-			for (int i = 0; i < traveled.size() - 2 && !path.empty(); i++)
+			// Remove segments added before pathfinding
+			traveled.removeLast();
+			traveled.removeLast();
+			for (int i = 0; i < traveled.size() && !path.empty(); i++)
 				path.progress();
 		} else {
-			path = Path.pathfind(tileX(), tileY(), x, y, traveled.toArray(new Point[traveled.size()]));
+			// Grant two tiles of previous path to lead into the next path
+			traveled.add(path.progress());
+			traveled.add(path.progress());
+			path = Path.pathfind(traveled.getLast().x, traveled.getLast().y, x, y, traveled.toArray(new Point[traveled.size()]));
+			traveled.removeLast();
+			traveled.removeLast();
 			for (int i = 0; i < traveled.size() && !path.empty(); i++)
 				path.progress();
 		}
@@ -248,24 +259,28 @@ public class Tentacle extends Entity {
 	 */
 	private void followPath() {
 		boolean hit = false;
-		switch (orientation) {
-			case 0:
-				position.x += Main.TIMESTEP * speed;
-				hit = position.x - 0.5 >= path.current().x;
-				break;
-			case 1:
-				position.y += Main.TIMESTEP * speed;
-				hit = position.y - 0.5 >= path.current().y;
-				break;
-			case 2:
-				position.x -= Main.TIMESTEP * speed;
-				hit = position.x - 0.5 <= path.current().x;
-				break;
-			case 3:
-				position.y -= Main.TIMESTEP * speed;
-				hit = position.y - 0.5 <= path.current().y;
-				break;
-		}
+		if(TENTACLE_DEBUG){
+			if(Main.keys.get(KeyCode.PERIOD) && !Main.pKeys.get(KeyCode.PERIOD))
+				hit = true;
+		} else
+			switch (orientation) {
+				case 0:
+					position.x += Main.TIMESTEP * speed;
+					hit = position.x - 0.5 >= path.current().x;
+					break;
+				case 1:
+					position.y += Main.TIMESTEP * speed;
+					hit = position.y - 0.5 >= path.current().y;
+					break;
+				case 2:
+					position.x -= Main.TIMESTEP * speed;
+					hit = position.x - 0.5 <= path.current().x;
+					break;
+				case 3:
+					position.y -= Main.TIMESTEP * speed;
+					hit = position.y - 0.5 <= path.current().y;
+					break;
+			}
 		if (hit) {
 			position.x = path.current().x + 0.5;
 			position.y = path.current().y + 0.5;
