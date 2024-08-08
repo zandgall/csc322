@@ -89,9 +89,7 @@ public class Octoplorp extends Entity{
 						protected void tick() {
 							t += Main.TIMESTEP;
 							eyePos.y *= 0.99;
-							if (t > 4.5)
-								eyeFrame.x = 1;
-							else if (t > 4.3)
+							if (t > 4.3)
 								eyeFrame.x = 0;
 						}
 
