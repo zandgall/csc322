@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import com.zandgall.csc322.finalproj.entity.Entity;
 import com.zandgall.csc322.finalproj.entity.EntityRegistry;
@@ -44,6 +45,7 @@ public class Main extends Application {
 	public static Main instance = null;
 
 	public static HashMap<KeyCode, Boolean> keys;
+	public static HashMap<KeyCode, Boolean> pKeys;
 	public static KeyCode lastKey = KeyCode.A;
 
 	// JavaFX Elements
@@ -98,8 +100,12 @@ public class Main extends Application {
 
 		// Key input map and events
 		keys = new HashMap<KeyCode, Boolean>();
-		for (KeyCode a : KeyCode.values())
-			keys.put(a, false); // Initialize all keys to false
+		pKeys = new HashMap<KeyCode, Boolean>();
+		for (KeyCode a : KeyCode.values()) {
+			// Initialize all keys to false
+			keys.put(a, false);
+			pKeys.put(a, false);
+		}
 
 		scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
@@ -210,6 +216,8 @@ public class Main extends Application {
 		}
 		hud.tick();
 		Sound.update();
+		for(Entry<KeyCode, Boolean> a : keys.entrySet())
+			pKeys.put(a.getKey(), a.getValue());
 	}
 
 	public void render() {
