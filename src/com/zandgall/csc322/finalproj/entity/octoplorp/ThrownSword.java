@@ -48,7 +48,7 @@ public class ThrownSword extends Entity {
 
 		g.restore();
 
-		g.drawImage(plaque, target.x-1, target.y-1, 2, 2);
+		g.drawImage(plaque, target.x-1, target.y-1.8, 2, 2);
 	}
 
 	@Override
