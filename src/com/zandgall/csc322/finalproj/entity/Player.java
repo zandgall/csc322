@@ -104,7 +104,7 @@ public class Player extends Entity {
 		} else
 			move();
 
-		if(getY() < -90) {
+		if(getY() < -150) {
 			Sound.BossDrums.fadeTo(1.f);
 			if(hasSword)
 				Sound.BossEPiano.fadeTo(1.f);
