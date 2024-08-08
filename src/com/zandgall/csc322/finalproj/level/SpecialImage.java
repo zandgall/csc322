@@ -18,7 +18,6 @@ public class SpecialImage {
 		this.x = x;
 		this.y = y;
 		this.damping = damping;
-		System.out.printf("New SpecialImage %s at (%.1f, %.1f) with %.1f damping%n", path, x, y, damping);
 	}
 
 	public void render(GraphicsContext g) {
@@ -27,7 +26,6 @@ public class SpecialImage {
 		double x = this.x * (1 - damping) + Main.getCamera().getX() * damping - xOff;
 		double y = this.y * (1 - damping) + Main.getCamera().getY() * damping - yOff;
 
-		System.out.printf("Drawing %s%n", path);
 		// Reminder that each unit is a 16x16 tile
 		// So scale image down by 1/16 to match
 		g.drawImage(image, x, y, w, h);
