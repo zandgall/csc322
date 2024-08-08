@@ -49,6 +49,10 @@ public class Path implements Serializable {
 		return path.isEmpty();
 	}
 
+	public int size() {
+		return path.size();
+	}
+
 	public void debugRender(GraphicsContext g) {
 		if (path.isEmpty())
 			return;
@@ -61,9 +65,18 @@ public class Path implements Serializable {
 	}
 
 	private static Path reconstruct(Node endPoint) {
+		ArrayList<Point> check = new ArrayList<>();
 		Path p = new Path();
-		for (Node n = endPoint; n != null; n = n.getParent())
+		for (Node n = endPoint; n != null; n = n.getParent()) {
+			if(check.contains(new Point(n.x, n.y))) {
+				// Panic!
+				System.out.println("Circular path found in pathfinding!");
+				new RuntimeException().printStackTrace();
+				return p;
+			}
+			check.add(new Point(n.x, n.y));
 			p.prepend(n.x, n.y);
+		}
 		return p;
 	}
 
@@ -116,9 +129,8 @@ public class Path implements Serializable {
 			});
 
 			// Poll first point,
-			Node current = map.get(open.get(0));
-			// System.out.printf("(%d, %d) -> %s%n", open.get(0).x, open.get(0).y, current);
-			open.removeFirst();
+			Node current = map.get(open.removeFirst());
+			// System.out.printf("(%d, %d) -> %s%n", open.get(0).x, open.get(0).y, current);	
 
 			if (current.x == targetX && current.y == targetY)
 				return reconstruct(current);
