@@ -24,8 +24,8 @@ public class SpecialImage {
 	public void render(GraphicsContext g) {
 		double w = image.getWidth() / 16;
 		double h = image.getHeight() / 16;
-		double x = (this.x - xOff) * (1 - damping) + Main.getCamera().getX() * damping - (w/2) + xOff;
-		double y = (this.y - yOff) * (1 - damping) + Main.getCamera().getY() * damping - (h/2) + yOff;
+		double x = this.x * (1 - damping) + Main.getCamera().getX() * damping - xOff;
+		double y = this.y * (1 - damping) + Main.getCamera().getY() * damping - yOff;
 
 		System.out.printf("Drawing %s%n", path);
 		// Reminder that each unit is a 16x16 tile
