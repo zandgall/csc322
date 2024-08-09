@@ -258,13 +258,15 @@ public class Level {
 		}
 
 		// Sort and draw all entities and then clouds if they intersect the screen
-		entities.sort((a, b) -> {
+		ArrayList<Entity> sorted = new ArrayList<>(entities.size());
+		for (Entity e : entities)
+			if (e.getRenderBounds().intersects(screenBounds))
+				sorted.add(e);
+		sorted.sort((a, b) -> {
 			return (int) Math.signum(a.getRenderLayer() - b.getRenderLayer());
 		});
-		for (Entity e : entities) {
-			if (e.getRenderBounds().intersects(screenBounds))
-				e.render(context_1, shadow_0, context_2);
-		}
+		for(Entity e : sorted)
+			e.render(context_1, shadow_0, context_2);
 		for (Cloud c : clouds) {
 			if (c.getRenderBounds().intersects(screenBounds))
 				c.render(shadow_1);
