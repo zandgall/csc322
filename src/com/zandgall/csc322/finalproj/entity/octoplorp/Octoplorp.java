@@ -203,7 +203,7 @@ public class Octoplorp extends Entity{
 
 					if(currentTentacle == null) {
 						state = State.VULNERABLE;
-						Sound.EndIt.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						Sound.EndIt.setSmoothing(Sound.DEFAULT_SMOOTHING * 8);
 						Sound.EndIt.fadeTo(1.f);
 						Sound.Noise.fadeTo(0.f);
 						Sound.Wind.fadeTo(0.f);
@@ -240,6 +240,10 @@ public class Octoplorp extends Entity{
 				break;
 
 			case VULNERABLE:
+				Sound.EPiano.setVolume(0);
+				Sound.BossEPiano.setVolume(0);
+				Sound.Drums.setVolume(0);
+				Sound.BossDrums.setVolume(0);
 				break;
 
 		}
@@ -275,7 +279,7 @@ public class Octoplorp extends Entity{
 	public double getRenderLayer() {
 		if(state == State.VULNERABLE)
 			return Double.NEGATIVE_INFINITY;
-		return super.getRenderLayer();
+		return getY() + 2;
 	}
 
 	@Override
