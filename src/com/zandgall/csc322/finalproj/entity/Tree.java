@@ -25,12 +25,16 @@ public class Tree extends Entity {
 	private static ShadowImage shadow = new ShadowImage("/entity/tree_shadow.png", 5, 0.6);
 	private double peekTransparency = 1;
 
+	private Hitbox renderBounds, solidBounds;
+
 	public Tree() {
 		super();
 	}
 
 	public Tree(double x, double y) {
 		super(x, y);
+		renderBounds = new Hitrect(getX() - 1.5, getY() - 3.5, 3.0, 5.0);
+		solidBounds = new Hitrect(getX() - 0.3, getY() - 0.3, 0.6, 0.6);
 	}
 
 	@Override
@@ -66,21 +70,21 @@ public class Tree extends Entity {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitrect(getX() - 1.5, getY() - 3.5, 3.0, 5.0);
+		return renderBounds;
 	}
 
 	// Tree doesn't update, so empty hitbox
 	public Hitbox getUpdateBounds() {
-		return new Hitrect(getX() - 1.5, getY() - 3.5, 3.0, 5.0);
+		return renderBounds;
 	}
 
 	// Only the tile at the trunk is solid
 	public Hitbox getSolidBounds() {
-		return new Hitrect(getX() - 0.3, getY() - 0.3, 0.6, 0.6);
+		return solidBounds; 
 	}
 
 	public Hitbox getHitBounds() {
-		return new Hitnull();
+		return Hitnull.instance;
 	}
 
 	public double getRenderLayer() {

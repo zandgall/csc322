@@ -34,6 +34,8 @@ public class Cloud {
 	private double speed;
 	private double x, y;
 
+	private Hitrect bounds;
+
 	public Cloud() {
 		type = new Random().nextInt(8);
 		speed = new Random().nextDouble(0.2, 0.5) * Main.TIMESTEP;
@@ -44,6 +46,7 @@ public class Cloud {
 		this.y = y;
 		type = new Random().nextInt(8);
 		speed = new Random().nextDouble(0.2, 0.5) * Main.TIMESTEP;
+		bounds = new Hitrect(x, y, 16, 16);
 	}
 
 	public void tick() {
@@ -52,6 +55,8 @@ public class Cloud {
 		// check against level bounds, if too far left, respawn on right side
 		if (!getRenderBounds().intersects(Main.getLevel().bounds))
 			x = Main.getLevel().bounds.x + Main.getLevel().bounds.w;
+		// Update bounds
+		bounds.set(x, y, 16, 16);
 	}
 
 	public void render(GraphicsContext g) {
@@ -59,7 +64,7 @@ public class Cloud {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitrect(x, y, 16, 16);
+		return bounds;
 	}
 
 	public double getX() {

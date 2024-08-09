@@ -383,7 +383,7 @@ public class Plorp extends Entity {
 
 	public Hitbox getSolidBounds() {
 		if (state == State.DEAD)
-			return new Hitnull();
+			return Hitnull.instance;
 		return new Hitrect(getX() - 0.05, getY() - 0.05, 0.1, 0.1);
 	}
 

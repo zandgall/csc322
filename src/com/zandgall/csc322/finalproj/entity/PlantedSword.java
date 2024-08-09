@@ -22,7 +22,7 @@ public class PlantedSword extends Entity {
 
 	private static Image texture = new Image("/entity/planted_sword.png");
 
-	private Hitbox swordbox = null;
+	private Hitbox swordbox, renderBounds, updateBounds;
 
 	public PlantedSword() {
 		super();
@@ -31,6 +31,8 @@ public class PlantedSword extends Entity {
 	public PlantedSword(double x, double y) {
 		super(x, y);
 		swordbox = new Hitrect(x - 0.5, y - 0.2, 1.0, 0.4);
+		renderBounds = new Hitrect(position.x - 1, position.y - 1.8, 2, 2);
+		updateBounds = new Hitrect(position.x - 45, position.y - 45, 90, 90);
 	}
 
 	@Override
@@ -54,19 +56,19 @@ public class PlantedSword extends Entity {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitrect(position.x - 1, position.y - 1.8, 2, 2);
+		return renderBounds;
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitrect(position.x - 45, position.y - 45, 90, 90);
+		return updateBounds;
 	}
 
 	public Hitbox getSolidBounds() {
-		return new Hitnull();
+		return Hitnull.instance;
 	}
 
 	public Hitbox getHitBounds() {
-		return new Hitnull();
+		return Hitnull.instance;
 	}
 
 }

@@ -1,6 +1,8 @@
 package com.zandgall.csc322.finalproj.util;
 
 public class Hitnull extends Hitbox {
+	public static final Hitnull instance = new Hitnull();
+
 	public Hitnull() {}
 
 	public boolean intersects(double x, double y, double w, double h) {

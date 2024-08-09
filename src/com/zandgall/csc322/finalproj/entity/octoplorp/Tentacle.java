@@ -462,7 +462,7 @@ public class Tentacle extends Entity {
 
 	public Hitbox getSolidBounds() {
 		if(state == State.DEAD || state == State.DYING || state == State.RETRACTING)
-			return new Hitnull();
+			return Hitnull.instance;
 		return hitbox;
 	}
 

@@ -436,11 +436,11 @@ public class Player extends Entity {
 		}
 
 		public Hitbox getSolidBounds() {
-			return new Hitnull();
+			return Hitnull.instance;
 		}
 
 		public Hitbox getHitBounds() {
-			return new Hitnull();
+			return Hitnull.instance;
 		}
 
 	}
@@ -489,11 +489,11 @@ public class Player extends Entity {
 		}
 
 		public Hitbox getSolidBounds() {
-			return new Hitnull();
+			return Hitnull.instance;
 		}
 
 		public Hitbox getHitBounds() {
-			return new Hitnull();
+			return Hitnull.instance;
 		}
 	}
 

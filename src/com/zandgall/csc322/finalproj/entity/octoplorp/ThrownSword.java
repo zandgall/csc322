@@ -55,12 +55,12 @@ public class ThrownSword extends Entity {
 
 	@Override
 	public Hitbox getHitBounds() {
-		return new Hitnull();
+		return Hitnull.instance;
 	}
 
 	@Override
 	public Hitbox getSolidBounds() {	
-		return new Hitnull();
+		return Hitnull.instance;
 	}
 
 	@Override

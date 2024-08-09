@@ -10,8 +10,12 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
 public abstract class Collectable extends Entity {
+
+	private Hitbox bounds;
+
 	public Collectable(double x, double y) {
 		super(x, y);
+		bounds = new Hitrect(position.x - 0.5, position.y - 0.5, 1, 1);
 	}
 
 	public void tick() {
@@ -26,19 +30,19 @@ public abstract class Collectable extends Entity {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitrect(position.x - 0.5, position.y - 0.5, 1, 1);
+		return bounds; 
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitrect(position.x - 0.5, position.y - 0.5, 1, 1);
+		return bounds;
 	}
 
 	public Hitbox getSolidBounds() {
-		return new Hitnull();
+		return Hitnull.instance;
 	}
 
 	public Hitbox getHitBounds() {
-		return new Hitnull();
+		return Hitnull.instance;
 	}
 
 	public abstract Image getTexture();

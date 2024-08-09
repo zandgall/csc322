@@ -25,8 +25,11 @@ public class HealthFlower extends Entity {
 
 	private double timer;
 
+	private Hitbox bounds;
+
 	public HealthFlower(double x, double y) {
 		super(x, y);
+		bounds = new Hitrect(x - 0.5, y - 0.5, 1, 1);
 	}
 
 	/**
@@ -47,19 +50,19 @@ public class HealthFlower extends Entity {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitrect(position.x - 0.5, position.y - 0.5, 1, 1);
+		return bounds;
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitrect(position.x - 0.5, position.y - 0.5, 1, 1);
+		return bounds;
 	}
 
 	public Hitbox getSolidBounds() {
-		return new Hitnull();
+		return Hitnull.instance;
 	}
 
 	public Hitbox getHitBounds() {
-		return new Hitnull();
+		return Hitnull.instance;
 	}
 
 }

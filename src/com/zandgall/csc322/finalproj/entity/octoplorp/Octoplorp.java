@@ -272,7 +272,7 @@ public class Octoplorp extends Entity{
 	public Hitbox getHitBounds() {
 		if(state == State.VULNERABLE)
 			return new Hitrect(tileX() - 3, tileY() - 3, 6, 6);
-		return new Hitnull();
+		return Hitnull.instance;
 	}
 
 	@Override
