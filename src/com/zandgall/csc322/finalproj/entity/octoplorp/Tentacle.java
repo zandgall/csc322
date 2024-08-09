@@ -53,7 +53,6 @@ public class Tentacle extends Entity {
 	/* 0 = right, 1 = down, 2 = left, 3 = up */
 	private int orientation = 3;
 
-
 	public boolean tutorial = false;
 
 	public Tentacle(Vector pos, Vector home, Vector throwing, Vector sword) {
@@ -388,15 +387,9 @@ public class Tentacle extends Entity {
 		g.drawImage(sheet, 48, 32, 48, 16, start.x - 1.5, start.y - 0.5, 3, 1);
 
 		for (Point p : traveled) {
-			g.save();
-			g.translate(p.x + 0.5, p.y + 0.5);
-			g.rotate(segments.get(p) * 90);
-			switch (segtypes.get(p)) {
-				case STRAIGHT -> g.drawImage(sheet, 0, 0, 16, 16, -0.5, -0.5, 1, 1);
-				case TURN_RIGHT -> g.drawImage(sheet, 16, 16, 16, 16, -0.5, -0.5, 1, 1);
-				case TURN_LEFT -> g.drawImage(sheet, 0, 16, 16, 16, -0.5, -0.5, 1, 1);
-			}
-			g.restore();
+			g.drawImage(sheet, 96 + segments.get(p)*16, 
+						segtypes.get(p) == SegType.STRAIGHT ? 0 : segtypes.get(p) == SegType.TURN_LEFT ? 16 : 32,
+						16, 16, p.x, p.y, 1, 1);
 		}
 	
 		if (health < 100 && (state == State.GRABBING || state == State.GRABBED)) {
