@@ -13,6 +13,8 @@ package com.zandgall.csc322.finalproj.entity;
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Hitnull;
+import com.zandgall.csc322.finalproj.util.Hitrect;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -45,19 +47,19 @@ public class HealthFlower extends Entity {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(position.x - 0.5, position.y - 0.5, 1, 1);
+		return new Hitrect(position.x - 0.5, position.y - 0.5, 1, 1);
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(position.x - 0.5, position.y - 0.5, 1, 1);
+		return new Hitrect(position.x - 0.5, position.y - 0.5, 1, 1);
 	}
 
 	public Hitbox getSolidBounds() {
-		return new Hitbox();
+		return new Hitnull();
 	}
 
 	public Hitbox getHitBounds() {
-		return new Hitbox();
+		return new Hitnull();
 	}
 
 }

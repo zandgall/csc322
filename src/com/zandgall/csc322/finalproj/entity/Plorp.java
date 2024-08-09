@@ -18,6 +18,8 @@ import java.util.Random;
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Hitnull;
+import com.zandgall.csc322.finalproj.util.Hitrect;
 import com.zandgall.csc322.finalproj.util.Path;
 import com.zandgall.csc322.finalproj.util.Vector;
 
@@ -199,10 +201,10 @@ public class Plorp extends Entity {
 	private void handleChasing(Random r) {
 		// Chase target and if hit something, check if we hit the player and damage
 		if (pursueTarget(0.3)) {
-			if (new Hitbox(getX() - 0.5, getY() - 0.5, 1, 1)
+			if (new Hitrect(getX() - 0.5, getY() - 0.5, 1, 1)
 					.intersects(Main.getPlayer().getHitBounds())) { // If close enough player
 				Main.getPlayer().dealEnemyDamage(1.0);
-			} else if (!new Hitbox(getX() - 4, getY() - 4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
+			} else if (!new Hitrect(getX() - 4, getY() - 4, 8, 8).intersects(Main.getPlayer().getSolidBounds())) {
 				// Ran into a wall or something else stopped it, if can't see player, stop
 				timer = 0;
 				frame = 0;
@@ -214,7 +216,7 @@ public class Plorp extends Entity {
 		// End of every eighth a second, recheck if the player is within chasing bounds
 		// Updating the target position if so
 		if ((int) (timer * 8 + Main.TIMESTEP * 8) != (int) (timer * 8)
-				&& new Hitbox(getX() - 8, getY() - 8, 16, 16).intersects(Main.getPlayer().getSolidBounds())) {
+				&& new Hitrect(getX() - 8, getY() - 8, 16, 16).intersects(Main.getPlayer().getSolidBounds())) {
 			// update target position
 			target(Main.getPlayer().getX(), Main.getPlayer().getY());
 		}
@@ -224,7 +226,7 @@ public class Plorp extends Entity {
 	 * Look for player in square 4 radius
 	 */
 	private boolean checkForPlayer() {
-		if (new Hitbox(getX() - 4, getY() - 4, 8, 8).intersects(Main.getPlayer().getHitBounds())) {
+		if (new Hitrect(getX() - 4, getY() - 4, 8, 8).intersects(Main.getPlayer().getHitBounds())) {
 			timer = 0;
 			frame = 0;
 			target(Main.getPlayer().getX(), Main.getPlayer().getY());
@@ -242,15 +244,15 @@ public class Plorp extends Entity {
 		// pathfinding is necessary
 		boolean wall = false;
 		// As long as we're within 'checkbox', we're between (x, y) and (tx, ty)
-		Hitbox checkbox = new Hitbox(Math.min(tx, getX()), Math.min(ty, getY()), Math.abs(tx - getX()), Math.abs(ty - getY()));
+		Hitbox checkbox = new Hitrect(Math.min(tx, getX()), Math.min(ty, getY()), Math.abs(tx - getX()), Math.abs(ty - getY()));
 		// Unit direction from (x, y) -> (tx, ty)
 		Vector dir = position.unitDir(target);
 
 		// Create a box from solid bounds. While it intersects 'checkbox', and a wall
 		// hasn't been found, move it in the unit direction and check for a solid tile
 		for (Hitbox box = getSolidBounds(); checkbox.intersects(box) && !wall; box = box.translate(dir)) {
-			int tileX = (int) Math.floor(box.getBounds().getCenterX());
-			int tileY = (int) Math.floor(box.getBounds().getCenterY());
+			int tileX = (int) Math.floor(box.getBounds().centerX());
+			int tileY = (int) Math.floor(box.getBounds().centerY());
 			// if the tile at the center of the box has a hitbox, we'll need to pathfind
 			// around it
 			wall |= Main.getLevel().get(tileX, tileY).solidBounds(tileX, tileY) != null;
@@ -372,21 +374,21 @@ public class Plorp extends Entity {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(getX() - 0.5, getY() - 0.5, 1, 1);
+		return new Hitrect(getX() - 0.5, getY() - 0.5, 1, 1);
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(getX() - 10, getY() - 10, 20, 20);
+		return new Hitrect(getX() - 10, getY() - 10, 20, 20);
 	}
 
 	public Hitbox getSolidBounds() {
 		if (state == State.DEAD)
-			return new Hitbox();
-		return new Hitbox(getX() - 0.05, getY() - 0.05, 0.1, 0.1);
+			return new Hitnull();
+		return new Hitrect(getX() - 0.05, getY() - 0.05, 0.1, 0.1);
 	}
 
 	public Hitbox getHitBounds() {
-		return new Hitbox(getX() - 0.4, getY() - 0.2, 0.8, 0.5);
+		return new Hitrect(getX() - 0.4, getY() - 0.2, 0.8, 0.5);
 	}
 
 	public void dealPlayerDamage(double damage) {

@@ -131,7 +131,7 @@ public abstract class Entity implements Serializable{
 				continue; // don't collide with self
 			Hitbox solid = e.getSolidBounds();
 			if (solid.intersects(box)) {
-				debug += "Hit entity at: " + solid.getBounds().getCenterX() + ", " + solid.getBounds().getCenterY() + " (" + velocity.x + ", " + velocity.y + ") : " + next.x + ", " + next.y + " -> ";
+				debug += "Hit entity at: " + solid.getBounds().centerX() + ", " + solid.getBounds().centerY() + " (" + velocity.x + ", " + velocity.y + ") : " + next.x + ", " + next.y + " -> ";
 				handleCollision(solid, next);
 				debug += next.x + ", " + next.y + "\n";
 
@@ -140,10 +140,10 @@ public abstract class Entity implements Serializable{
 		}
 
 		// Get the range of tiles that intersect with the bounds
-		int minX = (int) Math.floor(box.getBounds().getMinX());
-		int minY = (int) Math.floor(box.getBounds().getMinY());
-		int maxX = (int) Math.floor(box.getBounds().getMaxX());
-		int maxY = (int) Math.floor(box.getBounds().getMaxY());
+		int minX = (int) Math.floor(box.getBounds().x);
+		int minY = (int) Math.floor(box.getBounds().y);
+		int maxX = (int) Math.floor(box.getBounds().x + box.getBounds().w);
+		int maxY = (int) Math.floor(box.getBounds().y + box.getBounds().h);
 
 		// Loop through them and check if they intersect with this, handling collision
 		// if they do

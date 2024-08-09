@@ -20,6 +20,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.canvas.GraphicsContext;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Hitboxes;
+import com.zandgall.csc322.finalproj.util.Hitrect;
 
 public abstract class Tile {
 
@@ -233,13 +235,18 @@ public abstract class Tile {
 				// Load each path split by space
 				String tags[] = s.nextLine().split("\\s+");
 				ArrayList<String> paths = new ArrayList<>();
-				Hitbox box = new Hitbox();
+				Hitbox box = new Hitboxes();
 
 				// Check if there's a .box and/or .png file with the given path,
 				// Overlaying them all in the end
 				for (int i = 0; i < tags.length; i++) {
-					if (Tile.class.getResource(tags[i] + ".box") != null)
-						box.add(Hitbox.load(tags[i] + ".box"));
+					if (Tile.class.getResource(tags[i] + ".box") != null) {
+						Hitbox c = Hitbox.load(tags[i] + ".box");
+						if(c instanceof Hitrect)
+							box = c;
+						else if(box instanceof Hitboxes)
+							((Hitboxes)box).add(Hitbox.load(tags[i] + ".box"));
+					}
 					if (Tile.class.getResource(tags[i] + ".png") != null)
 						paths.add(tags[i] + ".png");
 				}

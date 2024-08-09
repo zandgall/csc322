@@ -4,6 +4,8 @@ import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.entity.Entity;
 import com.zandgall.csc322.finalproj.entity.PlantedSword;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Hitnull;
+import com.zandgall.csc322.finalproj.util.Hitrect;
 import com.zandgall.csc322.finalproj.util.Util;
 import com.zandgall.csc322.finalproj.util.Vector;
 
@@ -53,21 +55,21 @@ public class ThrownSword extends Entity {
 
 	@Override
 	public Hitbox getHitBounds() {
-		return new Hitbox();
+		return new Hitnull();
 	}
 
 	@Override
 	public Hitbox getSolidBounds() {	
-		return new Hitbox();
+		return new Hitnull();
 	}
 
 	@Override
 	public Hitbox getRenderBounds() {
-		return new Hitbox(getX()-1, getY()-1, 2, 2);
+		return new Hitrect(getX()-1, getY()-1, 2, 2);
 	}
 
 	@Override
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(Main.getLevel().bounds);
+		return new Hitrect(Main.getLevel().bounds);
 	}
 }

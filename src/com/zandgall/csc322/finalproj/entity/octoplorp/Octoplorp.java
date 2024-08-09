@@ -28,6 +28,8 @@ import com.zandgall.csc322.finalproj.entity.Player;
 import com.zandgall.csc322.finalproj.entity.Player.Special;
 import com.zandgall.csc322.finalproj.staging.Cutscene;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Hitnull;
+import com.zandgall.csc322.finalproj.util.Hitrect;
 import com.zandgall.csc322.finalproj.util.Point;
 import com.zandgall.csc322.finalproj.util.Vector;
 
@@ -79,7 +81,7 @@ public class Octoplorp extends Entity{
 	public void tick() {
 		switch (state) {
 			case SLEEPING:
-				if (new Hitbox(getX() - 15, getY() - 15, 30, 30).intersects(Main.getPlayer().getRenderBounds())) {
+				if (new Hitrect(getX() - 15, getY() - 15, 30, 30).intersects(Main.getPlayer().getRenderBounds())) {
 					state = State.WAKING;
 					// Wake up cutscene, open eyes and target the boss
 					Main.playCutscene(new Cutscene(5) {
@@ -251,21 +253,21 @@ public class Octoplorp extends Entity{
 	}
 
 	public Hitbox getRenderBounds() {	
-		return new Hitbox(tileX() - 3, tileY() - 3, 6, 6);
+		return new Hitrect(tileX() - 3, tileY() - 3, 6, 6);
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(Main.getLevel().bounds);
+		return new Hitrect(Main.getLevel().bounds);
 	}
 
 	public Hitbox getSolidBounds() {
-		return new Hitbox(tileX() - 3, tileY() - 3, 6, 6);
+		return new Hitrect(tileX() - 3, tileY() - 3, 6, 6);
 	}
 
 	public Hitbox getHitBounds() {
 		if(state == State.VULNERABLE)
-			return new Hitbox(tileX() - 3, tileY() - 3, 6, 6);
-		return new Hitbox();
+			return new Hitrect(tileX() - 3, tileY() - 3, 6, 6);
+		return new Hitnull();
 	}
 
 	@Override

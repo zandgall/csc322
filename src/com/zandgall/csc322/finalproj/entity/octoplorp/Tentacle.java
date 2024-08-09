@@ -8,6 +8,9 @@ import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.entity.Entity;
 import com.zandgall.csc322.finalproj.staging.Cutscene;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Hitboxes;
+import com.zandgall.csc322.finalproj.util.Hitnull;
+import com.zandgall.csc322.finalproj.util.Hitrect;
 import com.zandgall.csc322.finalproj.util.Path;
 import com.zandgall.csc322.finalproj.util.Point;
 import com.zandgall.csc322.finalproj.util.Util;
@@ -38,9 +41,8 @@ public class Tentacle extends Entity {
 	private double corpseRotation = 1.5 * Math.PI, corpseRotationVel = 1;
 	private Vector home, start, throwing, sword, corpse;
 
-	private Hitbox hitbox = new Hitbox();
+	private Hitboxes hitbox = new Hitboxes();
 
-	// private ArrayList<Segment> segments = new ArrayList<>();
 	private Path path = new Path(); // queue: points to travel
 	private ArrayList<Point> traveled = new ArrayList<>();
 	private HashMap<Point, Integer> segments = new HashMap<>();
@@ -345,7 +347,7 @@ public class Tentacle extends Entity {
 			orientation = segments.get(traveled.getLast());
 			traveled.removeLast();
 
-			hitbox = new Hitbox();
+			hitbox = new Hitboxes();
 			for(Point p : traveled)
 				hitbox.add(p.x, p.y, 1, 1);
 		}
@@ -466,26 +468,26 @@ public class Tentacle extends Entity {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(Main.getLevel().bounds);
+		return new Hitrect(Main.getLevel().bounds);
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(Main.getLevel().bounds);
+		return new Hitrect(Main.getLevel().bounds);
 	}
 
 	public Hitbox getSolidBounds() {
 		if(state == State.DEAD || state == State.DYING || state == State.RETRACTING)
-			return new Hitbox();
+			return new Hitnull();
 		return hitbox;
 	}
 
 	public Hitbox getHitBounds() {
 		return switch (orientation) {
-			case 0 -> new Hitbox(getX() - 0.5, getY() - 0.5, 2, 1);
-			case 1 -> new Hitbox(getX() - 0.5, getY() - 0.5, 1, 2);
-			case 2 -> new Hitbox(getX() - 1.5, getY() - 0.5, 2, 1);
-			case 3 -> new Hitbox(getX() - 0.5, getY() - 1.5, 1, 2);
-			default -> new Hitbox(getX() - 0.5, getY() - 0.5, 1, 1);
+			case 0 -> new Hitrect(getX() - 0.5, getY() - 0.5, 2, 1);
+			case 1 -> new Hitrect(getX() - 0.5, getY() - 0.5, 1, 2);
+			case 2 -> new Hitrect(getX() - 1.5, getY() - 0.5, 2, 1);
+			case 3 -> new Hitrect(getX() - 0.5, getY() - 1.5, 1, 2);
+			default -> new Hitrect(getX() - 0.5, getY() - 0.5, 1, 1);
 		};
 	}
 

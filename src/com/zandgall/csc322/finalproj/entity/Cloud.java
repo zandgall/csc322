@@ -11,6 +11,7 @@ package com.zandgall.csc322.finalproj.entity;
 
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Hitrect;
 import com.zandgall.csc322.finalproj.util.ShadowImage;
 
 import java.util.Random;
@@ -50,7 +51,7 @@ public class Cloud {
 		x -= speed;
 		// check against level bounds, if too far left, respawn on right side
 		if (!getRenderBounds().intersects(Main.getLevel().bounds))
-			x = Main.getLevel().bounds.x + Main.getLevel().bounds.width;
+			x = Main.getLevel().bounds.x + Main.getLevel().bounds.w;
 	}
 
 	public void render(GraphicsContext g) {
@@ -58,7 +59,7 @@ public class Cloud {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(x, y, 16, 16);
+		return new Hitrect(x, y, 16, 16);
 	}
 
 	public double getX() {

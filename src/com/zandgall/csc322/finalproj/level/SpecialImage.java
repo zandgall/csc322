@@ -1,8 +1,8 @@
 package com.zandgall.csc322.finalproj.level;
 
 import com.zandgall.csc322.finalproj.Main;
+import com.zandgall.csc322.finalproj.util.Rect;
 
-import java.awt.geom.Rectangle2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
@@ -31,11 +31,11 @@ public class SpecialImage {
 		g.drawImage(image, x, y, w, h);
 	}
 
-	public Rectangle2D getRenderBox() {
+	public Rect getRenderBox() {
 		double w = image.getWidth() / 16;
 		double h = image.getHeight() / 16;
 		double x = this.x - (w / 2);
 		double y = this.y - (h / 2);
-		return new Rectangle2D.Double(x, y, w, h);
+		return new Rect(x, y, w, h);
 	}
 }

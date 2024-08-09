@@ -22,6 +22,9 @@ import com.zandgall.csc322.finalproj.Camera;
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Hitboxes;
+import com.zandgall.csc322.finalproj.util.Hitnull;
+import com.zandgall.csc322.finalproj.util.Hitrect;
 import com.zandgall.csc322.finalproj.util.Util;
 import com.zandgall.csc322.finalproj.util.Vector;
 
@@ -41,7 +44,7 @@ public class Player extends Entity {
 
 	/* Sword data points */
 	private boolean hasSword = false;
-	private Hitbox swordBox;
+	private Hitboxes swordBox;
 	private double swordDirection = 0, swordTargetDirection = 0, swordRotationalVelocity = 0;
 	private double specialTimer = 0;
 	private Special specialMove = Special.NONE, previousMove = Special.NONE;
@@ -202,8 +205,8 @@ public class Player extends Entity {
 			swordDirection += Math.TAU;
 
 		// Update sword hitbox
-		swordBox = new Hitbox(-0.5, -0.5, 1.0, 1.0).translate(position).translate(Vector.ofAngle(swordDirection).scale(0.5));	
-		swordBox.add(new Hitbox(-0.5, -0.5, 1.0, 1.0).translate(position).translate(Vector.ofAngle(swordDirection).scale(1.5)));
+		swordBox = (Hitboxes)new Hitboxes(-0.5, -0.5, 1.0, 1.0).translate(position).translate(Vector.ofAngle(swordDirection).scale(0.5));
+		swordBox.add(new Hitboxes(-0.5, -0.5, 1.0, 1.0).translate(position).translate(Vector.ofAngle(swordDirection).scale(1.5)));
 	}
 
 	private void doCharge() {
@@ -226,7 +229,7 @@ public class Player extends Entity {
 
 		// Check for and damage intersecting entities
 		for (Entity e : Main.getLevel().getEntities())
-			if (e.getHitBounds().intersects(new Hitbox(-1, -1, 2, 2).translate(position).translate(Vector.ofAngle(swordDirection))))
+			if (e.getHitBounds().intersects(new Hitrect(-1, -1, 2, 2).translate(position).translate(Vector.ofAngle(swordDirection))))
 				e.dealPlayerDamage(2);
 
 		// When special runs out, update variables and boost swing speed
@@ -251,7 +254,7 @@ public class Player extends Entity {
 
 		// Check for and damage intersecting entities
 		for (Entity e : Main.getLevel().getEntities())
-			if (e.getHitBounds().intersects(new Hitbox(-1, -1, 2, 2).translate(position).translate(Vector.ofAngle(swordDirection))))
+			if (e.getHitBounds().intersects(new Hitrect(-1, -1, 2, 2).translate(position).translate(Vector.ofAngle(swordDirection))))
 				e.dealPlayerDamage(2);
 
 		// When special runs out, update variables
@@ -327,19 +330,19 @@ public class Player extends Entity {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(getX() - 0.5, getY() - 0.5, 1, 1);
+		return new Hitrect(getX() - 0.5, getY() - 0.5, 1, 1);
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(Main.getLevel().bounds);
+		return new Hitrect(Main.getLevel().bounds);
 	}
 
 	public Hitbox getSolidBounds() {
-		return new Hitbox(getX() - 0.4, getY() - 0.4, 0.8, 0.8);
+		return new Hitrect(getX() - 0.4, getY() - 0.4, 0.8, 0.8);
 	}
 
 	public Hitbox getHitBounds() {
-		return new Hitbox(getX() - 0.4, getY() - 0.4, 0.8, 0.8);
+		return new Hitrect(getX() - 0.4, getY() - 0.4, 0.8, 0.8);
 	}
 
 	// When recieving damage, only take damage if player wasn't hit in last second,
@@ -419,19 +422,19 @@ public class Player extends Entity {
 		}
 
 		public Hitbox getRenderBounds() {
-			return new Hitbox(getX() - 1, getY() - 1.5, 1.625, 3);
+			return new Hitrect(getX() - 1, getY() - 1.5, 1.625, 3);
 		}
 
 		public Hitbox getUpdateBounds() {
-			return new Hitbox(Main.getLevel().bounds);
+			return new Hitrect(Main.getLevel().bounds);
 		}
 
 		public Hitbox getSolidBounds() {
-			return new Hitbox();
+			return new Hitnull();
 		}
 
 		public Hitbox getHitBounds() {
-			return new Hitbox();
+			return new Hitnull();
 		}
 
 	}
@@ -472,19 +475,19 @@ public class Player extends Entity {
 		}
 
 		public Hitbox getRenderBounds() {
-			return new Hitbox(getX() - 0.75, getY() - 0.75, 1.5, 1.5);
+			return new Hitrect(getX() - 0.75, getY() - 0.75, 1.5, 1.5);
 		}
 
 		public Hitbox getUpdateBounds() {
-			return new Hitbox(Main.getLevel().bounds);
+			return new Hitrect(Main.getLevel().bounds);
 		}
 
 		public Hitbox getSolidBounds() {
-			return new Hitbox();
+			return new Hitnull();
 		}
 
 		public Hitbox getHitBounds() {
-			return new Hitbox();
+			return new Hitnull();
 		}
 	}
 

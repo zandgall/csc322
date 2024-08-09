@@ -15,6 +15,8 @@ import javafx.scene.canvas.GraphicsContext;
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Hitnull;
+import com.zandgall.csc322.finalproj.util.Hitrect;
 import com.zandgall.csc322.finalproj.util.ShadowImage;
 
 public class Tree extends Entity {
@@ -41,7 +43,7 @@ public class Tree extends Entity {
 
 	@Override
 	public void render(GraphicsContext g1, GraphicsContext gs, GraphicsContext g2) {
-		Hitbox treebox = new Hitbox(getX() - 1.0, getY() - 2.5, 2, 1.6);
+		Hitbox treebox = new Hitrect(getX() - 1.0, getY() - 2.5, 2, 1.6);
 		// if the player is behind the leaves, slowly shift "peekTransparency" to 0.75
 		// opacity, otherwise shift it to full opacity
 		if (treebox.intersects(Main.getPlayer().getRenderBounds()))
@@ -64,21 +66,21 @@ public class Tree extends Entity {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(getX() - 1.5, getY() - 3.5, 3.0, 5.0);
+		return new Hitrect(getX() - 1.5, getY() - 3.5, 3.0, 5.0);
 	}
 
 	// Tree doesn't update, so empty hitbox
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(getX() - 1.5, getY() - 3.5, 3.0, 5.0);
+		return new Hitrect(getX() - 1.5, getY() - 3.5, 3.0, 5.0);
 	}
 
 	// Only the tile at the trunk is solid
 	public Hitbox getSolidBounds() {
-		return new Hitbox(getX() - 0.3, getY() - 0.3, 0.6, 0.6);
+		return new Hitrect(getX() - 0.3, getY() - 0.3, 0.6, 0.6);
 	}
 
 	public Hitbox getHitBounds() {
-		return new Hitbox();
+		return new Hitnull();
 	}
 
 	public double getRenderLayer() {

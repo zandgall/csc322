@@ -49,6 +49,7 @@ import com.zandgall.csc322.finalproj.entity.Entity;
 import com.zandgall.csc322.finalproj.entity.EntityRegistry;
 import com.zandgall.csc322.finalproj.level.Level;
 import com.zandgall.csc322.finalproj.level.Tile;
+import com.zandgall.csc322.finalproj.util.Rect;
 
 public class LevelEditor extends Main {
 
@@ -227,13 +228,13 @@ public class LevelEditor extends Main {
 		s.writeByte(2);
 
 		// Write the y range of the tiles in this level
-		s.writeInt(level.bounds.y);
-		s.writeInt(level.bounds.height);
+		s.writeInt((int)level.bounds.y);
+		s.writeInt((int)level.bounds.h);
 
 		// Loop through every y value and write a line of tiles
-		for (int y = level.bounds.y; y <= level.bounds.y + level.bounds.height; y++) {
+		for (int y = (int)level.bounds.y; y <= level.bounds.y + level.bounds.h; y++) {
 			boolean writing = false, wroteLineEnd = false;
-			for (int x = level.bounds.x; x <= level.bounds.x + level.bounds.width && !wroteLineEnd; x++) {
+			for (int x = (int)level.bounds.x; x <= level.bounds.x + level.bounds.w && !wroteLineEnd; x++) {
 				if (level.get(x, y) == null || level.get(x,y).getID() == 0) {
 					if (!writing)
 						continue; // until we hit tiles
@@ -243,7 +244,7 @@ public class LevelEditor extends Main {
 					boolean endOfLine = true;
 					s.writeInt(0); // write empty tile
 					System.out.println("Writing empty tile");
-					for (int i = x; i < level.bounds.getWidth(); i++) {
+					for (int i = x; i < level.bounds.w; i++) {
 						if (level.get(i, y) != null && level.get(i, y).getID() != 0) {
 							endOfLine = false;
 							s.writeInt((i - x) + 1); // write number of empty tiles in this line
@@ -561,14 +562,14 @@ public class LevelEditor extends Main {
 			entityContext.strokeRect(0, 0, 66, 66);
 
 			Entity e = entityInstances.get(index);
-			Rectangle2D bounds = e.getRenderBounds().getBounds();
+			Rect bounds = e.getRenderBounds().getBounds();
 			entityContext.translate(2, 2);
 			entityContext.scale(64, 64);
-			double maxDim = Math.max(bounds.getWidth(), bounds.getHeight());
+			double maxDim = Math.max(bounds.w, bounds.h);
 			double scale = 1.0 / maxDim;
 			entityContext.scale(scale, scale);
-			entityContext.translate(-bounds.getX() + (maxDim - bounds.getWidth()) / 2,
-					-bounds.getY() + (maxDim - bounds.getHeight()) / 2);
+			entityContext.translate(-bounds.x + (maxDim - bounds.w) / 2,
+					-bounds.y + (maxDim - bounds.h) / 2);
 			e.render(entityContext, throwawayContext, entityContext);
 			entityContext.restore();
 		}
@@ -604,10 +605,10 @@ public class LevelEditor extends Main {
 		for (EditorEntity e : entities) {
 			e.update();
 			e.get().render(c1, s0, c2);
-			Rectangle2D bounds = e.get().getRenderBounds().getBounds();
+			Rect bounds = e.get().getRenderBounds().getBounds();
 			c2.setStroke(Color.rgb(0, 0, 0, 0.5));
 			c2.setLineWidth(0.05);
-			c2.strokeRect(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+			c2.strokeRect(bounds.x, bounds.y, bounds.w, bounds.h);
 		}
 
 		if (mode.getText().equals("Tile mode")) {
@@ -624,13 +625,13 @@ public class LevelEditor extends Main {
 			if (selectedEntity != null) {
 				selectedEntity.update();
 				Entity e = selectedEntity.get();
-				Rectangle2D bounds = e.getRenderBounds().getBounds();
+				Rect bounds = e.getRenderBounds().getBounds();
 				c2.setLineWidth(0.1);
 				c2.setStroke(Color.BLACK);
-				c2.strokeRect(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+				c2.strokeRect(bounds.x, bounds.y, bounds.w, bounds.h);
 				bounds = e.getSolidBounds().getBounds();
 				c2.setStroke(Color.RED);
-				c2.strokeRect(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+				c2.strokeRect(bounds.x, bounds.y, bounds.w, bounds.h);
 			}
 		}
 
@@ -656,7 +657,7 @@ public class LevelEditor extends Main {
 		if (selectedEntity == null)
 			return;
 		Entity e = selectedEntity.get();
-		Rectangle2D bounds = e.getRenderBounds().getBounds();
+		Rect bounds = e.getRenderBounds().getBounds();
 		gc2 = currentEntityView.getGraphicsContext2D();
 		gc2.setImageSmoothing(false);
 		gc2.clearRect(0, 0, 128, 128);
@@ -666,8 +667,8 @@ public class LevelEditor extends Main {
 		gc2.save();
 		gc2.translate(3, 3);
 		gc2.scale(128, 128);
-		double scale = Math.min(1 / bounds.getWidth(), 1 / bounds.getHeight());
-		gc2.translate(-scale * bounds.getX(), -scale * bounds.getY());
+		double scale = Math.min(1 / bounds.w, 1 / bounds.h);
+		gc2.translate(-scale * bounds.x, -scale * bounds.y);
 		gc2.scale(scale, scale);
 		e.render(gc2, throwawayContext, gc2);
 		gc2.restore();

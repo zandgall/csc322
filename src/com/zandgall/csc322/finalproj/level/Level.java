@@ -13,6 +13,8 @@ import com.zandgall.csc322.finalproj.entity.EntityRegistry;
 import com.zandgall.csc322.finalproj.entity.Entity;
 import com.zandgall.csc322.finalproj.entity.Cloud;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Hitrect;
+import com.zandgall.csc322.finalproj.util.Rect;
 import com.zandgall.csc322.finalproj.Camera;
 import com.zandgall.csc322.finalproj.Main;
 
@@ -33,14 +35,12 @@ import java.util.Scanner;
 import javax.imageio.ImageIO;
 import javafx.embed.swing.SwingFXUtils;
 
-import java.awt.geom.Rectangle2D;
-import java.awt.Rectangle;
 import java.io.ObjectInputStream;
 import java.io.File;
 import java.io.IOException;
 
 public class Level {
-	public Rectangle bounds = new Rectangle(0, 0, 0, 0);
+	public Rect bounds = new Rect();
 	private HashMap<Integer, HashMap<Integer, Tile>> level = new HashMap<>();
 
 	private static final int CHUNK_SIZE = 128;
@@ -134,9 +134,9 @@ public class Level {
 
 		// Populate clouds
 		Random r = new Random();
-		for (int i = 0; i < bounds.width * bounds.height / 200; i++)
-			clouds.add(new Cloud(r.nextDouble(bounds.x, bounds.x + bounds.width),
-					r.nextDouble(bounds.y, bounds.y + bounds.height)));
+		for (int i = 0; i < bounds.w * bounds.h / 200; i++)
+			clouds.add(new Cloud(r.nextDouble(bounds.x, bounds.x + bounds.w),
+					r.nextDouble(bounds.y, bounds.y + bounds.h)));
 
 		s.close();
 
@@ -176,12 +176,6 @@ public class Level {
 	}
 
 	public void tick() {
-		Camera c = Main.getCamera();
-		// TODO: Pull out to Camera.getScreenBounds()
-		Hitbox screen = new Hitbox(c.getX() - 0.5 * Main.layer_0.getWidth() / c.getZoom(),
-				c.getY() - 0.5 * Main.layer_0.getHeight() / c.getZoom(), Main.layer_0.getWidth() / c.getZoom(),
-				Main.layer_0.getHeight() / c.getZoom());
-
 		flushEntityQueues();
 
 		for (Cloud cloud : clouds)
@@ -190,7 +184,7 @@ public class Level {
 
 	public void flushEntityQueues() {
 		Camera c = Main.getCamera();
-		Hitbox screen = new Hitbox(c.getX() - 0.5 * Main.layer_0.getWidth() / c.getZoom(),
+		Hitbox screen = new Hitrect(c.getX() - 0.5 * Main.layer_0.getWidth() / c.getZoom(),
 			c.getY() - 0.5 * Main.layer_0.getHeight() / c.getZoom(), Main.layer_0.getWidth() / c.getZoom(),
 			Main.layer_0.getHeight() / c.getZoom());
 
@@ -229,7 +223,7 @@ public class Level {
 		int yMin = (int) Math.floor(-af.getTy() / af.getMyy());
 		int yMax = (int) (-af.getTy() / af.getMyy() + (1 / af.getMyy()) * Main.layer_0.getHeight());
 	
-		Rectangle2D.Double screenBounds = new Rectangle2D.Double(-af.getTx() / af.getMxx(), -af.getTy() / af.getMyy(),
+		Rect screenBounds = new Rect(-af.getTx() / af.getMxx(), -af.getTy() / af.getMyy(),
 				Main.layer_0.getWidth() / af.getMxx(), Main.layer_0.getHeight() / af.getMyy());
 
 		for(SpecialImage i : specialImages.get(0))
@@ -247,10 +241,10 @@ public class Level {
 					context_0.restore();
 				}
 		else {
-			xMin = (xMin - bounds.x) / (CHUNK_SIZE / 16);
-			yMin = (yMin - bounds.y) / (CHUNK_SIZE / 16);
-			xMax = (xMax - bounds.x) / (CHUNK_SIZE / 16);
-			yMax = (yMax - bounds.y) / (CHUNK_SIZE / 16);
+			xMin = (int)(xMin - bounds.x) / (CHUNK_SIZE / 16);
+			yMin = (int)(yMin - bounds.y) / (CHUNK_SIZE / 16);
+			xMax = (int)(xMax - bounds.x) / (CHUNK_SIZE / 16);
+			yMax = (int)(yMax - bounds.y) / (CHUNK_SIZE / 16);
 			for (int x = xMin; x <= xMax; x++) {
 				for (int y = yMin; y <= yMax; y++) {
 					if(images_0.get(x) == null || images_0.get(x).get(y) == null)
@@ -278,11 +272,11 @@ public class Level {
 	}
 
 	public void writeImage() {
-		Canvas c = new Canvas(bounds.getWidth() * 16, bounds.getHeight()*16);
+		Canvas c = new Canvas(bounds.w * 16, bounds.h * 16);
 		GraphicsContext g = c.getGraphicsContext2D();
 		for(Map.Entry<Integer, HashMap<Integer, Tile>> xT : level.entrySet())
 			for(Map.Entry<Integer, Tile> yT : xT.getValue().entrySet()) {
-				g.setTransform(16, 0, 0, 16, xT.getKey()*16-bounds.getMinX()*16, yT.getKey()*16-bounds.getMinY()*16);
+				g.setTransform(16, 0, 0, 16, xT.getKey()*16-bounds.x*16, yT.getKey()*16-bounds.y*16);
 				yT.getValue().render(g);
 			}
 		try {

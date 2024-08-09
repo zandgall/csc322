@@ -15,6 +15,8 @@ import javafx.scene.canvas.GraphicsContext;
 import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.util.Hitbox;
+import com.zandgall.csc322.finalproj.util.Hitnull;
+import com.zandgall.csc322.finalproj.util.Hitrect;
 
 public class PlantedSword extends Entity {
 
@@ -28,13 +30,13 @@ public class PlantedSword extends Entity {
 
 	public PlantedSword(double x, double y) {
 		super(x, y);
-		swordbox = new Hitbox(x - 0.5, y - 0.2, 1.0, 0.4);
+		swordbox = new Hitrect(x - 0.5, y - 0.2, 1.0, 0.4);
 	}
 
 	@Override
 	public void tick() {
 		if (swordbox == null)
-			swordbox = new Hitbox(position.x - 0.5, position.y - 0.2, 1.0, 0.4);
+			swordbox = new Hitrect(position.x - 0.5, position.y - 0.2, 1.0, 0.4);
 		if(Main.getPlayer().getPosition().sqDist(position) < 45*45) {
 			float f = 1.f - ((float)Main.getPlayer().getPosition().dist(position) / 45.f);
 			Sound.EPiano.setMinVolume(f*f);
@@ -52,19 +54,19 @@ public class PlantedSword extends Entity {
 	}
 
 	public Hitbox getRenderBounds() {
-		return new Hitbox(position.x - 1, position.y - 1.8, 2, 2);
+		return new Hitrect(position.x - 1, position.y - 1.8, 2, 2);
 	}
 
 	public Hitbox getUpdateBounds() {
-		return new Hitbox(position.x - 45, position.y - 45, 90, 90);
+		return new Hitrect(position.x - 45, position.y - 45, 90, 90);
 	}
 
 	public Hitbox getSolidBounds() {
-		return new Hitbox();
+		return new Hitnull();
 	}
 
 	public Hitbox getHitBounds() {
-		return new Hitbox();
+		return new Hitnull();
 	}
 
 }
