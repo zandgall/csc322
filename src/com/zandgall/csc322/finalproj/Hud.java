@@ -20,6 +20,7 @@ import javafx.scene.text.TextAlignment;
 
 public class Hud {
 	private static final Image popup = new Image("/popup.png");
+	private static final Font FONT32 = Font.font(32), FONT16 = Font.font(16);
 
 	private double healthOpacity = 0, deathOpacity = 0, respawnOpacity = 0, closeOpacity = 0;
 	private boolean respawning = false, closing = false;
@@ -113,10 +114,10 @@ public class Hud {
 			g.drawImage(popup, 16, 0, 16, 48, 32, Main.scene.getHeight() - 96, Main.scene.getWidth() - 64, 96);
 			g.drawImage(popup, 32, 0, 16, 48, Main.scene.getWidth() - 32, Main.scene.getHeight() - 96, 32, 96);
 			g.drawImage(collected.getTexture(), 16, Main.scene.getHeight()-80, 64, 64);
-			g.setFont(Font.font(32));
+			g.setFont(FONT32);
 			g.setFill(new Color(0.05, 0.05, 0.1, 1));
 			g.fillText(collected.getTitle(), 96, Main.scene.getHeight() - 48, Main.scene.getWidth() - 192);
-			g.setFont(Font.font(16));
+			g.setFont(FONT16);
 			g.fillText(collected.getDescription(), 96, Main.scene.getHeight() - 16, Main.scene.getWidth() - 192);
 		}
 	}
