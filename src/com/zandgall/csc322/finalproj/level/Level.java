@@ -46,10 +46,11 @@ public class Level {
 	private static final int CHUNK_SIZE = 128;
 	private static final boolean USE_TILES = false;
 
-	private HashMap<Integer, HashMap<Integer, Image>> images_0 = new HashMap<>();
-	private HashMap<Integer, HashMap<Integer, Image>> images_1 = new HashMap<>();
-	private HashMap<Integer, HashMap<Integer, Image>> shadow_0 = new HashMap<>();
-	private HashMap<Integer, HashMap<Integer, Image>> shadow_1 = new HashMap<>();
+	// private HashMap<Integer, HashMap<Integer, Image>> images_0 = new HashMap<>();
+	// private HashMap<Integer, HashMap<Integer, Image>> images_1 = new HashMap<>();
+	// private HashMap<Integer, HashMap<Integer, Image>> shadow_0 = new HashMap<>();
+	// private HashMap<Integer, HashMap<Integer, Image>> shadow_1 = new HashMap<>();
+	private Image[][] images_0, images_1, shadow_0, shadow_1;
 
 	private ArrayList<ArrayList<SpecialImage>> specialImages = new ArrayList<>();
 
@@ -151,24 +152,24 @@ public class Level {
 		Image l1 = new Image("/level_1.png");
 		Image s0 = new Image("/shadow_0.png");
 		Image s1 = new Image("/shadow_1.png");
+		images_0 = new Image[(int)Math.ceil(l0.getWidth()/CHUNK_SIZE)][(int)Math.ceil(l0.getHeight()/CHUNK_SIZE)];
+		images_1 = new Image[(int)Math.ceil(l0.getWidth()/CHUNK_SIZE)][(int)Math.ceil(l0.getHeight()/CHUNK_SIZE)];
+		shadow_0 = new Image[(int)Math.ceil(l0.getWidth()/CHUNK_SIZE)][(int)Math.ceil(l0.getHeight()/CHUNK_SIZE)];
+		shadow_1 = new Image[(int)Math.ceil(l0.getWidth()/CHUNK_SIZE)][(int)Math.ceil(l0.getHeight()/CHUNK_SIZE)];
 		for(int i = 0; i < l0.getWidth() / CHUNK_SIZE; i++) {
-			images_0.put(i, new HashMap<>());
-			images_1.put(i, new HashMap<>());
-			shadow_0.put(i, new HashMap<>());
-			shadow_1.put(i, new HashMap<>());
 			for(int j = 0; j < l0.getHeight() / CHUNK_SIZE; j++) {
 				g.clearRect(0, 0, CHUNK_SIZE, CHUNK_SIZE);
 				g.drawImage(l0, -i*CHUNK_SIZE, -j*CHUNK_SIZE);
-				images_0.get(i).put(j, cropper.snapshot(p, null));
+				images_0[i][j] = cropper.snapshot(p, null);
 				g.clearRect(0, 0, CHUNK_SIZE, CHUNK_SIZE);
 				g.drawImage(l1, -i*CHUNK_SIZE, -j*CHUNK_SIZE);
-				images_1.get(i).put(j, cropper.snapshot(p, null));
+				images_1[i][j] = cropper.snapshot(p, null);
 				g.clearRect(0, 0, CHUNK_SIZE, CHUNK_SIZE);
 				g.drawImage(s0, -i*CHUNK_SIZE, -j*CHUNK_SIZE);
-				shadow_0.get(i).put(j, cropper.snapshot(p, null));
+				shadow_0[i][j] = cropper.snapshot(p, null);
 				g.clearRect(0, 0, CHUNK_SIZE, CHUNK_SIZE);
 				g.drawImage(s1, -i*CHUNK_SIZE, -j*CHUNK_SIZE);
-				shadow_1.get(i).put(j, cropper.snapshot(p, null));
+				shadow_1[i][j] = cropper.snapshot(p, null);
 
 			}
 		}
@@ -241,18 +242,16 @@ public class Level {
 					context_0.restore();
 				}
 		else {
-			xMin = (int)(xMin - bounds.x) / (CHUNK_SIZE / 16);
-			yMin = (int)(yMin - bounds.y) / (CHUNK_SIZE / 16);
+			xMin = Math.max((int)(xMin - bounds.x) / (CHUNK_SIZE / 16), 0);
+			yMin = Math.max((int)(yMin - bounds.y) / (CHUNK_SIZE / 16), 0);
 			xMax = (int)(xMax - bounds.x) / (CHUNK_SIZE / 16);
 			yMax = (int)(yMax - bounds.y) / (CHUNK_SIZE / 16);
-			for (int x = xMin; x <= xMax; x++) {
-				for (int y = yMin; y <= yMax; y++) {
-					if(images_0.get(x) == null || images_0.get(x).get(y) == null)
-						continue;
-					context_0.drawImage(images_0.get(x).get(y), x*CHUNK_SIZE / 16 + bounds.x, y * CHUNK_SIZE / 16 + bounds.y, CHUNK_SIZE/16, CHUNK_SIZE / 16);
-					context_2.drawImage(images_1.get(x).get(y), x*CHUNK_SIZE / 16 + bounds.x, y * CHUNK_SIZE / 16 + bounds.y, CHUNK_SIZE/16, CHUNK_SIZE / 16);
-					shadow_0.drawImage(this.shadow_0.get(x).get(y), x*CHUNK_SIZE / 16 + bounds.x, y * CHUNK_SIZE / 16 + bounds.y, CHUNK_SIZE/16, CHUNK_SIZE / 16);
-					shadow_1.drawImage(this.shadow_1.get(x).get(y), x*CHUNK_SIZE / 16 + bounds.x, y * CHUNK_SIZE / 16 + bounds.y, CHUNK_SIZE/16, CHUNK_SIZE / 16);
+			for (int x = xMin; x <= xMax && x < images_0.length; x++) {
+				for (int y = yMin; y <= yMax && y < images_0[x].length; y++) {
+					context_0.drawImage(images_0[x][y], x*CHUNK_SIZE / 16 + bounds.x, y * CHUNK_SIZE / 16 + bounds.y, CHUNK_SIZE/16, CHUNK_SIZE / 16);
+					context_2.drawImage(images_1[x][y], x*CHUNK_SIZE / 16 + bounds.x, y * CHUNK_SIZE / 16 + bounds.y, CHUNK_SIZE/16, CHUNK_SIZE / 16);
+					shadow_0.drawImage(this.shadow_0[x][y], x*CHUNK_SIZE / 16 + bounds.x, y * CHUNK_SIZE / 16 + bounds.y, CHUNK_SIZE/16, CHUNK_SIZE / 16);
+					shadow_1.drawImage(this.shadow_1[x][y], x*CHUNK_SIZE / 16 + bounds.x, y * CHUNK_SIZE / 16 + bounds.y, CHUNK_SIZE/16, CHUNK_SIZE / 16);
 				}
 			}
 		}
