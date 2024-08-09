@@ -83,6 +83,7 @@ public class Octoplorp extends Entity{
 			case SLEEPING:
 				if (new Hitrect(getX() - 15, getY() - 15, 30, 30).intersects(Main.getPlayer().getRenderBounds())) {
 					state = State.WAKING;
+					Main.getPlayer().cutsceneSword(Main.getPlayer().getSwordRotation(), 0, 0, Player.Special.NONE);
 					// Wake up cutscene, open eyes and target the boss
 					Main.playCutscene(new Cutscene(5) {
 						float t = 0;
@@ -307,10 +308,10 @@ public class Octoplorp extends Entity{
 					y = y * 0.95 + upY * 0.05;
 					Main.getPlayer().setX(position.x);
 					Main.getPlayer().setY(y);
-					Main.getPlayer().cutsceneSword(0.5 * Math.PI, 4 + t, Player.Special.NONE);
+					Main.getPlayer().cutsceneSword(0.5 * Math.PI, 4 + t, 0, Player.Special.NONE);
 				} else if (!stabbing) {	
 					if(Main.keys.get(KeyCode.Z)) {
-						Main.getPlayer().cutsceneSword(0.5 * Math.PI, 0, Player.Special.STAB);
+						Main.getPlayer().cutsceneSword(0.5 * Math.PI, 0, 0, Player.Special.STAB);
 						stabbing = true;
 						t = 1;
 						Sound.TheKill.play();

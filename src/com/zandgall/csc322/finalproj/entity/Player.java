@@ -381,10 +381,16 @@ public class Player extends Entity {
 		Sound.BossEPiano.fadeTo(0.f);
 	}
 
-	public void cutsceneSword(double rotation, double specialTimer, Special special) {
+	public double getSwordRotation() {
+		return swordDirection;
+	}
+
+	public void cutsceneSword(double rotation, double specialTimer, double speed, Special special) {
 		this.swordDirection = rotation;
+		this.swordRotationalVelocity = speed;
 		this.specialTimer = specialTimer;
 		this.specialMove = special;
+		this.dashTimer = 0;
 	}
 
 	private static class StabBeam extends Entity {
