@@ -450,14 +450,6 @@ public class Tentacle extends Entity {
 			g.drawImage(sheet, 48, 16, 16, 16, start.x - 0.5, start.y - 0.5, 1, 1);
 		else
 			g.drawImage(sheet, 64, 32, 16, 16, start.x - 0.5, start.y - 0.5, 1, 1);
-
-		g.setLineWidth(0.02);
-		g.setFill(Color.BLUEVIOLET);
-		for (Point p : traveled)
-			g.strokeRect(p.x, p.y, 1, 1);
-
-		if (!path.empty())
-			path.debugRender(g);
 	}
 
 	public Hitbox getRenderBounds() {

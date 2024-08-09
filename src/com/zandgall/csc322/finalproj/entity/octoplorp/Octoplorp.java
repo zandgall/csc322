@@ -262,7 +262,7 @@ public class Octoplorp extends Entity{
 	}
 
 	public Hitbox getSolidBounds() {
-		return new Hitrect(tileX() - 3, tileY() - 3, 6, 6);
+		return new Hitrect(tileX() - 3, tileY() + 1, 6, 2);
 	}
 
 	public Hitbox getHitBounds() {
