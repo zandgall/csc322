@@ -1,5 +1,4 @@
-/* CSC322 FINAL PROJECT - PROF. SUSAN FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
+/* zandgall
 
  ## Hud
  # A simple class that renders out an in-game Hud to draw a basic player healthbar to the screen

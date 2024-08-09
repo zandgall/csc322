@@ -1,6 +1,4 @@
-/* CSC 322 FINAL PROJECT - PROF. SUSAN FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
+/* zandgall
 
  ## Level
  # Stores information about the world, and serves as a wrapper to update and render all things in a level
@@ -22,7 +20,6 @@ import javafx.scene.transform.Affine;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.image.Image;
 
@@ -46,19 +43,20 @@ public class Level {
 	private static final int CHUNK_SIZE = 128;
 	private static final boolean USE_TILES = false;
 
-	// private HashMap<Integer, HashMap<Integer, Image>> images_0 = new HashMap<>();
-	// private HashMap<Integer, HashMap<Integer, Image>> images_1 = new HashMap<>();
-	// private HashMap<Integer, HashMap<Integer, Image>> shadow_0 = new HashMap<>();
-	// private HashMap<Integer, HashMap<Integer, Image>> shadow_1 = new HashMap<>();
+	// Level graphics
+	// TODO: Pick.. better names
 	private Image[][] images_0, images_1, shadow_0, shadow_1;
 
+	// A set of special background images, only 1 layer (0) is used right now
 	private ArrayList<ArrayList<SpecialImage>> specialImages = new ArrayList<>();
 
+	// List of entities and two queues for removal and addition
 	private ArrayList<Entity> entities = new ArrayList<>(), removeQueue = new ArrayList<>(),
 			addQueue = new ArrayList<>();
 	private ArrayList<Cloud> clouds = new ArrayList<>();
 
 	public Level() {
+		// Load special background images
 		Scanner s = new Scanner(Level.class.getResourceAsStream("/special.txt"));
 		specialImages.add(new ArrayList<>());
 		while(s.hasNextLine()) {
@@ -144,10 +142,13 @@ public class Level {
 	}
 
 	public void loadGraphics() {
+		// Objects to crop the loaded images
 		Canvas cropper = new Canvas(CHUNK_SIZE, CHUNK_SIZE);
 		SnapshotParameters p = new SnapshotParameters();
 		p.setFill(Color.TRANSPARENT);
 		GraphicsContext g = cropper.getGraphicsContext2D();
+
+		// Load images and create output array
 		Image l0 = new Image("/level_0.png");
 		Image l1 = new Image("/level_1.png");
 		Image s0 = new Image("/shadow_0.png");
@@ -156,6 +157,8 @@ public class Level {
 		images_1 = new Image[(int)Math.ceil(l0.getWidth()/CHUNK_SIZE)][(int)Math.ceil(l0.getHeight()/CHUNK_SIZE)];
 		shadow_0 = new Image[(int)Math.ceil(l0.getWidth()/CHUNK_SIZE)][(int)Math.ceil(l0.getHeight()/CHUNK_SIZE)];
 		shadow_1 = new Image[(int)Math.ceil(l0.getWidth()/CHUNK_SIZE)][(int)Math.ceil(l0.getHeight()/CHUNK_SIZE)];
+
+		// Loop through every chunk, cropping each image and putting it in the images arrays
 		for(int i = 0; i < l0.getWidth() / CHUNK_SIZE; i++) {
 			for(int j = 0; j < l0.getHeight() / CHUNK_SIZE; j++) {
 				g.clearRect(0, 0, CHUNK_SIZE, CHUNK_SIZE);
@@ -170,7 +173,6 @@ public class Level {
 				g.clearRect(0, 0, CHUNK_SIZE, CHUNK_SIZE);
 				g.drawImage(s1, -i*CHUNK_SIZE, -j*CHUNK_SIZE);
 				shadow_1[i][j] = cropper.snapshot(p, null);
-
 			}
 		}
 
@@ -272,6 +274,7 @@ public class Level {
 		}
 	}
 
+	// Used by LevelEditor to write a reference image
 	public void writeImage() {
 		Canvas c = new Canvas(bounds.w * 16, bounds.h * 16);
 		GraphicsContext g = c.getGraphicsContext2D();

@@ -1,6 +1,4 @@
-/* CSC322 FINAL PROJECT - PROF. FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
+/* zandgall
 
  ## Shadow Image
  # Caches a shadow texture with blur and a color effect, reduces overhead later

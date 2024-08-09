@@ -1,7 +1,4 @@
-/* CSC322 FINAL PROJECT - PROF. SUSAN FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
-
+/* zandgall
 
  ## Health Flower
  # A simple animated pickup entity that grants the player more health

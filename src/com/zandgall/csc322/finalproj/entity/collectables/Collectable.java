@@ -1,3 +1,10 @@
+/* zandgall
+
+ ## Collectable
+ # An entity subclass that is used to easily and quickly instantialize collectables
+
+ : MADE IN NEOVIM */
+
 package com.zandgall.csc322.finalproj.entity.collectables;
 
 import com.zandgall.csc322.finalproj.Main;

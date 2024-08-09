@@ -1,6 +1,4 @@
-/* CSC322 FINAL PROJECT - PROF. FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
+/* zandgall
 
  ## Main
  # Initiates as a javafx application
@@ -14,7 +12,6 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.event.EventHandler;
@@ -45,8 +42,7 @@ public class Main extends Application {
 
 	public static Main instance = null;
 
-	public static HashMap<KeyCode, Boolean> keys;
-	public static HashMap<KeyCode, Boolean> pKeys;
+	public static HashMap<KeyCode, Boolean> keys, pKeys;
 	public static KeyCode lastKey = KeyCode.A;
 
 	// JavaFX Elements

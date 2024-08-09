@@ -1,3 +1,10 @@
+/* zandgall
+
+ ## Hitboxes
+ # A hitbox type that consists of several rectangles joined together.
+
+ : MADE IN NEOVIM */
+
 package com.zandgall.csc322.finalproj.util;
 
 import java.util.ArrayList;

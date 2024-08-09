@@ -1,3 +1,11 @@
+/* zandgall
+
+## Tentacle
+# Class used by Octoplorp that acts as its tentacles.
+# Chases player and switches states
+
+: MADE IN NEOVIM */
+
 package com.zandgall.csc322.finalproj.entity.octoplorp;
 
 import java.util.ArrayList;
@@ -30,23 +38,31 @@ public class Tentacle extends Entity {
 		DEAD, DYING, RESTING, GRABBING, GRABBED, WINDUP, CHASING, REPOSITION, RETRACTING, INJURED, SWINGING
 	};
 
+	public State state = State.RESTING;
+
+	// Determines the segment types for rendering
 	public static enum SegType {
 		STRAIGHT, TURN_RIGHT, TURN_LEFT
 	};
 
-	public State state = State.RESTING;
-
+	// Double attributes - health, an internal timer, the speed of the tentacle, and how much damage it does to player
 	public double health = 100.0, timer = 0, speed = 1, damage = 5;
 
+	// Corpse Data
 	private double corpseRotation = 1.5 * Math.PI, corpseRotationVel = 1;
-	private Vector home, start, throwing, sword, corpse;
+	private Vector corpse;
 
-	private Hitboxes hitbox = new Hitboxes();
-
+	// Several Locations
+	private Vector home, start, throwing, sword;
+	
+	// Segment Data
 	private Path path = new Path(); // queue: points to travel
-	private ArrayList<Point> traveled = new ArrayList<>();
-	private HashMap<Point, Integer> segments = new HashMap<>();
-	private HashMap<Point, SegType> segtypes = new HashMap<>();
+	private ArrayList<Point> traveled = new ArrayList<>(); // places traveled (in order)
+	private HashMap<Point, Integer> segments = new HashMap<>(); // Segment rotations
+	private HashMap<Point, SegType> segtypes = new HashMap<>(); // Segment Types
+
+	// Same content as traveled, in solid hitbox form
+	private Hitboxes hitbox = new Hitboxes();
 
 	public ThrownSword thrownSword = null;
 
@@ -66,18 +82,23 @@ public class Tentacle extends Entity {
 
 	public void tick() {
 		switch (state) {
+			// TODO: Redundant state (DYING)
 			case DYING:
 			case DEAD:
 			case RESTING:
 				return;
+			// Just rumble
 			case WINDUP:
 				timer+=Main.TIMESTEP;
 				if(timer >= 1)
 					state = State.CHASING;
 				return;
+			// When player is grabbed, deal damage
 			case GRABBED:
 				Main.getPlayer().dealEnemyDamage(damage);
+			// If grabbed OR grabbing, tend towards 'home'
 			case GRABBING:
+				// Follow rest of path
 				if (!path.empty()) {
 					if(home != null)
 						speed = Math.max(1, home.dist(position));
@@ -101,6 +122,7 @@ public class Tentacle extends Entity {
 							default -> SegType.STRAIGHT;
 						});
 					}
+				// Then switch to Grabbed and tend towards home
 				} else {
 					if(home != null)
 						position.y = position.y * 0.99 + home.y * 0.01;
@@ -110,6 +132,7 @@ public class Tentacle extends Entity {
 				Main.getPlayer().setX(position.x + (nextPosition().x - tileX()) * 1.5);
 				Main.getPlayer().setY(position.y + (nextPosition().y - tileY()) * 1.5);
 				break;
+			// When chasing, update path every 2 seconds (or when empty) and check if touching player
 			case CHASING:
 				timer += Main.TIMESTEP;
 				if ((timer >= 2 || path.size() == 1) && (!TENTACLE_DEBUG || (Main.keys.get(KeyCode.COMMA)&&!Main.pKeys.get(KeyCode.COMMA)))) {
@@ -136,6 +159,7 @@ public class Tentacle extends Entity {
 					}
 				}
 				break;
+			// Retrace path, checking every 2 seconds for a new path until there's a path towards the player
 			case REPOSITION:
 				timer += Main.TIMESTEP;
 				if (timer >= 2) {
@@ -146,6 +170,7 @@ public class Tentacle extends Entity {
 				}
 				retracePath();
 				break;
+			// Delay, then prep and start swinging
 			case INJURED:
 				timer += Main.TIMESTEP;
 				if (timer >= 1) {
@@ -158,17 +183,19 @@ public class Tentacle extends Entity {
 				Main.getPlayer().getPosition().set(position).add(Vector.ofAngle(orientation*0.5*Math.PI).scale(1.5));
 				Main.getPlayer().getVelocity().set(0, 0);
 				break;
+			// Move corpse around and throw sword and player at opportune times
 			case SWINGING:
 				timer += Main.TIMESTEP * 0.5;
 				corpseRotation += corpseRotationVel * timer * 0.1;
 				Main.getPlayer().getPosition().set(corpse).add(Vector.ofAngle(corpseRotation));
+				// Throw sword when corpseRotation is perpendicular to sword target
 				if(thrownSword == null && Math.abs(corpseRotation) > 4*Math.PI && Math.abs(Util.signedAngularDistance(
 						corpseRotation + corpseRotationVel * 0.5 * Math.PI,
 						Math.atan2(sword.y-getY(), sword.x - getX()))) < 0.2 * timer) {
-
 					Main.getPlayer().takeAwaySword();
 					thrownSword = new ThrownSword(Main.getPlayer().getX(), Main.getPlayer().getY(), sword, corpseRotationVel);
-					Main.getLevel().addEntity(thrownSword);	
+					Main.getLevel().addEntity(thrownSword);
+				// Throw player when corpseRotation is perpendicular to throwing target
 				} else if(Math.abs(corpseRotation) > 8*Math.PI && Math.abs(Util.signedAngularDistance(
 						corpseRotation + corpseRotationVel * 0.5 * Math.PI,
 						Math.atan2(throwing.y - getY(), throwing.x - getX()))) < 0.2 * timer) {
@@ -176,6 +203,7 @@ public class Tentacle extends Entity {
 					state = State.RETRACTING;
 				}	
 				break;
+			// Retrace path and switch to dying when reached the end
 			case RETRACTING:
 				if (corpse.sqDist(throwing) > 1) {
 					Vector dir = corpse.unitDir(throwing).scale(0.1);
@@ -219,6 +247,8 @@ public class Tentacle extends Entity {
 		}
 	}
 
+	// Update path with a bit of frontway. No 180 degree turns or messing with the last path
+	// TODO: watchDirection is redundant
 	private void pathfindTo(int x, int y, boolean watchDirection) {
 		if (path.empty() || path.size() <= 1 || watchDirection) {
 			Point a = new Point(tileX(), tileY()), b = nextPosition();
@@ -262,6 +292,7 @@ public class Tentacle extends Entity {
 	 * Follow links of the path
 	 */
 	private void followPath() {
+		// Hit indicates whether we need to progress the path
 		boolean hit = false;
 		if(TENTACLE_DEBUG){
 			if(Main.keys.get(KeyCode.PERIOD) && !Main.pKeys.get(KeyCode.PERIOD))
@@ -285,6 +316,7 @@ public class Tentacle extends Entity {
 					hit = position.y - 0.5 <= path.current().y;
 					break;
 			}
+		// If we need to progress the path, snap position to current node and progress towards next one, adding a segment
 		if (hit) {
 			position.x = path.current().x + 0.5;
 			position.y = path.current().y + 0.5;
@@ -427,6 +459,7 @@ public class Tentacle extends Entity {
 			g.rotate(180 * corpseRotation / Math.PI);
 			g.drawImage(sheet, 64, 16, 32, 16, -0.1, -0.5, 2, 1);
 		} else {
+			// Create clip rect to draw the end of the tentacle protruding into
 			double gX = getX() - 0.5, tX = Math.floor(gX);
 			double gY = getY() - 0.5, tY = Math.floor(gY);
 			double clipset = -0.5 + switch(orientation) {

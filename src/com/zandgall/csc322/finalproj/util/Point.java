@@ -1,3 +1,10 @@
+/* zandgall
+
+ ## Point
+ # A simple class to represent an integer point
+
+ : MADE IN NEOVIM */
+
 package com.zandgall.csc322.finalproj.util;
 
 import java.io.Serializable;

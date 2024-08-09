@@ -1,6 +1,4 @@
-/* CSC 322 FINAL PROJECT - PROF. FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
+/* zandgall
 
  ## Tree
  # A basic entity that simply displays a tree

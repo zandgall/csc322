@@ -1,6 +1,4 @@
-/* CSC 322 FINAL PROJECT - PROF. SUSAN FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
+/* zandgall
 
  ## Path
  # A class that stores details on how to get from one place to another
@@ -130,8 +128,8 @@ public class Path implements Serializable {
 
 			// Poll first point,
 			Node current = map.get(open.removeFirst());
-			// System.out.printf("(%d, %d) -> %s%n", open.get(0).x, open.get(0).y, current);	
 
+			// If we found the end, construct the path
 			if (current.x == targetX && current.y == targetY)
 				return reconstruct(current);
 
@@ -145,10 +143,9 @@ public class Path implements Serializable {
 				Point p = new Point(nX[i], nY[i]);
 
 				// Tile is in provided prepended list of points
-				if (Arrays.binarySearch(start, p) >= 0) {
-					// System.out.printf("Found (%d, %d) in start stack so skipping.%n", p.x, p.y);
+				if (Arrays.binarySearch(start, p) >= 0)	
 					continue;
-				}
+			
 				// Tile doesnt exist or is solid, skip
 				if (Main.getLevel().get(p.x, p.y) == null
 						|| (Main.getLevel().get(p.x, p.y).solidBounds(p.x, p.y) != null)

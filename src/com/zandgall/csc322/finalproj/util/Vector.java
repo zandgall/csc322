@@ -1,3 +1,10 @@
+/* zandgall
+
+ ## Vector
+ # Stores a double coordinate / 2d Vector
+
+ : MADE IN NEOVIM */
+
 package com.zandgall.csc322.finalproj.util;
 
 import java.io.Serializable;
@@ -56,6 +63,9 @@ public class Vector implements Serializable {
 		return new Vector(x * s, y * s);
 	}
 
+	/**
+	 * Get square distance to other vector
+	 */
 	public double sqDist(Vector other) {
 		return (x - other.x)*(x - other.x) + (y-other.y)*(y - other.y);
 	}

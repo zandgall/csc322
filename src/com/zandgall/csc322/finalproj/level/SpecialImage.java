@@ -1,3 +1,10 @@
+/*
+
+ ## Special Image
+ # Used for special background image, with some semblance of parallax
+
+ : MADE IN NEOVIM */
+
 package com.zandgall.csc322.finalproj.level;
 
 import com.zandgall.csc322.finalproj.Main;
@@ -7,12 +14,10 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
 public class SpecialImage {
-	private Image image;
-	private String path;
+	private Image image;	
 	private double x, y, xOff, yOff, damping;
 	public SpecialImage(String path, double xOff, double yOff, double x, double y, double damping) {
-		image = new Image(path);
-		this.path = path;
+		image = new Image(path);	
 		this.xOff = xOff;
 		this.yOff = yOff;
 		this.x = x;

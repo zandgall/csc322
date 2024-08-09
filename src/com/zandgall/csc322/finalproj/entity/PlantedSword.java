@@ -1,9 +1,7 @@
-/* CSC322 FINAL PROJECT - PROF FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
+/* zandgall
 
  ## Planted Sword
- # A simple pickup item
+ # A simple pickup item that grants the player a sword
 
  : MADE IN NEOVIM */
 

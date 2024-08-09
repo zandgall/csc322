@@ -1,13 +1,4 @@
-/* CSC 322 FINAL PROJECT - PROF. SUSAN FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
-
-*--------------------------------------------------------------------------------*
-| THIS FILE IS UNFINISHED                                                        |
-| Although this file is being submitted as a part of the assignment, the content |
-| and function of this file is unfinished and unorganized. This file shall be    |
-| finished and cleaned up in order to fulfill a full playable demo of this game. |
-*--------------------------------------------------------------------------------*
+/* zandgall
 
  ## Cutscene
  # A class that is used to play out 'cutscenes', where the camera is moved/zoomed,

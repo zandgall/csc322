@@ -1,3 +1,11 @@
+/* zandgall
+
+ ## Rect
+ # A simple class to represent a rectangle, that can be checked for intersections with other rectangles
+ # Can add points and rectangles to spread the rectangle to cover an area
+
+ : MADE IN NEOVIM */
+
 package com.zandgall.csc322.finalproj.util;
 
 import java.io.Serializable;

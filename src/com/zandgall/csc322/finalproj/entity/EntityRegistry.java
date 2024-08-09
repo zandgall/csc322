@@ -1,6 +1,4 @@
-/* CSC 322 FINAL PROJECT - PROF. FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
+/* zandgall
 
  ## Entity Registry
  # Used to register every entity in lists to facilitate the level editor and i/o

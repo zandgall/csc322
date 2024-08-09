@@ -1,9 +1,11 @@
-/* CSC322 FINAL PROJECT - PROF. FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
+/* zandgall
 
  ## Player
  # An entity that is controllable by the user
+ # There is a sword that is updated and can be used to perform special moves
+
+ ## Stab Beam
+ # A minor projectile entity that spawns when doing a stab attack
 
  ## Sword Beam
  # A minor projectile entity that spawns when doing a charge attack, and deals damage to any enemies it collides with
@@ -158,6 +160,7 @@ public class Player extends Entity {
 				} else if (Math.abs(diff) < 0.25 * Math.PI) {
 					specialMove = Special.STAB;
 
+					// Add a stab beam going in the same direction
 					Main.getLevel().addEntity(new StabBeam(getX(), getY(), swordDirection));
 
 					swordRotationalVelocity = 0;
@@ -385,6 +388,8 @@ public class Player extends Entity {
 		return swordDirection;
 	}
 
+	// Update sword and dash data for cutscene usage
+	// TODO: This feels hacky
 	public void cutsceneSword(double rotation, double specialTimer, double speed, Special special) {
 		this.swordDirection = rotation;
 		this.swordRotationalVelocity = speed;
@@ -393,6 +398,7 @@ public class Player extends Entity {
 		this.dashTimer = 0;
 	}
 
+	// A projectile that shoots out the front of the sword when stabbing
 	private static class StabBeam extends Entity {
 		private static final Image texture = new Image("/entity/stabbeam.png");
 
@@ -445,6 +451,7 @@ public class Player extends Entity {
 
 	}
 
+	// A projectile that shoots out the sword when performing a charged special
 	private static class SwordBeam extends Entity {
 
 		private static final Image texture = new Image("/entity/sword_beam.png");

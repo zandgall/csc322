@@ -1,3 +1,10 @@
+/* zandgall
+
+ ## Sound
+ # A class that stores an OpenAL sound ID from a given file. Can be controlled with fading and volume
+
+ : MADE IN NEOVIM */
+
 package com.zandgall.csc322.finalproj;
 
 import java.io.IOException;
@@ -67,8 +74,7 @@ public class Sound implements Serializable {
 		al.alSourcei(source[0], AL.AL_BUFFER, buffer[0]);
 		al.alSourcei(source[0], AL.AL_LOOPING, 1);
 		al.alSourcef(source[0], AL.AL_GAIN, 0.0f);
-		this.source = source[0];
-		// al.alSourcePlay(this.source);
+		this.source = source[0];	
 	}
 
 	public static void init() {

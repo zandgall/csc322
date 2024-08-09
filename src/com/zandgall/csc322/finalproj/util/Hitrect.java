@@ -1,3 +1,10 @@
+/* zandgall
+
+ ## Hitrect
+ # A hitbox that consists of a single rectangle
+
+ : MADE IN NEOVIM */
+
 package com.zandgall.csc322.finalproj.util;
 
 public class Hitrect extends Hitbox {

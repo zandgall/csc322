@@ -1,3 +1,10 @@
+/* zandgall
+
+##
+#
+
+: MADE IN NEOVIM */
+
 package	com.zandgall.csc322.finalproj.entity.octoplorp;
 
 import com.zandgall.csc322.finalproj.Main;

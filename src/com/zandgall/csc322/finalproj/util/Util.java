@@ -1,5 +1,4 @@
-/* CSC 322 FINAL PROJECT - Post assignment
- > ZANDER GALL
+/* zandgall
 
  ## Util
  # A set of global utility functions

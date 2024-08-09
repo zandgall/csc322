@@ -1,3 +1,10 @@
+/* zandgall
+
+ ## Hitnull
+ # A type of hitbox that always returns false on intersection
+
+ : MADE IN NEOVIM */
+
 package com.zandgall.csc322.finalproj.util;
 
 public class Hitnull extends Hitbox {

@@ -1,17 +1,14 @@
-/* CSC 322 FINAL PROJECT - PROF. FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
+/* zandgall
 
  ## Tile
- # Present an assortment of tiles in order to fulfill the graphics of a level
+ # Present an assortment of tiles in order to fulfill the solidity and graphics of a level
+
+ TODO: This whole place is redundant with new graphics, rework for hitboxes only
 
  : MADE IN NEOVIM */
 
 package com.zandgall.csc322.finalproj.level;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import javafx.scene.paint.Color;
@@ -156,11 +153,6 @@ public abstract class Tile {
 			this.solid = null;
 		}
 
-		public ColorTile(Color color, Hitbox solid) {
-			this.color = color;
-			this.solid = solid;
-		}
-
 		public Hitbox solidBounds(int x, int y) {
 			if (solid == null)
 				return null;
@@ -185,15 +177,6 @@ public abstract class Tile {
 		public ImageTile(String path) {
 			super();
 			image = new Image(path);
-		}
-
-		public ImageTile(String path, Hitbox solid) {
-			this(path);
-			this.solid = solid;
-		}
-
-		public ImageTile(Image image) {
-			this.image = image;
 		}
 
 		public ImageTile(Image image, Hitbox solid) {

@@ -1,13 +1,11 @@
-/* CSC322 FINAL PROJECT - PROF. FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
+/* zandgall
 
-*--------------------------------------------------------------------------------*
-| THIS FILE IS MISCELLANEOUS                                                     |
-| Although this file is being submitted as a part of the assignment, the content |
-| of this file isn't related to the assignment. It serves as a subproject used to|
-| assist in designing the level for the game. It is unorganized.                 |
-*--------------------------------------------------------------------------------*
+*----------------------------------------------------------------------------*
+| THIS FILE IS MISCELLANEOUS                                                 |
+| Although this file is being submitted as a part of the program, the content|
+| of this file isn't related to the game. It serves as a subproject used to  |
+| assist in designing the level for the game. It is messy and unorganized.   |
+*----------------------------------------------------------------------------*
 
  ## Level Editor
  # An application built with the final project in order to edit and create levels
@@ -41,7 +39,6 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import java.awt.geom.Rectangle2D;
 import javax.swing.JFrame;
 import javax.swing.JFileChooser;
 

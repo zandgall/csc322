@@ -1,13 +1,4 @@
-/* CSC 322 FINAL PROJECT - PROF. FURTNEY
- > ZANDER GALL - GALLA@CSP.EDU
- -- I certify, that this computer program submitted by me is all of my own work.
-
-*--------------------------------------------------------------------------------*
-| THIS FILE IS UNFINISHED                                                        |
-| Although this file is being submitted as a part of the assignment, the content |
-| and function of this file is unfinished and unorganized. This file shall be    |
-| finished and cleaned up in order to fulfill a full playable demo of this game. |
-*--------------------------------------------------------------------------------*
+/* zandgall
 
  ## Octoplorp
  # A boss fight for the player to reach and fight
@@ -17,6 +8,7 @@
 
  : MADE IN NEOVIM */
 
+
 package com.zandgall.csc322.finalproj.entity.octoplorp;
 
 import java.io.IOException;
@@ -25,18 +17,12 @@ import com.zandgall.csc322.finalproj.Main;
 import com.zandgall.csc322.finalproj.Sound;
 import com.zandgall.csc322.finalproj.entity.Entity;
 import com.zandgall.csc322.finalproj.entity.Player;
-import com.zandgall.csc322.finalproj.entity.Player.Special;
 import com.zandgall.csc322.finalproj.staging.Cutscene;
-import com.zandgall.csc322.finalproj.util.Hitbox;
-import com.zandgall.csc322.finalproj.util.Hitnull;
-import com.zandgall.csc322.finalproj.util.Hitrect;
-import com.zandgall.csc322.finalproj.util.Point;
-import com.zandgall.csc322.finalproj.util.Vector;
+import com.zandgall.csc322.finalproj.util.*;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 
 public class Octoplorp extends Entity{
 
@@ -56,15 +42,18 @@ public class Octoplorp extends Entity{
 
 	private Tentacle tutorialTentacle, firstTentacle, secondTentacle, finalTentacle;
 
-	private Tentacle currentTentacle;
+	private Tentacle currentTentacle; // Reference only - never it's own instance
 
 	public Octoplorp(double x, double y) {
 		super(Math.round(x), Math.round(y));
+
+		// Initialize Tentacles
 		tutorialTentacle = new Tentacle(position.getAdd(5.5, 12.5), position.getAdd(0, 6.5), position.getAdd(0, 12), position.getAdd(-28, -9));
 		tutorialTentacle.tutorial = true;
 		firstTentacle = new Tentacle(position.getAdd(-5.5, 6.5), null, position.getAdd(-27.5, -2), position.getAdd(26, -8));
 		secondTentacle = new Tentacle(position.getAdd(-5.5, 12.5), null, position.getAdd(28, -7), position.getAdd(-16.5, 19.5));
 		finalTentacle = new Tentacle(position.getAdd(5.5, 6.5), null, position.getAdd(0, 18), position.getAdd(0, 6));
+
 		Main.getLevel().addEntity(tutorialTentacle);
 		Main.getLevel().addEntity(firstTentacle);
 		Main.getLevel().addEntity(secondTentacle);
@@ -80,22 +69,26 @@ public class Octoplorp extends Entity{
 
 	public void tick() {
 		switch (state) {
+			// When sleeping, check for player in bounds and start a cutscene if applicable
 			case SLEEPING:
 				if (new Hitrect(getX() - 15, getY() - 15, 30, 30).intersects(Main.getPlayer().getRenderBounds())) {
 					state = State.WAKING;
-					Main.getPlayer().cutsceneSword(Main.getPlayer().getSwordRotation(), 0, 0, Player.Special.NONE);
 					// Wake up cutscene, open eyes and target the boss
 					Main.playCutscene(new Cutscene(5) {
 						float t = 0;
 
 						@Override
 						protected void tick() {
+							Main.getPlayer().cutsceneSword(Main.getPlayer().getSwordRotation(), 0, 0, Player.Special.NONE);
+
+							eyePos.y *= 0.99; // Move eye up (towards eyePos.y=0)
+
 							t += Main.TIMESTEP;
-							eyePos.y *= 0.99;
 							if (t > 4.3)
 								eyeFrame.x = 0;
 						}
 
+						// When the boss finishes waking up, fade in the BossBass sound
 						protected void onEnd() {
 							Sound.BossBass.fadeTo(1.f);
 						}
@@ -110,6 +103,8 @@ public class Octoplorp extends Entity{
 					});
 				}
 				break;
+
+			// When waking, play another cutscene where the player can't move and the tutorial tentacle grabs them and pulls them up
 			case WAKING:
 				state = State.GRABBING;
 				tutorialTentacle.state = Tentacle.State.CHASING;
@@ -121,6 +116,7 @@ public class Octoplorp extends Entity{
 						tutorialTentacle.tick();
 					}
 
+					// Quicksave at the end of the cutscene
 					protected void onEnd() {
 						try {
 							Main.quicksave();
@@ -145,7 +141,9 @@ public class Octoplorp extends Entity{
 
 				});
 				break;
+
 			case GRABBING:
+				// When grabbing player, modify the eye frame and its direction
 				if(currentTentacle != null) {
 					if(currentTentacle == firstTentacle || currentTentacle == tutorialTentacle)
 						eyeFrame.y = 1;
@@ -184,53 +182,59 @@ public class Octoplorp extends Entity{
 						eyeFrame = new Point(0, 0);
 						break;
 					}
+					// Tend from eyePos towards eyeTarget
 					eyePos.scale(0.99).add(eyeTarget.getScale(0.01));
-				}
-				if(currentTentacle != null && currentTentacle.state == Tentacle.State.DEAD) {
-					if(currentTentacle == tutorialTentacle) {
-						currentTentacle = firstTentacle;
-						Sound.BossGuitar.fadeTo(1.f);
-					} else if(currentTentacle == firstTentacle) {
-						currentTentacle = secondTentacle;
-						Sound.BossCymbals.fadeTo(1.f);
-					} else if(currentTentacle == secondTentacle)
-						currentTentacle = finalTentacle;
-					else if(currentTentacle == finalTentacle)
-						currentTentacle = null;
+				
+					// If the current tentacle is dead, select the next tentacle
+					if(currentTentacle.state == Tentacle.State.DEAD) {
+						if(currentTentacle == tutorialTentacle) {
+							currentTentacle = firstTentacle;
+							Sound.BossGuitar.fadeTo(1.f);
+						} else if(currentTentacle == firstTentacle) {
+							currentTentacle = secondTentacle;
+							Sound.BossCymbals.fadeTo(1.f);
+						} else if(currentTentacle == secondTentacle)
+							currentTentacle = finalTentacle;
+						else if(currentTentacle == finalTentacle)
+							currentTentacle = null;
 
-					timer = 0;
-					state = State.RECOVERING;
+						timer = 0;
+						state = State.RECOVERING;
 
-					if(currentTentacle == null) {
-						state = State.VULNERABLE;
-						Sound.EndIt.setSmoothing(Sound.DEFAULT_SMOOTHING * 8);
-						Sound.EndIt.fadeTo(1.f);
-						Sound.Noise.fadeTo(0.f);
-						Sound.Wind.fadeTo(0.f);
-						Sound.Piano.fadeTo(0.f);
-						Sound.EPiano.fadeTo(0.f);
-						Sound.Drums.fadeTo(0.f);
-						Sound.Plorp.fadeTo(0.f);
-						Sound.BossDrums.fadeTo(0.f);
-						Sound.BossEPiano.fadeTo(0.f);
-						Sound.BossBass.fadeTo(0.f);
-						Sound.BossGuitar.fadeTo(0.f);
-						Sound.BossCymbals.fadeTo(0.f);
-						Sound.Noise.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
-						Sound.Wind.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
-						Sound.Piano.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
-						Sound.EPiano.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
-						Sound.Drums.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
-						Sound.Plorp.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
-						Sound.BossDrums.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
-						Sound.BossEPiano.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
-						Sound.BossBass.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
-						Sound.BossGuitar.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
-						Sound.BossCymbals.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						// If out of tentacles, switch to vulnerable and set up ending audio mixing
+						if(currentTentacle == null) {
+							state = State.VULNERABLE;
+							Sound.EndIt.setSmoothing(Sound.DEFAULT_SMOOTHING * 8);
+							Sound.EndIt.fadeTo(1.f);
+							Sound.Noise.fadeTo(0.f);
+							Sound.Wind.fadeTo(0.f);
+							Sound.Piano.fadeTo(0.f);
+							Sound.EPiano.fadeTo(0.f);
+							Sound.Drums.fadeTo(0.f);
+							Sound.Plorp.fadeTo(0.f);
+							Sound.BossDrums.fadeTo(0.f);
+							Sound.BossEPiano.fadeTo(0.f);
+							Sound.BossBass.fadeTo(0.f);
+							Sound.BossGuitar.fadeTo(0.f);
+							Sound.BossCymbals.fadeTo(0.f);
+							Sound.Noise.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+							Sound.Wind.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+							Sound.Piano.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+							Sound.EPiano.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+							Sound.Drums.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+							Sound.Plorp.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+							Sound.BossDrums.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+							Sound.BossEPiano.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+							Sound.BossBass.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+							Sound.BossGuitar.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+							Sound.BossCymbals.setSmoothing(Sound.DEFAULT_SMOOTHING * 4);
+						}
 					}
 				}
 				break;
 
+			// If recovering, just switch to grabbing, and start the next tentacle
+			// TODO: redundant state
 			case RECOVERING:
 				timer += Main.TIMESTEP;
 				if(timer > 0) {
@@ -239,6 +243,7 @@ public class Octoplorp extends Entity{
 				}
 				break;
 
+			// When vulnerable, freeze select sounds at 0 volume
 			case VULNERABLE:
 				Sound.EPiano.setVolume(0);
 				Sound.BossEPiano.setVolume(0);
@@ -249,6 +254,7 @@ public class Octoplorp extends Entity{
 		}
 	}
 
+	// Draw the body and eye with given frame and position
 	public void render(GraphicsContext g, GraphicsContext shadow, GraphicsContext g2) {
 		g.drawImage(body, getX() - 3, getY() - 3, 6, 6);
 		if(eyeFrame.x == -1)
@@ -282,6 +288,7 @@ public class Octoplorp extends Entity{
 		return getY() + 2;
 	}
 
+	// When receive any amount of damage (only possible when vulnerable) start the ending cutscene
 	@Override
 	public void dealPlayerDamage(double damage) {
 		Sound.Heaven.fadeTo(0.8f);
@@ -292,12 +299,14 @@ public class Octoplorp extends Entity{
 			double t = 0, y = position.y, upY = y - 6, stabY = y - 4;
 
 			protected void tick() {
+				// Freeze select sounds at 0
 				Sound.BossDrums.setVolume(0.f);
 				Sound.Drums.setVolume(0.f);
 				Sound.BossEPiano.setVolume(0.f);
 				Sound.EPiano.setVolume(0.f);
+
 				t += Main.TIMESTEP;
-				if(t < 1) {
+				if(t < 1) { // During the first second, move player up above head and make octoplorp look upwards
 					if(t < 0.2) {
 						eyeFrame.x = 3;
 						eyeFrame.y = 0;
@@ -313,7 +322,7 @@ public class Octoplorp extends Entity{
 					Main.getPlayer().setX(position.x);
 					Main.getPlayer().setY(y);
 					Main.getPlayer().cutsceneSword(0.5 * Math.PI, 4 + t, 0, Player.Special.NONE);
-				} else if (!stabbing) {	
+				} else if (!stabbing) { // Then wait until the 'Z' key is hit
 					if(Main.keys.get(KeyCode.Z)) {
 						Main.getPlayer().cutsceneSword(0.5 * Math.PI, 0, 0, Player.Special.STAB);
 						stabbing = true;
@@ -321,7 +330,7 @@ public class Octoplorp extends Entity{
 						Sound.TheKill.play();
 
 					}
-				} else if(t < 3) {
+				} else if(t < 3) { // For the next two seconds, stab and wait (take away sword after stab)
 					if(y < stabY) {
 						y += 0.2;
 					} else {
@@ -330,7 +339,7 @@ public class Octoplorp extends Entity{
 						Main.getPlayer().takeAwaySword();
 					}
 					Main.getPlayer().setY(y);
-				} else {
+				} else { // Fade out with EndIt sound and player sinking
 					Sound.EndIt.fadeTo(0.f);
 					Main.getPlayer().getPosition().add(0, 0.04);
 					Main.getHud().closeOut();

@@ -1,3 +1,10 @@
+/* zandgall
+
+ ## Hitbox
+ # An abstract class that describes how a general hitbox may be interacted with. Describing an intersection with a rect or another hitbox
+
+ : MADE IN NEOVIM */
+
 package com.zandgall.csc322.finalproj.util;
 
 import java.io.Serializable;
