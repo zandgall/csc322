@@ -15,3 +15,7 @@ gradle
 
 # save files
 *.sav
+
+# IntelliJ when applicable
+.idea/
+out/

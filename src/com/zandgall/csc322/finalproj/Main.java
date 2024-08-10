@@ -11,6 +11,7 @@ import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -117,6 +118,12 @@ public class Main extends Application {
 				Main.keys.put(event.getCode(), false);	
 			}
 		});
+		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(WindowEvent event) {
+				Sound.kill();
+			}
+		});
 
 		player = new Player();
 		camera = new Camera();
@@ -155,7 +162,7 @@ public class Main extends Application {
 				}
 				render();
 			}
-		}.start();
+		}.start();	
 	}
 
 	// Pulled to it's own function so that it can be overridden in LevelEditor
@@ -342,6 +349,7 @@ public class Main extends Application {
 
 	public static void close() {
 		stage.close();
+		Sound.kill();
 	}
 
 }
