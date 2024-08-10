@@ -12,69 +12,77 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 
-import com.jogamp.openal.*;
-import com.jogamp.openal.util.*;
+import org.lwjgl.openal.AL;
+import org.lwjgl.openal.ALC;
+import org.lwjgl.openal.ALCCapabilities;
+import org.lwjgl.openal.ALCapabilities;
+import org.lwjgl.system.MemoryStack;
+
+import static org.lwjgl.openal.AL10.*;
+import static org.lwjgl.openal.ALC10.*;
+import static org.lwjgl.stb.STBVorbis.stb_vorbis_decode_filename;
+import static org.lwjgl.system.MemoryStack.*;
+import static org.lwjgl.system.libc.LibCStdlib.free;
 
 public class Sound implements Serializable {
 
 	public static final float DEFAULT_SMOOTHING = (1.0f / 16.0f) / (130.0f / 60.f);
 
-	private static AL al;
+	private static String deviceName;
+	private static long device, context;
 
 	static {
-		try {
-			ALut.alutInit();
-			al = ALFactory.getAL();
-			al.alGetError();
-		} catch(ALException e) {
-			e.printStackTrace();
-		}
+		deviceName = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
+		device = alcOpenDevice(deviceName);
+		int[] attribs = {0};
+		context = alcCreateContext(device, attribs);
+		alcMakeContextCurrent(context);
+		ALCCapabilities alcCapabilities = ALC.createCapabilities(device);
+		ALCapabilities alCapabilities = AL.createCapabilities(alcCapabilities);
 	}
 
 	public static Sound
-		Noise = new Sound("/sound/noise.wav"), // Constant
-		Wind = new Sound("/sound/wind.wav"), // Used for trees
-		Piano = new Sound("/sound/piano.wav"),
-		EPiano = new Sound("/sound/epiano.wav"),
-		Drums = new Sound("/sound/drums.wav"),
-		Plorp = new Sound("/sound/plorp.wav"),
-		BossDrums = new Sound("/sound/bossDrums.wav"),
-		BossEPiano = new Sound("/sound/bossEPiano.wav"),
-		BossBass = new Sound("/sound/bossBass.wav"),
-		BossGuitar = new Sound("/sound/bossGuitar.wav"),
-		BossCymbals = new Sound("/sound/bossCymbals.wav"),
-		EndIt = new Sound("/sound/endit.wav"),
-		TheKill = new Sound("/sound/thekill.wav"),
-		Heaven = new Sound("/sound/heaven.wav"),
-		EffectPluck = new Sound("/sound/pluck.wav"),
-		EffectBonk = new Sound("/sound/bonk.wav");
+		Noise = new Sound("sound/noise.ogg"), // Constant
+		Wind = new Sound("sound/wind.ogg"), // Used for trees
+		Piano = new Sound("sound/piano.ogg"),
+		EPiano = new Sound("sound/epiano.ogg"),
+		Drums = new Sound("sound/drums.ogg"),
+		Plorp = new Sound("sound/plorp.ogg"),
+		BossDrums = new Sound("sound/bossDrums.ogg"),
+		BossEPiano = new Sound("sound/bossEPiano.ogg"),
+		BossBass = new Sound("sound/bossBass.ogg"),
+		BossGuitar = new Sound("sound/bossGuitar.ogg"),
+		BossCymbals = new Sound("sound/bossCymbals.ogg"),
+		EndIt = new Sound("sound/endit.ogg"),
+		TheKill = new Sound("sound/thekill.ogg"),
+		Heaven = new Sound("sound/heaven.ogg"),
+		EffectPluck = new Sound("sound/pluck.ogg"),
+		EffectBonk = new Sound("sound/bonk.ogg");
 
 	private static double Timer = 0;
 
-	protected int source, charges = 0;
+	protected int buffer, source, charges = 0;
 
 	protected float volume = 0.0f, targetVolume = 0.0f;
 	protected float smoothing = DEFAULT_SMOOTHING;
 
-	public Sound(String resource) {
-		int[] buffer = new int[1];
-		int[] source = new int[1];
+	public Sound(String filepath) {
+		try (MemoryStack stack = stackPush()) {
+			IntBuffer channels = stack.mallocInt(1);
+			IntBuffer sampleRate = stack.mallocInt(1);
+			ShortBuffer rawAudio = stb_vorbis_decode_filename(filepath, channels, sampleRate);
+			buffer = alGenBuffers();
+			alBufferData(buffer, AL_FORMAT_STEREO16, rawAudio, sampleRate.get());
+			free(rawAudio);	
 
-		int[] format = new int[1];
-		int[] size = new int[1];
-		ByteBuffer[] data = new ByteBuffer[1];
-		int[] freq = new int[1];
-		int[] loop = new int[1];
-		al.alGenBuffers(1, buffer, 0);
-		ALut.alutLoadWAVFile(Sound.class.getResourceAsStream(resource), format, data, size, freq, loop);
-		al.alBufferData(buffer[0], format[0], data[0], size[0], freq[0]);
-
-		al.alGenSources(1, source, 0);
-		al.alSourcei(source[0], AL.AL_BUFFER, buffer[0]);
-		al.alSourcei(source[0], AL.AL_LOOPING, 1);
-		al.alSourcef(source[0], AL.AL_GAIN, 0.0f);
-		this.source = source[0];	
+			source = alGenSources();
+			alSourcei(source, AL_BUFFER, buffer);
+			alSourcei(source, AL_LOOPING, 1);
+			alSourcef(source, AL_GAIN, 0.0f);
+		}
 	}
 
 	public static void init() {
@@ -110,10 +118,31 @@ public class Sound implements Serializable {
 		EffectPluck.stopLooping();
 	}
 
+	public static void kill() {
+		Noise.die();
+		Wind.die();
+		Piano.die();
+		EPiano.die();
+		Drums.die();
+		Plorp.die();
+		BossDrums.die();
+		BossEPiano.die();
+		BossBass.die();
+		BossGuitar.die();
+		BossCymbals.die();
+		EndIt.die();
+		Heaven.die();
+		TheKill.die();
+		EffectBonk.die();
+		EffectPluck.die();
+		alcDestroyContext(context);
+		alcCloseDevice(device);
+	}
+
 	private void tick() {
 		if(Math.abs(volume - targetVolume) > smoothing * Main.TIMESTEP)
 			volume +=smoothing * Main.TIMESTEP * Math.signum(targetVolume - volume);
-		al.alSourcef(source, AL.AL_GAIN, volume);
+		alSourcef(source, AL_GAIN, volume);
 
 		double pTimer = Timer;
 		Timer += Main.TIMESTEP * 60.f / 130.f;
@@ -135,7 +164,7 @@ public class Sound implements Serializable {
 
 	public void setVolume(float volume) {
 		this.volume = volume;
-		al.alSourcef(source, AL.AL_GAIN, volume);
+		alSourcef(source, AL_GAIN, volume);
 	}
 
 	public float getVolume() {
@@ -152,15 +181,20 @@ public class Sound implements Serializable {
 	}
 
 	public void play() {
-		al.alSourcePlay(source);
+		alSourcePlay(source);
 	}
 
 	public void stopLooping() {
-		al.alSourcei(source, AL.AL_LOOPING, 0);
+		alSourcei(source, AL_LOOPING, 0);
 	}
 
 	public void charge() {
 		charges++;
+	}
+
+	private void die() {
+		alDeleteSources(source);
+		alDeleteBuffers(buffer);
 	}
 
 	public static void update() {
