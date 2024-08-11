@@ -58,6 +58,9 @@ public class Player extends Entity {
 	private double health;
 	private long lastHit = System.currentTimeMillis();
 
+	// Anti broken movement
+	private Vector lastP = new Vector(0, 0), lastV = new Vector(0, 0);
+
 	public Player() {
 		super();
 		// position.set(0, -93);
@@ -66,6 +69,7 @@ public class Player extends Entity {
 
 	public Player(double x, double y) {
 		super(x, y);
+		lastP = new Vector(x, y);
 		health = 20;
 	}
 
@@ -116,6 +120,15 @@ public class Player extends Entity {
 		} else {
 			Sound.BossDrums.fadeTo(0.f);
 			Sound.BossEPiano.fadeTo(0.f);
+		}
+
+		if(!Double.isFinite(position.x) || !Double.isFinite(position.y) || !Double.isFinite(velocity.x) || !Double.isFinite(velocity.y)) {
+			position.set(lastP);
+			velocity.set(lastV);
+			System.err.printf("Reset Player Position after incorrect move %.1f %.1f + (%.1f, %.1f) %n", position.x, position.y, velocity.x, velocity.y);
+		} else {
+			lastP.set(position);
+			lastV.set(velocity);
 		}
 	}
 
