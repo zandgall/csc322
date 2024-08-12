@@ -11,6 +11,10 @@ repositories {
 	}
 }
 
+import org.gradle.internal.os.OperatingSystem
+
+project.ext.lwjglVersion = "3.3.4"
+
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
@@ -28,9 +32,34 @@ dependencies {
 	implementation "org.lwjgl:lwjgl"
 	implementation "org.lwjgl:lwjgl-openal"
 	implementation "org.lwjgl:lwjgl-stb"
-	runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
-	runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglNatives"
-	runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+	if(OperatingSystem.current() == OperatingSystem.MAC_OS) {
+		runtimeOnly "org.lwjgl:lwjgl::natives-macos-arm64"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-macos-arm64"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-macos-arm64"
+		runtimeOnly "org.lwjgl:lwjgl::natives-macos"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-macos"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-macos"
+	} else if(OperatingSystem.current() == OperatingSystem.LINUX) {
+		runtimeOnly "org.lwjgl:lwjgl::natives-linux"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-linux"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-linux"
+		runtimeOnly "org.lwjgl:lwjgl::natives-linux-arm64"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-linux-arm64"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-linux-arm64"
+		runtimeOnly "org.lwjgl:lwjgl::natives-linux-arm32"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-linux-arm32"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-linux-arm32"
+		runtimeOnly "org.lwjgl:lwjgl::natives-linux-ppc64le"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-linux-ppc64le"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-linux-ppc64le"
+		runtimeOnly "org.lwjgl:lwjgl::natives-linux-riscv64"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-linux-riscv64"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-linux-riscv64"
+	} else {
+		runtimeOnly "org.lwjgl:lwjgl::natives-windows"
+		runtimeOnly "org.lwjgl:lwjgl-openal::ntives-windows"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-windows"
+	}
 }
 
 sourceSets {

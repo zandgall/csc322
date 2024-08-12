@@ -26,32 +26,40 @@ import org.gradle.internal.os.OperatingSystem
 
 project.ext.lwjglVersion = "3.3.4"
 
-switch (OperatingSystem.current()) {
-	case OperatingSystem.LINUX:
-		project.ext.lwjglNatives = "natives-linux"
-		def osArch = System.getProperty("os.arch")
-		if (osArch.startsWith("arm") || osArch.startsWith("aarch64")) {
-			project.ext.lwjglNatives += osArch.contains("64") || osArch.startsWith("armv8") ? "-arm64" : "-arm32"
-		} else if  (osArch.startsWith("ppc")) {
-			project.ext.lwjglNatives += "-ppc64le"
-		} else if  (osArch.startsWith("riscv")) {
-			project.ext.lwjglNatives += "-riscv64"
-		}
-		break
-	case OperatingSystem.WINDOWS:
-		project.ext.lwjglNatives = "natives-windows"
-		break
-}
-
 dependencies {
 	implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
 
 	implementation "org.lwjgl:lwjgl"
 	implementation "org.lwjgl:lwjgl-openal"
 	implementation "org.lwjgl:lwjgl-stb"
-	runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
-	runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglNatives"
-	runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+	if(OperatingSystem.current() == OperatingSystem.MAC_OS) {
+		runtimeOnly "org.lwjgl:lwjgl::natives-macos-arm64"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-macos-arm64"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-macos-arm64"
+		runtimeOnly "org.lwjgl:lwjgl::natives-macos"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-macos"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-macos"
+	} else if(OperatingSystem.current() == OperatingSystem.LINUX) {
+		runtimeOnly "org.lwjgl:lwjgl::natives-linux"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-linux"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-linux"
+		runtimeOnly "org.lwjgl:lwjgl::natives-linux-arm64"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-linux-arm64"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-linux-arm64"
+		runtimeOnly "org.lwjgl:lwjgl::natives-linux-arm32"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-linux-arm32"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-linux-arm32"
+		runtimeOnly "org.lwjgl:lwjgl::natives-linux-ppc64le"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-linux-ppc64le"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-linux-ppc64le"
+		runtimeOnly "org.lwjgl:lwjgl::natives-linux-riscv64"
+		runtimeOnly "org.lwjgl:lwjgl-openal::natives-linux-riscv64"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-linux-riscv64"
+	} else {
+		runtimeOnly "org.lwjgl:lwjgl::natives-windows"
+		runtimeOnly "org.lwjgl:lwjgl-openal::ntives-windows"
+		runtimeOnly "org.lwjgl:lwjgl-stb::natives-windows"
+	}
 }
 
 sourceSets {
